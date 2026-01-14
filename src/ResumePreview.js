@@ -1,7 +1,7 @@
 // src/ResumePreview.js
 import React from 'react';
 import { MapPin, Mail, Phone, Linkedin, Github, FileText, Youtube } from 'lucide-react';
-import { DENSITY, LIST_STYLES } from './constants';
+import { LIST_STYLES } from './constants';
 
 const formatText = (text) => {
   if (!text) return null;
@@ -18,25 +18,28 @@ const formatText = (text) => {
 };
 
 export default function ResumePreview({ data, settings }) {
-  const currentDensity = DENSITY[settings.density];
   const { structure, customSections, sectionOrder } = data; 
   
   const expColWidthCSS = `${settings.experienceColumnWidth}mm`;
   const eduColWidthCSS = `${settings.educationColumnWidth}mm`;
   const projColWidthCSS = `${settings.projectsColumnWidth}mm`;
 
-  // Lógica de Espaçamento Dinâmico (Compacto vs Expandido)
-  // Se for Expandido, usa valores maiores (6/8). Se for Compacto (Padrão), usa valores menores (3/4).
-  const itemSpacingClass = settings.itemSpacing === 'expanded' 
-    ? (settings.density === 'compact' ? 'space-y-6' : 'space-y-8') 
-    : (settings.density === 'compact' ? 'space-y-3' : 'space-y-4');
+  // Lógica de Espaçamento Dinâmico (Flex Gap)
+  const listContainerStyle = {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: `${settings.itemSpacing}mm`
+  };
+
+  // Lógica de Quebra de Página (Se Auto=True, remove 'keep-together')
+  const pageBreakClass = settings.pageBreakAuto ? '' : 'keep-together';
 
   const { 
     photo, showPhoto, photoAlignment,
     photoShape, photoScale, photoX, photoY, photoGrayscale 
   } = data.personal;
 
-  // Helper para renderizar itens de lista (com suporte a subtópicos e ocultação de vazios)
+  // Helper para renderizar itens de lista
   const renderListItems = (items) => {
     // Busca a configuração de estilo (Padrão: disc)
     const activeStyle = LIST_STYLES[settings.listStyle] || LIST_STYLES['disc'];
@@ -87,10 +90,17 @@ export default function ResumePreview({ data, settings }) {
     const isPhotoVisible = showPhoto && photo;
     const align = photoAlignment || 'center'; 
 
-    let containerClasses = `border-b-2 ${currentDensity.headerPad} flex `;
+    let containerClasses = `border-b-2 flex `;
     let textContainerClasses = "flex-1 ";
     let photoContainerClasses = "flex-shrink-0 ";
     let contactJustify = "justify-center";
+    
+    // PADDING INFERIOR DO HEADER (CONTROLADO PELO SLIDER)
+    const headerStyle = { 
+        borderColor: settings.themeColor,
+        marginBottom: `${settings.headerSpacing}mm`,
+        paddingBottom: `${settings.headerSpacing / 2}mm` // Padding proporcional à margem
+    };
 
     if (isPhotoVisible) {
         if (align === 'left') {
@@ -126,7 +136,7 @@ export default function ResumePreview({ data, settings }) {
     if (photoShape === 'rounded') frameRadius = '12px';
 
     return (
-        <header className={containerClasses} style={{ borderColor: settings.themeColor }}>
+        <header className={containerClasses} style={headerStyle}>
             {isPhotoVisible && (
                 <div className={photoContainerClasses}>
                     <div 
@@ -156,23 +166,26 @@ export default function ResumePreview({ data, settings }) {
   };
 
   const renderSection = (sectionId) => {
+    // Helper de estilo para margin-bottom dinâmico
+    const sectionStyle = { marginBottom: `${settings.sectionSpacing}mm` };
+
     if (sectionId.startsWith('custom-')) {
         const sec = customSections.find(s => s.id === sectionId);
         if (!sec || !sec.visible) return null;
         
         return (
-            <section key={sec.id} className={`${currentDensity.mbSection} keep-together`}>
+            <section key={sec.id} className={`${pageBreakClass}`} style={sectionStyle}>
               <h3 className="dynamic-title text-[1.1em] uppercase tracking-wider mb-1 border-b" style={{ color: settings.themeColor, fontWeight: settings.sectionTitleBold ? '700' : '400', borderColor: settings.themeColor }}>{sec.title}</h3>
               {sec.type === 'text' && <p className="text-gray-800 break-words" style={{ textAlign: settings.textAlign, textJustify: 'inter-word' }}>{formatText(sec.content)}</p>}
               {sec.type === 'list' && (
-                <ul className={`list-outside ml-4 text-gray-800 ${currentDensity.listSpace}`}>
+                <ul className="list-outside ml-4 text-gray-800" style={listContainerStyle}>
                   {renderListItems(sec.content)}
                 </ul>
               )}
               {sec.type === 'detailed' && (
-                 <div className={settings.density === 'compact' ? 'space-y-2' : 'space-y-4'}>
+                 <div style={listContainerStyle}>
                   {(Array.isArray(sec.content) ? sec.content : []).map((item, i) => (
-                    <div key={i} className="keep-together">
+                    <div key={i} className={pageBreakClass}>
                       <div className="flex flex-row items-baseline justify-between flex-row-print">
                         <div className="font-bold text-[1.05em] leading-tight break-words flex-1 pr-3">{formatText(item.title)}</div>
                         <div className="text-[0.9em] text-gray-600 text-right leading-tight flex-shrink-0" style={{ width: expColWidthCSS }}>{item.location}</div>
@@ -182,7 +195,7 @@ export default function ResumePreview({ data, settings }) {
                         <div className="text-[0.9em] text-gray-600 font-medium text-right leading-tight flex-shrink-0" style={{ width: expColWidthCSS }}>{item.date}</div>
                       </div>
                       <div className="mt-1" style={{ paddingRight: expColWidthCSS }}>
-                        <ul className={`list-outside ml-4 text-gray-800 ${currentDensity.listSpace}`}>
+                        <ul className="list-outside ml-4 text-gray-800" style={listContainerStyle}>
                           {renderListItems(item.description)}
                         </ul>
                       </div>
@@ -197,16 +210,16 @@ export default function ResumePreview({ data, settings }) {
     switch(sectionId) {
         case 'summary':
             return structure.summary.visible && data.summary && (
-                <section key="summary" className={`${currentDensity.mbSection} keep-together`}>
+                <section key="summary" className={`${pageBreakClass}`} style={sectionStyle}>
                     <h3 className="dynamic-title text-[1.1em] uppercase tracking-wider mb-1 border-b" style={{ color: settings.themeColor, fontWeight: settings.sectionTitleBold ? '700' : '400', borderColor: settings.themeColor }}>{structure.summary.title}</h3>
                     <p className="text-gray-800 break-words" style={{ textAlign: settings.textAlign, textJustify: 'inter-word' }}>{formatText(data.summary)}</p>
                 </section>
             );
         case 'skills':
             return structure.skills.visible && data.skills.length > 0 && (
-                <section key="skills" className={`${currentDensity.mbSection} keep-together`}>
+                <section key="skills" className={`${pageBreakClass}`} style={sectionStyle}>
                     <h3 className="dynamic-title text-[1.1em] uppercase tracking-wider mb-1 border-b" style={{ color: settings.themeColor, fontWeight: settings.sectionTitleBold ? '700' : '400', borderColor: settings.themeColor }}>{structure.skills.title}</h3>
-                    <div className={currentDensity.listSpace}>
+                    <div style={listContainerStyle}>
                     {data.skills.map((skill, i) => (
                         <div key={i} className="flex flex-row items-baseline gap-4" >
                         <div className="font-bold text-[0.95em] leading-tight break-words text-gray-800 flex-shrink-0" style={{ width: `${settings.leftColumnWidth}mm` }}>{formatText(skill.category)}</div>
@@ -218,21 +231,20 @@ export default function ResumePreview({ data, settings }) {
             );
         case 'projects':
             return structure.projects.visible && data.projects.length > 0 && (
-                <section key="projects" className={currentDensity.mbSection}>
+                <section key="projects" style={sectionStyle}>
                     <h3 className="dynamic-title text-[1.1em] uppercase tracking-wider mb-2 border-b" style={{ color: settings.themeColor, fontWeight: settings.sectionTitleBold ? '700' : '400', borderColor: settings.themeColor }}>{structure.projects.title}</h3>
-                    {/* APLICAÇÃO DO ESPAÇAMENTO DINÂMICO (ITEM SPACING) */}
-                    <div className={itemSpacingClass}>
+                    <div style={listContainerStyle}>
                     {data.projects.map((proj, i) => (
-                        <div key={i} className="keep-together flex flex-row items-start gap-8 flex-row-print">
-                        {/* LADO ESQUERDO: Flex-1 para ocupar o espaço restante */}
+                        <div key={i} className={`${pageBreakClass} flex flex-row items-start gap-8 flex-row-print`}>
+                        {/* LADO ESQUERDO */}
                         <div className="flex-1">
                             <h4 className="font-bold text-gray-900 text-[1.05em] break-words mb-1">{proj.title}</h4>
-                            <ul className={`list-outside ml-4 text-gray-800 ${currentDensity.listSpace}`}>
+                            <ul className="list-outside ml-4 text-gray-800" style={listContainerStyle}>
                                 {renderListItems(proj.description)}
                             </ul>
                         </div>
 
-                        {/* LADO DIREITO: Tech Box com largura fixa */}
+                        {/* LADO DIREITO: Tech Box */}
                         <div className="flex-shrink-0 flex items-start justify-end mt-1" style={{ width: projColWidthCSS }}>
                             <span className="text-[0.85em] font-mono bg-gray-100 px-2 py-1 rounded text-gray-600 border border-gray-200 inline-block break-words">
                                 {proj.tech}
@@ -245,15 +257,14 @@ export default function ResumePreview({ data, settings }) {
             );
         case 'experience':
             return structure.experience.visible && data.experience.length > 0 && (
-                <section key="experience" className={currentDensity.mbSection}>
+                <section key="experience" style={sectionStyle}>
                     <h3 className="dynamic-title text-[1.1em] uppercase tracking-wider mb-2 border-b" style={{ color: settings.themeColor, fontWeight: settings.sectionTitleBold ? '700' : '400', borderColor: settings.themeColor }}>{structure.experience.title}</h3>
-                    {/* APLICAÇÃO DO ESPAÇAMENTO DINÂMICO (ITEM SPACING) */}
-                    <div className={itemSpacingClass}>
+                    <div style={listContainerStyle}>
                     {data.experience.map((exp, i) => {
                         const hasContent = exp.company?.trim() || exp.role?.trim() || (exp.description || []).some(d => d.trim());
                         if (!hasContent) return null;
                         return (
-                        <div key={i} className="keep-together">
+                        <div key={i} className={pageBreakClass}>
                         <div className="flex flex-row items-baseline justify-between flex-row-print">
                             <div className="font-bold text-[1.05em] leading-tight break-words flex-1 pr-4">{exp.company}</div>
                             <div className="text-[0.9em] text-gray-600 text-right leading-tight flex-shrink-0" style={{ width: expColWidthCSS }}>{exp.location}</div>
@@ -263,7 +274,7 @@ export default function ResumePreview({ data, settings }) {
                             <div className="text-[0.9em] text-gray-600 font-medium text-right leading-tight flex-shrink-0" style={{ width: expColWidthCSS }}>{exp.period}</div>
                         </div>
                         <div className="mt-1" style={{ paddingRight: expColWidthCSS }}>
-                            <ul className={`list-outside ml-4 text-gray-800 ${currentDensity.listSpace}`}>
+                            <ul className="list-outside ml-4 text-gray-800" style={listContainerStyle}>
                                 {renderListItems(exp.description)}
                             </ul>
                         </div>
@@ -274,15 +285,14 @@ export default function ResumePreview({ data, settings }) {
             );
         case 'education':
             return structure.education.visible && data.education.length > 0 && (
-                <section key="education" className={currentDensity.mbSection}>
+                <section key="education" style={sectionStyle}>
                     <h3 className="dynamic-title text-[1.1em] uppercase tracking-wider mb-2 border-b" style={{ color: settings.themeColor, fontWeight: settings.sectionTitleBold ? '700' : '400', borderColor: settings.themeColor }}>{structure.education.title}</h3>
-                    {/* FORMAÇÃO SEMPRE COMPACTO CONFORME SOLICITADO */}
-                    <div className={settings.density === 'compact' ? 'space-y-2' : 'space-y-3'}>
+                    <div style={{ ...listContainerStyle, gap: `${Math.min(settings.itemSpacing, 4)}mm` }}>
                     {data.education.map((edu, i) => {
                         const hasContent = edu.institution?.trim() || edu.degree?.trim();
                         if (!hasContent) return null;
                         return (
-                        <div key={i} className="keep-together">
+                        <div key={i} className={pageBreakClass}>
                             <div className="flex flex-row items-baseline justify-between flex-row-print">
                             <div className="font-bold leading-tight break-words flex-1 pr-4">{edu.degree}</div>
                             <div className="text-[0.9em] text-gray-600 text-right leading-tight flex-shrink-0" style={{ width: eduColWidthCSS }}>{edu.period}</div>
@@ -303,13 +313,13 @@ export default function ResumePreview({ data, settings }) {
             );
         case 'others':
             return structure.others.visible && data.others.length > 0 && (
-                <section key="others" className={`${currentDensity.mbSection} keep-together`}>
+                <section key="others" className={`${pageBreakClass}`} style={sectionStyle}>
                     <h3 className="dynamic-title text-[1.1em] uppercase tracking-wider mb-1 border-b" style={{ color: settings.themeColor, fontWeight: settings.sectionTitleBold ? '700' : '400', borderColor: settings.themeColor }}>{structure.others.title}</h3>
-                    <div style={{ paddingRight: expColWidthCSS }} className="space-y-3">
+                    <div style={{ paddingRight: expColWidthCSS, ...listContainerStyle }}>
                         {data.others.map((item, i) => (
-                            <div key={i} className="keep-together">
+                            <div key={i} className={pageBreakClass}>
                                 {item.title && <h4 className="font-bold text-gray-900 text-[0.95em] mb-1">{item.title}</h4>}
-                                <ul className={`list-outside ml-4 text-gray-800 ${currentDensity.listSpace}`}>
+                                <ul className="list-outside ml-4 text-gray-800" style={listContainerStyle}>
                                     {renderListItems(item.description)}
                                 </ul>
                             </div>
@@ -325,7 +335,7 @@ export default function ResumePreview({ data, settings }) {
     <div 
       id="resume-preview" 
       lang="pt-BR"
-      className={`bg-white shadow-2xl relative ${currentDensity.leading}`}
+      className="bg-white shadow-2xl relative"
       style={{ 
         fontFamily: `'${settings.font}', sans-serif`,
         width: '210mm',
@@ -335,7 +345,7 @@ export default function ResumePreview({ data, settings }) {
         paddingLeft: '15mm',
         paddingRight: '15mm',
         fontSize: `${settings.fontSizeBase}pt`,
-        lineHeight: settings.density === 'compact' ? '1.3' : '1.5',
+        lineHeight: settings.lineHeight, // AGORA USA O SLIDER DIRETAMENTE
         boxSizing: 'border-box'
       }}
     >
