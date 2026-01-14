@@ -7,17 +7,26 @@ export const FONTS = {
   'Lora': { name: 'Lora (Elegante)', url: 'https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,700;1,400&display=swap' }
 };
 
+export const LIST_STYLES = {
+  'disc': { label: 'Bolinha Padrão (●)', cssMain: 'list-disc', cssSub: 'list-[circle]' },
+  'circle': { label: 'Círculo Vazado (○)', cssMain: 'list-[circle]', cssSub: 'list-[square]' },
+  'square': { label: 'Quadrado (■)', cssMain: 'list-[square]', cssSub: 'list-[circle]' },
+  'decimal': { label: 'Numérico (1, 2, 3)', cssMain: 'list-decimal', cssSub: 'list-[lower-alpha]' },
+  'arrow': { label: 'Seta (➢)', cssMain: "list-['➢']", cssSub: "list-['↳']" }, 
+  'check': { label: 'Check (✓)', cssMain: "list-['✓']", cssSub: "list-['◦']" },
+  'dash': { label: 'Traço (–)', cssMain: "list-['–']", cssSub: "list-[circle]" }
+};
+
 export const INITIAL_SETTINGS = {
   font: 'Roboto',
   themeColor: '#111827',
   sectionTitleBold: true,
-  
-  // Configurações de página removidas permanentemente
-  
   showGuides: true,
   density: 'compact',
   fontSizeBase: 10,
   textAlign: 'justify',
+  listStyle: 'disc', 
+  itemSpacing: 'compact', // NOVA CONFIGURAÇÃO (Padrão: Compacto)
   
   // Margens de Coluna
   experienceColumnWidth: 25, 
@@ -32,7 +41,6 @@ export const DENSITY = {
 };
 
 export const INITIAL_DATA = {
-  // Ordem inicial de renderização
   sectionOrder: ['summary', 'skills', 'projects', 'experience', 'education', 'others'],
 
   structure: {
@@ -51,8 +59,21 @@ export const INITIAL_DATA = {
     location: "Lavras, MG",
     linkedin: "linkedin.com/in/rafael-miranda",
     github: "github.com/rafael-miranda",
+    youtube: "",
     lattes: "lattes.cnpq.br/123456789", 
-    website: ""
+    website: "",
+    
+    // FOTO & ESTÚDIO
+    photo: "", 
+    showPhoto: false,
+    photoAlignment: 'center', // Posição do bloco (left, center, right)
+    
+    // AJUSTES FINOS DA IMAGEM
+    photoShape: 'circle', // 'circle', 'square', 'rounded'
+    photoScale: 100,      // Zoom (100% é o padrão)
+    photoX: 0,            // Posição Horizontal (%)
+    photoY: 0,            // Posição Vertical (%)
+    photoGrayscale: false // Preto e Branco
   },
   summary: "Doutor em Genética e Melhoramento com perfil híbrido e estratégico, integrando a expertise agronômica à engenharia de software (Ciência da Computação em curso). Especialista em **Computational Breeding**, atuo na interface entre Biologia e Dados desenvolvendo ferramentas AgTech que automatizam pipelines complexos de Big Data Genômico e análises biométricas. Busco integrar o time de P&D da **Bayer** em Uberlândia para traduzir desafios biológicos em soluções computacionais escaláveis, acelerando a inovação genética e a tomada de decisão no campo.",
   skills: [
@@ -139,7 +160,6 @@ export const INITIAL_DATA = {
       details: "Pesquisa avançada em mapeamento genético (GWAS)."
     }
   ],
-  // REESTRUTURADO: Agora "Others" suporta Título e Lista de Itens (igual a Projetos)
   others: [
     {
       title: "Idiomas",
