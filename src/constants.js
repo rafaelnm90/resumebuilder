@@ -22,11 +22,16 @@ export const INITIAL_SETTINGS = {
   themeColor: '#111827',
   sectionTitleBold: true,
   showGuides: true,
-  density: 'compact',
   fontSizeBase: 10,
   textAlign: 'justify',
-  listStyle: 'disc', 
-  itemSpacing: 'compact', // NOVA CONFIGURAÇÃO (Padrão: Compacto)
+  listStyle: 'disc',
+  
+  // NOVOS CONTROLES GRANULARES (Substituem a Densidade)
+  lineHeight: 1.3,       // Altura da linha (1.0 a 2.0)
+  headerSpacing: 5,      // Margem abaixo do cabeçalho (mm)
+  itemSpacing: 3,        // Espaçamento entre itens de lista (mm)
+  sectionSpacing: 5,     // Espaçamento entre seções (mm)
+  pageBreakAuto: false,  // Permitir quebra dentro de tópicos
   
   // Margens de Coluna
   experienceColumnWidth: 25, 
@@ -35,10 +40,7 @@ export const INITIAL_SETTINGS = {
   leftColumnWidth: 45        
 };
 
-export const DENSITY = {
-  compact: { mbSection: 'mb-3', mbItem: 'mb-2', leading: 'leading-snug', headerPad: 'mb-4 pb-2', listSpace: 'space-y-0.5' },
-  comfortable: { mbSection: 'mb-6', mbItem: 'mb-4', leading: 'leading-relaxed', headerPad: 'mb-6 pb-4', listSpace: 'space-y-1.5' }
-};
+// REMOVIDO: const DENSITY (Não é mais necessário, pois usamos sliders diretos)
 
 export const INITIAL_DATA = {
   sectionOrder: ['summary', 'skills', 'projects', 'experience', 'education', 'others'],
