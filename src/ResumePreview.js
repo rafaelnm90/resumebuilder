@@ -1,14 +1,17 @@
 // src/ResumePreview.js
 import React from 'react';
-import { MapPin, Mail, Phone, Linkedin, Github, FileText } from 'lucide-react';
-import { DENSITY } from './constants';
+import { MapPin, Mail, Phone, Linkedin, Github, FileText, Youtube } from 'lucide-react';
+import { DENSITY, LIST_STYLES } from './constants';
 
 const formatText = (text) => {
   if (!text) return null;
-  const parts = text.split(/(\*\*.*?\*\*)/g);
+  const parts = text.split(/(\*\*[^*]+\*\*|\*[^*]+\*)/g);
   return parts.map((part, index) => {
     if (part.startsWith('**') && part.endsWith('**')) {
       return <strong key={index}>{part.slice(2, -2)}</strong>;
+    }
+    if (part.startsWith('*') && part.endsWith('*')) {
+      return <em key={index}>{part.slice(1, -1)}</em>;
     }
     return part;
   });
@@ -16,15 +19,143 @@ const formatText = (text) => {
 
 export default function ResumePreview({ data, settings }) {
   const currentDensity = DENSITY[settings.density];
-  const { structure, customSections, sectionOrder } = data; // Lê a ordem agora
+  const { structure, customSections, sectionOrder } = data; 
   
   const expColWidthCSS = `${settings.experienceColumnWidth}mm`;
   const eduColWidthCSS = `${settings.educationColumnWidth}mm`;
   const projColWidthCSS = `${settings.projectsColumnWidth}mm`;
 
-  // Função auxiliar para renderizar cada bloco baseado no ID
+  // Lógica de Espaçamento Dinâmico (Compacto vs Expandido)
+  // Se for Expandido, usa valores maiores (6/8). Se for Compacto (Padrão), usa valores menores (3/4).
+  const itemSpacingClass = settings.itemSpacing === 'expanded' 
+    ? (settings.density === 'compact' ? 'space-y-6' : 'space-y-8') 
+    : (settings.density === 'compact' ? 'space-y-3' : 'space-y-4');
+
+  const { 
+    photo, showPhoto, photoAlignment,
+    photoShape, photoScale, photoX, photoY, photoGrayscale 
+  } = data.personal;
+
+  // Helper para renderizar itens de lista (com suporte a subtópicos e ocultação de vazios)
+  const renderListItems = (items) => {
+    // Busca a configuração de estilo (Padrão: disc)
+    const activeStyle = LIST_STYLES[settings.listStyle] || LIST_STYLES['disc'];
+    
+    // Verifica se é um dos estilos que precisa de mais espaçamento
+    const isWideMarker = ['arrow', 'check', 'dash'].includes(settings.listStyle);
+
+    return (items || []).map((item, i) => {
+        if (!item || !item.trim()) return null; // Oculta itens vazios
+        
+        const isHeader = item.startsWith('## ');
+        const isSub = item.startsWith('>> ');
+        
+        let text = item;
+        let bulletClass = activeStyle.cssMain;
+        let indentClass = '';
+        let extraClasses = '';
+
+        if (isHeader) {
+            text = item.slice(3);
+            bulletClass = 'list-none'; // Remove bullet
+            // MARGEM SUPERIOR AUMENTADA (mt-6) para separar visualmente do bloco anterior
+            extraClasses = 'font-bold text-gray-900 mt-6 mb-1 pt-1'; 
+        } else if (isSub) {
+            text = item.slice(3);
+            bulletClass = activeStyle.cssSub;
+            indentClass = 'ml-6';
+            // Ajuste fino para sub-itens de ícones largos
+            if (isWideMarker) extraClasses = 'pl-2';
+        } else {
+            // Item normal
+            // PADDING LATERAL AUMENTADO (pl-3) para ícones largos
+            if (isWideMarker) {
+                extraClasses = 'pl-3';
+            }
+        }
+
+        return (
+            <li key={i} className={`break-words ${indentClass} ${bulletClass} ${extraClasses}`} style={{ textAlign: settings.textAlign, textJustify: 'inter-word' }}>
+                {formatText(text)}
+            </li>
+        );
+    });
+  };
+
+  // Lógica de Renderização do Header
+  const renderHeader = () => {
+    const isPhotoVisible = showPhoto && photo;
+    const align = photoAlignment || 'center'; 
+
+    let containerClasses = `border-b-2 ${currentDensity.headerPad} flex `;
+    let textContainerClasses = "flex-1 ";
+    let photoContainerClasses = "flex-shrink-0 ";
+    let contactJustify = "justify-center";
+
+    if (isPhotoVisible) {
+        if (align === 'left') {
+            containerClasses += "flex-row items-center gap-6 text-left";
+            textContainerClasses += "text-left";
+            contactJustify = "justify-start";
+        } else if (align === 'right') {
+            containerClasses += "flex-row-reverse items-center gap-6 text-right";
+            textContainerClasses += "text-right";
+            contactJustify = "justify-end";
+        } else {
+            containerClasses += "flex-col items-center text-center";
+            textContainerClasses += "text-center";
+            contactJustify = "justify-center";
+            photoContainerClasses += "mb-4";
+        }
+    } else {
+        containerClasses += "flex-col items-center text-center";
+        textContainerClasses += "text-center";
+    }
+
+    const photoStyle = {
+        width: '100%',
+        height: '100%',
+        objectFit: 'contain', 
+        transform: `scale(${photoScale / 100}) translate(${photoX}%, ${photoY}%)`,
+        filter: photoGrayscale ? 'grayscale(100%)' : 'none',
+        transition: 'transform 0.1s'
+    };
+
+    let frameRadius = '50%'; 
+    if (photoShape === 'square') frameRadius = '0%';
+    if (photoShape === 'rounded') frameRadius = '12px';
+
+    return (
+        <header className={containerClasses} style={{ borderColor: settings.themeColor }}>
+            {isPhotoVisible && (
+                <div className={photoContainerClasses}>
+                    <div 
+                        className="w-28 h-28 border-2 border-gray-200 shadow-sm overflow-hidden bg-gray-100"
+                        style={{ borderRadius: frameRadius }}
+                    >
+                        <img src={photo} alt="Foto de Perfil" style={photoStyle} />
+                    </div>
+                </div>
+            )}
+            <div className={textContainerClasses}>
+                <h1 className="font-extrabold tracking-wide uppercase leading-none mb-2 break-words" style={{ color: settings.themeColor, fontSize: '1.8em' }}>{data.personal.name}</h1>
+                <div className={`flex flex-wrap gap-x-3 gap-y-1 text-[0.9em] font-medium text-gray-700 leading-tight mb-2 ${contactJustify}`}>
+                    {data.personal.email && <span className="flex items-center gap-1"><Mail size={'1em'}/> {data.personal.email}</span>}
+                    {data.personal.phone && <span className="flex items-center gap-1 border-l pl-2 border-gray-400"><Phone size={'1em'}/> {data.personal.phone}</span>}
+                    {data.personal.location && <span className="flex items-center gap-1 border-l pl-2 border-gray-400"><MapPin size={'1em'}/> {data.personal.location}</span>}
+                </div>
+                <div className={`flex flex-wrap gap-3 text-[0.9em] font-medium leading-tight ${contactJustify}`} style={{ color: settings.themeColor }}>
+                    {data.personal.linkedin && <a href={`https://${data.personal.linkedin}`} className="flex items-center gap-1 hover:underline"><Linkedin size={'1em'}/> {data.personal.linkedin}</a>}
+                    {data.personal.github && <a href={`https://${data.personal.github}`} className="flex items-center gap-1 hover:underline"><Github size={'1em'}/> {data.personal.github}</a>}
+                    {data.personal.youtube && <a href={`https://${data.personal.youtube}`} className="flex items-center gap-1 hover:underline"><Youtube size={'1em'}/> YouTube</a>}
+                    {data.personal.lattes && <a href={`https://${data.personal.lattes}`} className="flex items-center gap-1 hover:underline"><FileText size={'1em'}/> Lattes</a>}
+                </div>
+            </div>
+        </header>
+    );
+  };
+
   const renderSection = (sectionId) => {
-    // 1. Verificar se é customizado
     if (sectionId.startsWith('custom-')) {
         const sec = customSections.find(s => s.id === sectionId);
         if (!sec || !sec.visible) return null;
@@ -32,12 +163,10 @@ export default function ResumePreview({ data, settings }) {
         return (
             <section key={sec.id} className={`${currentDensity.mbSection} keep-together`}>
               <h3 className="dynamic-title text-[1.1em] uppercase tracking-wider mb-1 border-b" style={{ color: settings.themeColor, fontWeight: settings.sectionTitleBold ? '700' : '400', borderColor: settings.themeColor }}>{sec.title}</h3>
-              {sec.type === 'text' && <p className="text-gray-800 break-words" style={{ textAlign: settings.textAlign }}>{formatText(sec.content)}</p>}
+              {sec.type === 'text' && <p className="text-gray-800 break-words" style={{ textAlign: settings.textAlign, textJustify: 'inter-word' }}>{formatText(sec.content)}</p>}
               {sec.type === 'list' && (
-                <ul className={`list-disc list-outside ml-4 text-gray-800 ${currentDensity.listSpace}`}>
-                  {(Array.isArray(sec.content) ? sec.content : []).map((item, i) => (
-                    item && <li key={i} className="break-words" style={{ textAlign: settings.textAlign }}>{formatText(item)}</li>
-                  ))}
+                <ul className={`list-outside ml-4 text-gray-800 ${currentDensity.listSpace}`}>
+                  {renderListItems(sec.content)}
                 </ul>
               )}
               {sec.type === 'detailed' && (
@@ -45,18 +174,16 @@ export default function ResumePreview({ data, settings }) {
                   {(Array.isArray(sec.content) ? sec.content : []).map((item, i) => (
                     <div key={i} className="keep-together">
                       <div className="flex flex-row items-baseline justify-between flex-row-print">
-                        <div className="font-bold text-[1.05em] leading-tight break-words flex-1 pr-2">{formatText(item.title)}</div>
+                        <div className="font-bold text-[1.05em] leading-tight break-words flex-1 pr-3">{formatText(item.title)}</div>
                         <div className="text-[0.9em] text-gray-600 text-right leading-tight flex-shrink-0" style={{ width: expColWidthCSS }}>{item.location}</div>
                       </div>
                       <div className="flex flex-row items-baseline justify-between flex-row-print">
-                        <div className="italic font-medium text-gray-800 leading-tight break-words flex-1 pr-2">{formatText(item.subtitle)}</div>
+                        <div className="italic font-medium text-gray-800 leading-tight break-words flex-1 pr-3">{formatText(item.subtitle)}</div>
                         <div className="text-[0.9em] text-gray-600 font-medium text-right leading-tight flex-shrink-0" style={{ width: expColWidthCSS }}>{item.date}</div>
                       </div>
                       <div className="mt-1" style={{ paddingRight: expColWidthCSS }}>
-                        <ul className={`list-disc list-outside ml-4 text-gray-800 ${currentDensity.listSpace}`}>
-                          {item.description.map((desc, d) => (
-                            desc && <li key={d} className="break-words" style={{ textAlign: settings.textAlign }}>{formatText(desc)}</li>
-                          ))}
+                        <ul className={`list-outside ml-4 text-gray-800 ${currentDensity.listSpace}`}>
+                          {renderListItems(item.description)}
                         </ul>
                       </div>
                     </div>
@@ -67,13 +194,12 @@ export default function ResumePreview({ data, settings }) {
         );
     }
 
-    // 2. Verificar seções padrão
     switch(sectionId) {
         case 'summary':
             return structure.summary.visible && data.summary && (
                 <section key="summary" className={`${currentDensity.mbSection} keep-together`}>
                     <h3 className="dynamic-title text-[1.1em] uppercase tracking-wider mb-1 border-b" style={{ color: settings.themeColor, fontWeight: settings.sectionTitleBold ? '700' : '400', borderColor: settings.themeColor }}>{structure.summary.title}</h3>
-                    <p className="text-gray-800 break-words" style={{ textAlign: settings.textAlign }}>{formatText(data.summary)}</p>
+                    <p className="text-gray-800 break-words" style={{ textAlign: settings.textAlign, textJustify: 'inter-word' }}>{formatText(data.summary)}</p>
                 </section>
             );
         case 'skills':
@@ -84,33 +210,31 @@ export default function ResumePreview({ data, settings }) {
                     {data.skills.map((skill, i) => (
                         <div key={i} className="flex flex-row items-baseline gap-4" >
                         <div className="font-bold text-[0.95em] leading-tight break-words text-gray-800 flex-shrink-0" style={{ width: `${settings.leftColumnWidth}mm` }}>{formatText(skill.category)}</div>
-                        <div className="text-gray-800 break-words leading-tight flex-1" style={{ textAlign: settings.textAlign }}>{formatText(skill.items)}</div>
+                        <div className="text-gray-800 break-words leading-tight flex-1" style={{ textAlign: settings.textAlign, textJustify: 'inter-word' }}>{formatText(skill.items)}</div>
                         </div>
                     ))}
                     </div>
                 </section>
             );
         case 'projects':
-            // CORREÇÃO VISUAL SOLICITADA: items-start, mt-1 e gap-8
             return structure.projects.visible && data.projects.length > 0 && (
                 <section key="projects" className={currentDensity.mbSection}>
                     <h3 className="dynamic-title text-[1.1em] uppercase tracking-wider mb-2 border-b" style={{ color: settings.themeColor, fontWeight: settings.sectionTitleBold ? '700' : '400', borderColor: settings.themeColor }}>{structure.projects.title}</h3>
-                    <div className="space-y-3">
+                    {/* APLICAÇÃO DO ESPAÇAMENTO DINÂMICO (ITEM SPACING) */}
+                    <div className={itemSpacingClass}>
                     {data.projects.map((proj, i) => (
                         <div key={i} className="keep-together flex flex-row items-start gap-8 flex-row-print">
-                        {/* LADO ESQUERDO: Título e Descrição */}
+                        {/* LADO ESQUERDO: Flex-1 para ocupar o espaço restante */}
                         <div className="flex-1">
                             <h4 className="font-bold text-gray-900 text-[1.05em] break-words mb-1">{proj.title}</h4>
-                            <ul className={`list-disc list-outside ml-4 text-gray-800 ${currentDensity.listSpace}`}>
-                            {proj.description.map((desc, d) => (
-                                <li key={d} className="break-words" style={{ textAlign: settings.textAlign }}>{formatText(desc)}</li>
-                            ))}
+                            <ul className={`list-outside ml-4 text-gray-800 ${currentDensity.listSpace}`}>
+                                {renderListItems(proj.description)}
                             </ul>
                         </div>
 
-                        {/* LADO DIREITO: Tech Box Alinhado ao Topo (items-start no pai) e mt-1 */}
+                        {/* LADO DIREITO: Tech Box com largura fixa */}
                         <div className="flex-shrink-0 flex items-start justify-end mt-1" style={{ width: projColWidthCSS }}>
-                            <span className="text-[0.85em] font-mono bg-gray-100 px-2 py-1 rounded text-gray-600 border border-gray-200 inline-block w-full break-words text-center">
+                            <span className="text-[0.85em] font-mono bg-gray-100 px-2 py-1 rounded text-gray-600 border border-gray-200 inline-block break-words">
                                 {proj.tech}
                             </span>
                         </div>
@@ -123,25 +247,24 @@ export default function ResumePreview({ data, settings }) {
             return structure.experience.visible && data.experience.length > 0 && (
                 <section key="experience" className={currentDensity.mbSection}>
                     <h3 className="dynamic-title text-[1.1em] uppercase tracking-wider mb-2 border-b" style={{ color: settings.themeColor, fontWeight: settings.sectionTitleBold ? '700' : '400', borderColor: settings.themeColor }}>{structure.experience.title}</h3>
-                    <div className={settings.density === 'compact' ? 'space-y-2' : 'space-y-4'}>
+                    {/* APLICAÇÃO DO ESPAÇAMENTO DINÂMICO (ITEM SPACING) */}
+                    <div className={itemSpacingClass}>
                     {data.experience.map((exp, i) => {
                         const hasContent = exp.company?.trim() || exp.role?.trim() || (exp.description || []).some(d => d.trim());
                         if (!hasContent) return null;
                         return (
                         <div key={i} className="keep-together">
                         <div className="flex flex-row items-baseline justify-between flex-row-print">
-                            <div className="font-bold text-[1.05em] leading-tight break-words flex-1 pr-2">{exp.company}</div>
+                            <div className="font-bold text-[1.05em] leading-tight break-words flex-1 pr-4">{exp.company}</div>
                             <div className="text-[0.9em] text-gray-600 text-right leading-tight flex-shrink-0" style={{ width: expColWidthCSS }}>{exp.location}</div>
                         </div>
                         <div className="flex flex-row items-baseline justify-between flex-row-print">
-                            <div className="italic font-medium text-gray-800 leading-tight break-words flex-1 pr-2">{exp.role}</div>
+                            <div className="italic font-medium text-gray-800 leading-tight break-words flex-1 pr-4">{exp.role}</div>
                             <div className="text-[0.9em] text-gray-600 font-medium text-right leading-tight flex-shrink-0" style={{ width: expColWidthCSS }}>{exp.period}</div>
                         </div>
                         <div className="mt-1" style={{ paddingRight: expColWidthCSS }}>
-                            <ul className={`list-disc list-outside ml-4 text-gray-800 ${currentDensity.listSpace}`}>
-                            {(exp.description || []).map((desc, d) => (
-                                <li key={d} className="break-words" style={{ textAlign: settings.textAlign }}>{formatText(desc)}</li>
-                            ))}
+                            <ul className={`list-outside ml-4 text-gray-800 ${currentDensity.listSpace}`}>
+                                {renderListItems(exp.description)}
                             </ul>
                         </div>
                         </div>
@@ -153,6 +276,7 @@ export default function ResumePreview({ data, settings }) {
             return structure.education.visible && data.education.length > 0 && (
                 <section key="education" className={currentDensity.mbSection}>
                     <h3 className="dynamic-title text-[1.1em] uppercase tracking-wider mb-2 border-b" style={{ color: settings.themeColor, fontWeight: settings.sectionTitleBold ? '700' : '400', borderColor: settings.themeColor }}>{structure.education.title}</h3>
+                    {/* FORMAÇÃO SEMPRE COMPACTO CONFORME SOLICITADO */}
                     <div className={settings.density === 'compact' ? 'space-y-2' : 'space-y-3'}>
                     {data.education.map((edu, i) => {
                         const hasContent = edu.institution?.trim() || edu.degree?.trim();
@@ -160,16 +284,16 @@ export default function ResumePreview({ data, settings }) {
                         return (
                         <div key={i} className="keep-together">
                             <div className="flex flex-row items-baseline justify-between flex-row-print">
-                            <div className="font-bold leading-tight break-words flex-1 pr-2">{edu.degree}</div>
+                            <div className="font-bold leading-tight break-words flex-1 pr-4">{edu.degree}</div>
                             <div className="text-[0.9em] text-gray-600 text-right leading-tight flex-shrink-0" style={{ width: eduColWidthCSS }}>{edu.period}</div>
                             </div>
                             <div className="flex flex-row items-baseline justify-between flex-row-print">
-                            <div className="text-gray-800 leading-tight break-words flex-1 pr-2">{edu.institution}</div>
+                            <div className="text-gray-800 leading-tight break-words flex-1 pr-4">{edu.institution}</div>
                             <div className="text-[0.9em] text-gray-600 text-right leading-tight flex-shrink-0" style={{ width: eduColWidthCSS }}>{edu.location}</div>
                             </div>
                             {edu.details && (
                             <div className="mt-0.5" style={{ paddingRight: eduColWidthCSS }}>
-                                <p className="text-[0.9em] text-gray-600 italic break-words">{formatText(edu.details)}</p>
+                                <p className="text-[0.9em] text-gray-600 italic break-words" style={{ textAlign: settings.textAlign, textJustify: 'inter-word' }}>{formatText(edu.details)}</p>
                             </div>
                             )}
                         </div>
@@ -178,7 +302,6 @@ export default function ResumePreview({ data, settings }) {
                 </section>
             );
         case 'others':
-            // RENDERIZAÇÃO NOVA DE "OUTROS" (Suporte a Categorias + Itens)
             return structure.others.visible && data.others.length > 0 && (
                 <section key="others" className={`${currentDensity.mbSection} keep-together`}>
                     <h3 className="dynamic-title text-[1.1em] uppercase tracking-wider mb-1 border-b" style={{ color: settings.themeColor, fontWeight: settings.sectionTitleBold ? '700' : '400', borderColor: settings.themeColor }}>{structure.others.title}</h3>
@@ -186,10 +309,8 @@ export default function ResumePreview({ data, settings }) {
                         {data.others.map((item, i) => (
                             <div key={i} className="keep-together">
                                 {item.title && <h4 className="font-bold text-gray-900 text-[0.95em] mb-1">{item.title}</h4>}
-                                <ul className={`list-disc list-outside ml-4 text-gray-800 ${currentDensity.listSpace}`}>
-                                    {item.description.map((desc, d) => (
-                                        desc.trim() ? <li key={d} className="break-words">{formatText(desc)}</li> : null
-                                    ))}
+                                <ul className={`list-outside ml-4 text-gray-800 ${currentDensity.listSpace}`}>
+                                    {renderListItems(item.description)}
                                 </ul>
                             </div>
                         ))}
@@ -230,22 +351,8 @@ export default function ResumePreview({ data, settings }) {
           </>
         )}
 
-        {/* HEADER (Sempre fixo no topo) */}
-        <header className={`text-center border-b-2 ${currentDensity.headerPad}`} style={{ borderColor: settings.themeColor }}>
-          <h1 className="font-extrabold tracking-wide uppercase leading-none mb-1 break-words" style={{ color: settings.themeColor, fontSize: '1.8em' }}>{data.personal.name}</h1>
-          <div className="flex flex-wrap justify-center gap-2 text-[0.9em] font-medium text-gray-700 leading-tight">
-            {data.personal.email && <span className="flex items-center gap-1"><Mail size={'1em'}/> {data.personal.email}</span>}
-            {data.personal.phone && <span className="flex items-center gap-1 border-l pl-2 border-gray-400"><Phone size={'1em'}/> {data.personal.phone}</span>}
-            {data.personal.location && <span className="flex items-center gap-1 border-l pl-2 border-gray-400"><MapPin size={'1em'}/> {data.personal.location}</span>}
-          </div>
-          <div className="flex flex-wrap justify-center gap-3 mt-1 text-[0.9em] font-medium leading-tight" style={{ color: settings.themeColor }}>
-            {data.personal.linkedin && <a href={`https://${data.personal.linkedin}`} className="flex items-center gap-1 hover:underline"><Linkedin size={'1em'}/> {data.personal.linkedin}</a>}
-            {data.personal.github && <a href={`https://${data.personal.github}`} className="flex items-center gap-1 hover:underline"><Github size={'1em'}/> {data.personal.github}</a>}
-            {data.personal.lattes && <a href={`https://${data.personal.lattes}`} className="flex items-center gap-1 hover:underline"><FileText size={'1em'}/> Lattes</a>}
-          </div>
-        </header>
+        {renderHeader()}
 
-        {/* RENDERIZAÇÃO DINÂMICA DAS SEÇÕES */}
         {sectionOrder.map(sectionId => renderSection(sectionId))}
 
       </div>
