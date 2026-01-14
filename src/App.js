@@ -218,7 +218,6 @@ const ExpandedModal = ({ isOpen, onClose, title, value, onSave }) => {
   if (!isOpen) return null;
 
   const handleFormat = (type) => {
-    // CORREÇÃO AQUI: renomeado de 'newVal' para 'newValue' para bater com o if abaixo
     const newValue = insertFormatting(textRef, type);
     if (newValue !== undefined) setLocalValue(newValue);
   };
@@ -440,16 +439,34 @@ export default function App() {
     <div className="space-y-6">
       <h2 className="text-xl font-bold text-gray-800 border-b pb-2 flex items-center"><Layout className="mr-2" size={20}/> Layout & Otimização</h2>
       <div className="bg-blue-50 p-4 rounded-lg border border-blue-200 space-y-4">
-        <label className="flex items-center text-sm font-bold text-blue-800"><Maximize2 size={16} className="mr-2"/> Densidade e Texto</label>
-        <div className="flex gap-2 p-1 bg-white rounded border border-blue-100">
-          <button onClick={() => setSettings({...settings, density: 'compact'})} className={`flex-1 flex items-center justify-center py-2 text-xs font-bold rounded transition-colors ${settings.density === 'compact' ? 'bg-blue-600 text-white shadow' : 'text-gray-500 hover:bg-gray-50'}`}><Minimize2 size={14} className="mr-1"/> Compacto</button>
-          <button onClick={() => setSettings({...settings, density: 'comfortable'})} className={`flex-1 flex items-center justify-center py-2 text-xs font-bold rounded transition-colors ${settings.density === 'comfortable' ? 'bg-blue-600 text-white shadow' : 'text-gray-500 hover:bg-gray-50'}`}><Maximize2 size={14} className="mr-1"/> Confortável</button>
-        </div>
+        <label className="flex items-center text-sm font-bold text-blue-800"><Maximize2 size={16} className="mr-2"/> Geometria e Espaçamento</label>
+        
+        {/* CONTROLE DE FONTE */}
         <div className="space-y-1">
           <div className="flex justify-between text-xs text-blue-800 font-semibold"><span>Tamanho da Fonte Base</span><span>{settings.fontSizeBase}pt</span></div>
           <input type="range" min="9" max="12" step="0.5" value={settings.fontSizeBase} onChange={e => setSettings({...settings, fontSizeBase: parseFloat(e.target.value)})} className="w-full h-2 bg-blue-200 rounded-lg appearance-none cursor-pointer" />
         </div>
+
+        {/* CONTROLE DE ENTRELINHA (SUBSTITUI OS BOTÕES DE DENSIDADE) */}
+        <div className="space-y-1">
+          <div className="flex justify-between text-xs text-blue-800 font-semibold"><span>Altura da Linha (Entrelinha)</span><span>{settings.lineHeight}</span></div>
+          <input type="range" min="1.0" max="2.0" step="0.05" value={settings.lineHeight} onChange={e => setSettings({...settings, lineHeight: parseFloat(e.target.value)})} className="w-full h-2 bg-blue-200 rounded-lg appearance-none cursor-pointer" />
+        </div>
         
+        {/* CONTROLE DE MARGEM DO CABEÇALHO */}
+        <div className="space-y-1">
+             <div className="flex justify-between text-xs text-blue-800 font-semibold">
+                <span>Margem do Cabeçalho</span>
+                <span>{settings.headerSpacing}mm</span>
+             </div>
+             <input 
+                type="range" min="0" max="20" step="1" 
+                value={settings.headerSpacing || 0} 
+                onChange={e => setSettings({...settings, headerSpacing: parseFloat(e.target.value)})}
+                className="w-full h-2 bg-blue-200 rounded-lg appearance-none cursor-pointer"
+             />
+        </div>
+
         <div className="space-y-1 border-t border-blue-100 pt-3">
              <div className="flex justify-between text-xs text-blue-800 font-semibold mb-1"><span>Estilo dos Marcadores</span></div>
              <select 
@@ -463,28 +480,50 @@ export default function App() {
              </select>
         </div>
 
+        {/* ESPAÇAMENTO ENTRE ITENS */}
         <div className="space-y-1 border-t border-blue-100 pt-3">
-             <div className="flex justify-between text-xs text-blue-800 font-semibold mb-2"><span>Espaçamento entre Itens</span></div>
-             <div className="flex gap-2 p-1 bg-white rounded border border-blue-100">
-                <button 
-                    onClick={() => setSettings({...settings, itemSpacing: 'compact'})} 
-                    className={`flex-1 flex items-center justify-center py-2 text-xs font-bold rounded transition-colors ${settings.itemSpacing === 'compact' ? 'bg-blue-600 text-white shadow' : 'text-gray-500 hover:bg-gray-50'}`}
-                >
-                    <ArrowUp size={14} className="mr-1 rotate-180"/> Padrão
-                </button>
-                <button 
-                    onClick={() => setSettings({...settings, itemSpacing: 'expanded'})} 
-                    className={`flex-1 flex items-center justify-center py-2 text-xs font-bold rounded transition-colors ${settings.itemSpacing === 'expanded' ? 'bg-blue-600 text-white shadow' : 'text-gray-500 hover:bg-gray-50'}`}
-                >
-                    <ArrowUp size={14} className="mr-1"/> Expandido
-                </button>
+             <div className="flex justify-between text-xs text-blue-800 font-semibold mb-2">
+                <span>Espaçamento entre Itens (Listas)</span>
+                <span>{settings.itemSpacing}mm</span>
              </div>
+             <input 
+                type="range" min="0" max="15" step="0.5" 
+                value={settings.itemSpacing || 0} 
+                onChange={e => setSettings({...settings, itemSpacing: parseFloat(e.target.value)})}
+                className="w-full h-2 bg-blue-200 rounded-lg appearance-none cursor-pointer"
+             />
+        </div>
+
+        {/* ESPAÇAMENTO ENTRE SEÇÕES */}
+        <div className="space-y-1 border-t border-blue-100 pt-3">
+             <div className="flex justify-between text-xs text-blue-800 font-semibold mb-2">
+                <span>Espaçamento entre Seções</span>
+                <span>{settings.sectionSpacing}mm</span>
+             </div>
+             <input 
+                type="range" min="0" max="20" step="0.5" 
+                value={settings.sectionSpacing || 0} 
+                onChange={e => setSettings({...settings, sectionSpacing: parseFloat(e.target.value)})}
+                className="w-full h-2 bg-blue-200 rounded-lg appearance-none cursor-pointer"
+             />
         </div>
 
         <div className="flex items-center justify-between border-t border-blue-100 pt-3">
           <span className="text-sm text-blue-800">Justificar Texto</span>
           <button onClick={() => setSettings({...settings, textAlign: settings.textAlign === 'justify' ? 'left' : 'justify'})} className={`p-1 rounded ${settings.textAlign === 'justify' ? 'bg-blue-200 text-blue-800' : 'bg-gray-100 text-gray-400'}`}><AlignJustify size={18}/></button>
         </div>
+
+        {/* QUEBRA DE PÁGINA */}
+        <div className="flex items-center justify-between border-t border-blue-100 pt-3">
+          <span className="text-sm text-blue-800 w-2/3">Permitir Quebra de Páginas Dentro de Tópicos</span>
+          <input 
+            type="checkbox" 
+            checked={settings.pageBreakAuto || false} 
+            onChange={e => setSettings({...settings, pageBreakAuto: e.target.checked})} 
+            className="w-4 h-4 text-blue-600 rounded cursor-pointer" 
+          />
+        </div>
+
         <div className="space-y-4 mt-4 border-t border-blue-200 pt-3">
             <div className="space-y-2">
                 <div className="flex flex-col gap-1"><span className="flex items-center text-xs font-bold text-blue-800"><MoveHorizontal size={14} className="mr-1"/> Coluna Direita: Experiência</span></div>
