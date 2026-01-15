@@ -19,25 +19,25 @@ export const LIST_STYLES = {
 
 export const INITIAL_SETTINGS = {
   font: 'Roboto',
-  themeColor: '#111827',
+  themeColor: '#000000', // CORRIGIDO: Preto
   sectionTitleBold: true,
   showGuides: true,
-  fontSizeBase: 10,
+  fontSizeBase: 10,      // CORRIGIDO: 10pt
   textAlign: 'justify',
   listStyle: 'disc',
   
-  // CONTROLES GRANULARES
-  lineHeight: 1.3,       
-  headerSpacing: 5,      
-  itemSpacing: 3,        
-  sectionSpacing: 5,     
+  // CONTROLES GRANULARES (Valores do vídeo)
+  lineHeight: 1.2,       // CORRIGIDO: 1.2
+  headerSpacing: 5,      // CORRIGIDO: 5mm
+  itemSpacing: 1,        // CORRIGIDO: 1mm
+  sectionSpacing: 3,     // CORRIGIDO: 3mm
   pageBreakAuto: false,  
   
-  // Margens de Coluna
-  experienceColumnWidth: 25, 
-  educationColumnWidth: 25,  
-  projectsColumnWidth: 30,   
-  leftColumnWidth: 45        
+  // Margens de Coluna (Valores do vídeo)
+  experienceColumnWidth: 40, // CORRIGIDO
+  educationColumnWidth: 40,  // CORRIGIDO
+  projectsColumnWidth: 32,   // CORRIGIDO
+  leftColumnWidth: 46        // CORRIGIDO
 };
 
 export const INITIAL_DATA = {
