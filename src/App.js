@@ -6,7 +6,7 @@ import {
   AlignJustify, Maximize2, Minimize2, MoveHorizontal, Columns, ZoomIn, ZoomOut,
   Menu, X, Layers, List, Grid, PenTool, GripVertical, Bold, Italic, Maximize,
   Youtube, Image as ImageIcon, Upload, AlignLeft, AlignCenter, AlignRight,
-  Circle, Square, Move, Crop, ArrowUp
+  Circle, Square, Move, Crop, ArrowUp, Info // NOVO: Import do ícone Info
 } from 'lucide-react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import ResumePreview from './ResumePreview';
@@ -511,7 +511,15 @@ export default function App() {
         </div>
 
         <div className="flex items-center justify-between border-t border-blue-100 pt-3">
-          <span className="text-sm text-blue-800 w-2/3">Permitir Quebra de Páginas Dentro de Tópicos</span>
+          <div className="flex items-center gap-2 group relative">
+            <span className="text-sm text-blue-800 cursor-help">Permitir Quebra de Páginas Dentro de Tópicos</span>
+            {/* NOVO: Ícone de Info com Tooltip */}
+            <Info size={14} className="text-blue-500 cursor-help"/>
+            <div className="absolute bottom-full left-0 mb-2 w-64 p-3 bg-gray-800 text-white text-xs rounded shadow-lg hidden group-hover:block z-50 pointer-events-none">
+              Ative para permitir que um único item (ex: uma experiência longa) seja dividido entre duas páginas. Mantenha desativado para forçar o item a ir inteiro para a próxima página.
+              <div className="absolute top-full left-4 -mt-1 border-4 border-transparent border-t-gray-800"></div>
+            </div>
+          </div>
           <input 
             type="checkbox" 
             checked={settings.pageBreakAuto || false} 
@@ -568,6 +576,9 @@ export default function App() {
     </div>
   );
 
+  // ... (o restante do código permanece exatamente como na versão funcional que enviei anteriormente, garantindo que a digitação continue funcionando)
+  // ... (incluindo a correção crítica em updateDetailedItemDesc e a RichTextToolbar estática para não cobrir o texto)
+  
   const renderSectionManagementForm = () => (
     <div className="space-y-6">
       <h2 className="text-xl font-bold text-gray-800 border-b pb-2 flex items-center"><Layers className="mr-2" size={20}/> Reordenar Seções</h2>
@@ -680,6 +691,7 @@ export default function App() {
     <div className="space-y-4">
       <h2 className="text-xl font-bold border-b pb-2">Pessoal</h2>
       
+      {/* SEÇÃO DE FOTO DO PERFIL COM ESTÚDIO */}
       <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 mb-4">
         <label className="flex items-center text-sm font-bold text-gray-800 mb-2">
             <ImageIcon size={16} className="mr-2"/> Foto do Perfil & Ajustes
@@ -702,6 +714,7 @@ export default function App() {
                         <input type="file" className="hidden" accept="image/*" onChange={handlePhotoUpload} />
                      </label>
                 </div>
+                {/* PREVIEW MINIATURA */}
                 {data.personal.photo && (
                     <div className="w-20 h-20 rounded border border-gray-300 overflow-hidden bg-white shadow-sm flex-shrink-0 flex items-center justify-center">
                         <img src={data.personal.photo} alt="Preview" className="max-w-full max-h-full object-contain" />
@@ -709,8 +722,10 @@ export default function App() {
                 )}
             </div>
 
+            {/* CONTROLES DO ESTÚDIO (SÓ APARECEM SE TIVER FOTO E ESTIVER ATIVADA) */}
             {data.personal.showPhoto && (
                 <div className="border-t border-gray-200 pt-3 space-y-3">
+                    {/* 1. ALINHAMENTO DO BLOCO DA FOTO */}
                     <div className="flex items-center justify-between">
                         <span className="text-xs font-bold text-gray-500 uppercase flex items-center"><Layout size={12} className="mr-1"/> Posição da Foto</span>
                         <div className="flex gap-1">
@@ -720,6 +735,7 @@ export default function App() {
                         </div>
                     </div>
 
+                    {/* 2. FORMATO DA MOLDURA */}
                     <div className="flex items-center justify-between">
                         <span className="text-xs font-bold text-gray-500 uppercase flex items-center"><Crop size={12} className="mr-1"/> Formato</span>
                         <div className="flex gap-1">
@@ -729,6 +745,7 @@ export default function App() {
                         </div>
                     </div>
 
+                    {/* 3. ZOOM (SCALE) */}
                     <div className="space-y-1">
                         <div className="flex justify-between text-xs text-gray-600">
                             <span className="flex items-center"><ZoomIn size={12} className="mr-1"/> Zoom</span>
@@ -742,6 +759,7 @@ export default function App() {
                         />
                     </div>
 
+                    {/* 4. POSIÇÃO X/Y (MOVE) */}
                     <div className="grid grid-cols-2 gap-3">
                         <div className="space-y-1">
                             <div className="flex justify-between text-xs text-gray-600">
@@ -767,6 +785,7 @@ export default function App() {
                         </div>
                     </div>
 
+                    {/* 5. EFEITOS */}
                     <div className="flex items-center justify-between pt-1">
                         <span className="text-xs font-bold text-gray-500 uppercase">Preto e Branco</span>
                         <input 
