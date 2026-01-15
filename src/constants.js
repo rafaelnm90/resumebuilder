@@ -26,12 +26,12 @@ export const INITIAL_SETTINGS = {
   textAlign: 'justify',
   listStyle: 'disc',
   
-  // NOVOS CONTROLES GRANULARES (Substituem a Densidade)
-  lineHeight: 1.3,       // Altura da linha (1.0 a 2.0)
-  headerSpacing: 5,      // Margem abaixo do cabeçalho (mm)
-  itemSpacing: 3,        // Espaçamento entre itens de lista (mm)
-  sectionSpacing: 5,     // Espaçamento entre seções (mm)
-  pageBreakAuto: false,  // Permitir quebra dentro de tópicos
+  // CONTROLES GRANULARES
+  lineHeight: 1.3,       
+  headerSpacing: 5,      
+  itemSpacing: 3,        
+  sectionSpacing: 5,     
+  pageBreakAuto: false,  
   
   // Margens de Coluna
   experienceColumnWidth: 25, 
@@ -39,8 +39,6 @@ export const INITIAL_SETTINGS = {
   projectsColumnWidth: 30,   
   leftColumnWidth: 45        
 };
-
-// REMOVIDO: const DENSITY (Não é mais necessário, pois usamos sliders diretos)
 
 export const INITIAL_DATA = {
   sectionOrder: ['summary', 'skills', 'projects', 'experience', 'education', 'others'],
@@ -68,14 +66,14 @@ export const INITIAL_DATA = {
     // FOTO & ESTÚDIO
     photo: "", 
     showPhoto: false,
-    photoAlignment: 'center', // Posição do bloco (left, center, right)
+    photoAlignment: 'center', 
     
     // AJUSTES FINOS DA IMAGEM
-    photoShape: 'circle', // 'circle', 'square', 'rounded'
-    photoScale: 100,      // Zoom (100% é o padrão)
-    photoX: 0,            // Posição Horizontal (%)
-    photoY: 0,            // Posição Vertical (%)
-    photoGrayscale: false // Preto e Branco
+    photoShape: 'circle', 
+    photoScale: 100,      
+    photoX: 0,            
+    photoY: 0,            
+    photoGrayscale: false 
   },
   summary: "Doutor em Genética e Melhoramento com perfil híbrido e estratégico, integrando a expertise agronômica à engenharia de software (Ciência da Computação em curso). Especialista em **Computational Breeding**, atuo na interface entre Biologia e Dados desenvolvendo ferramentas AgTech que automatizam pipelines complexos de Big Data Genômico e análises biométricas. Busco integrar o time de P&D da **Bayer** em Uberlândia para traduzir desafios biológicos em soluções computacionais escaláveis, acelerando a inovação genética e a tomada de decisão no campo.",
   skills: [
