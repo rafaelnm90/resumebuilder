@@ -31,17 +31,17 @@ const insertFormatting = (ref, type) => {
 
 // --- COMPONENTES AUXILIARES ---
 
-const RichTextControl = ({ onFormat, onExpand }) => (
-  <div className="absolute right-2 top-2 flex gap-1 bg-white/90 backdrop-blur-sm p-1 rounded border shadow-sm opacity-0 group-hover:opacity-100 transition-opacity z-10">
+const RichTextToolbar = ({ onFormat, onExpand }) => (
+  <div className="flex gap-1 items-center bg-gray-50 border-l border-t border-r rounded-t px-2 py-1 self-end mr-2">
     {onFormat && (
       <>
-        <button onClick={(e) => {e.preventDefault(); onFormat('bold')}} className="p-1 hover:bg-gray-100 rounded text-gray-700" title="Negrito"><Bold size={12}/></button>
-        <button onClick={(e) => {e.preventDefault(); onFormat('italic')}} className="p-1 hover:bg-gray-100 rounded text-gray-700" title="Itálico"><Italic size={12}/></button>
-        <div className="w-px bg-gray-300 mx-1"></div>
+        <button onClick={(e) => {e.preventDefault(); onFormat('bold')}} className="p-1 hover:bg-gray-200 rounded text-gray-700" title="Negrito"><Bold size={12}/></button>
+        <button onClick={(e) => {e.preventDefault(); onFormat('italic')}} className="p-1 hover:bg-gray-200 rounded text-gray-700" title="Itálico"><Italic size={12}/></button>
+        <div className="w-px bg-gray-300 mx-1 h-3"></div>
       </>
     )}
     {onExpand && (
-      <button onClick={(e) => {e.preventDefault(); onExpand()}} className="p-1 hover:bg-blue-50 text-blue-600 rounded" title="Expandir"><Maximize size={12}/></button>
+      <button onClick={(e) => {e.preventDefault(); onExpand()}} className="p-1 hover:bg-blue-100 text-blue-600 rounded" title="Expandir"><Maximize size={12}/></button>
     )}
   </div>
 );
@@ -56,26 +56,29 @@ const Input = ({ label, value, onChange, onExpandRequest, enableRich = false }) 
 
   return (
     <div className="flex flex-col group relative mb-2">
-      <label className="text-xs font-semibold text-gray-500 uppercase mb-1">{label}</label>
+      <div className="flex justify-between items-end">
+        <label className="text-xs font-semibold text-gray-500 uppercase mb-1">{label}</label>
+        {(enableRich || onExpandRequest) && (
+          <RichTextToolbar 
+            onFormat={handleFormat} 
+            onExpand={() => onExpandRequest && onExpandRequest(label, value, onChange)} 
+          />
+        )}
+      </div>
       <input 
         ref={inputRef}
         type="text" 
-        className="p-2 border rounded-md outline-none text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 pr-16 w-full" 
-        value={value} 
+        className={`p-2 border rounded-md outline-none text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 w-full ${enableRich || onExpandRequest ? 'rounded-tr-none' : ''}`}
+        value={value || ''} 
         onChange={e => onChange(e.target.value)} 
       />
-      {(enableRich || onExpandRequest) && (
-        <RichTextControl 
-          onFormat={handleFormat} 
-          onExpand={() => onExpandRequest && onExpandRequest(label, value, onChange)} 
-        />
-      )}
     </div>
   );
 };
 
 const DraggableListItemInput = ({ value, onChange, onRemove, dragHandleProps, onExpandRequest, labelForModal }) => {
   const inputRef = useRef(null);
+  const [isFocused, setIsFocused] = useState(false);
 
   const handleFormat = (type) => {
     const newVal = insertFormatting(inputRef, type);
@@ -83,7 +86,6 @@ const DraggableListItemInput = ({ value, onChange, onRemove, dragHandleProps, on
   };
 
   const handleIndent = () => {
-    // Remove cabeçalho se existir ao indentar, ou alterna indentação
     let cleanValue = value.replace(/^## /, '');
     if (cleanValue.startsWith('>> ')) {
         onChange(cleanValue.substring(3));
@@ -93,7 +95,6 @@ const DraggableListItemInput = ({ value, onChange, onRemove, dragHandleProps, on
   };
 
   const handleHeader = () => {
-    // Remove indentação se existir ao transformar em cabeçalho
     let cleanValue = value.replace(/^>> /, '');
     if (cleanValue.startsWith('## ')) {
         onChange(cleanValue.substring(3));
@@ -106,42 +107,32 @@ const DraggableListItemInput = ({ value, onChange, onRemove, dragHandleProps, on
   const isSub = value.startsWith('>> ');
 
   return (
-    <div className="flex gap-2 items-center group relative">
-      <div {...dragHandleProps} className="text-gray-300 hover:text-gray-500 cursor-grab"><GripVertical size={14} /></div>
-      <div className="flex-1 relative">
-        <input 
-            ref={inputRef}
-            className={`w-full p-2 border rounded text-xs pr-20 focus:border-blue-500 outline-none ${isHeader ? 'font-bold text-gray-800 bg-gray-50' : ''}`}
-            value={value} 
-            onChange={e => onChange(e.target.value)} 
-            placeholder={isHeader ? "Título do Tópico..." : ""}
-        />
-        <RichTextControl 
-            onFormat={handleFormat}
-            onExpand={() => onExpandRequest(labelForModal, value, onChange)}
-        />
-      </div>
-      
-      {/* Botão de Tópico/Cabeçalho */}
-      <button 
-        onClick={handleHeader} 
-        className={`text-gray-400 hover:text-blue-600 ${isHeader ? 'text-blue-600 bg-blue-50 rounded p-1' : 'p-1'}`} 
-        title="Transformar em Tópico (Negrito, sem bullet)"
-      >
-        <Type size={16}/>
-      </button>
-
-      {/* Botão de Subtópico */}
-      <button 
-        onClick={handleIndent} 
-        className={`text-gray-400 hover:text-blue-600 ${isSub ? 'text-blue-600 bg-blue-50 rounded p-1' : 'p-1'}`} 
-        title="Alternar Subtópico"
-        disabled={isHeader} // Não faz sentido indentar um título
-      >
-        <ChevronRight size={16}/>
-      </button>
-
-      <button onClick={onRemove} className="text-red-400 hover:text-red-600 p-1"><Trash2 size={14}/></button>
+    <div className="flex flex-col w-full group">
+        <div className={`self-end transition-opacity ${isFocused ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'} h-6 mb-0.5`}>
+             <RichTextToolbar 
+                onFormat={handleFormat}
+                onExpand={() => onExpandRequest(labelForModal, value, onChange)}
+            />
+        </div>
+        
+        <div className="flex gap-2 items-center relative">
+            <div {...dragHandleProps} className="text-gray-300 hover:text-gray-500 cursor-grab"><GripVertical size={14} /></div>
+            <div className="flex-1 relative">
+                <input 
+                    ref={inputRef}
+                    className={`w-full p-2 border rounded text-xs focus:border-blue-500 outline-none ${isHeader ? 'font-bold text-gray-800 bg-gray-50' : ''}`}
+                    value={value || ''} 
+                    onChange={e => onChange(e.target.value)} 
+                    placeholder={isHeader ? "Título do Tópico..." : ""}
+                    onFocus={() => setIsFocused(true)}
+                    onBlur={() => setTimeout(() => setIsFocused(false), 200)}
+                />
+            </div>
+            
+            <button onClick={handleHeader} className={`text-gray-400 hover:text-blue-600 ${isHeader ? 'text-blue-600 bg-blue-50 rounded p-1' : 'p-1'}`} title="Tópico"><Type size={16}/></button>
+            <button onClick={handleIndent} className={`text-gray-400 hover:text-blue-600 ${isSub ? 'text-blue-600 bg-blue-50 rounded p-1' : 'p-1'}`} title="Subtópico" disabled={isHeader}><ChevronRight size={16}/></button>
+            <button onClick={onRemove} className="text-red-400 hover:text-red-600 p-1"><Trash2 size={14}/></button>
+        </div>
     </div>
   );
 };
@@ -151,8 +142,8 @@ const DraggableDescriptionList = ({ items, sectionId, itemIndex, onUpdate, onRem
   return (
     <Droppable droppableId={droppableId} type="DESCRIPTION_ITEM">
       {(provided) => (
-        <div {...provided.droppableProps} ref={provided.innerRef} className="space-y-2 mt-2">
-          {items.map((desc, index) => (
+        <div {...provided.droppableProps} ref={provided.innerRef} className="space-y-1 mt-2">
+          {(items || []).map((desc, index) => (
             <Draggable key={`${droppableId}-${index}`} draggableId={`${droppableId}-${index}`} index={index}>
               {(provided, snapshot) => (
                 <div ref={provided.innerRef} {...provided.draggableProps} className={`${snapshot.isDragging ? 'opacity-70' : ''}`}>
@@ -237,7 +228,7 @@ const ExpandedModal = ({ isOpen, onClose, title, value, onSave }) => {
           <textarea 
             ref={textRef}
             className="w-full h-full p-4 border rounded resize-none outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
-            value={localValue}
+            value={localValue || ''}
             onChange={(e) => setLocalValue(e.target.value)}
           />
         </div>
@@ -259,14 +250,12 @@ export default function App() {
   const [zoom, setZoom] = useState(0.7); 
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
-  // Estados novos
   const [sidebarWidth, setSidebarWidth] = useState(380);
   const [isResizing, setIsResizing] = useState(false);
   const [expandedField, setExpandedField] = useState(null);
 
   const summaryRef = useRef(null);
 
-  // --- LÓGICA DE UPLOAD DE FOTO ---
   const handlePhotoUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -278,7 +267,6 @@ export default function App() {
     }
   };
 
-  // --- LÓGICA DE REDIMENSIONAMENTO ---
   const startResizing = (e) => {
     e.preventDefault();
     setIsResizing(true);
@@ -306,7 +294,6 @@ export default function App() {
     };
   }, [isResizing]);
 
-  // --- LÓGICA DE IMPRESSÃO ---
   const handlePrint = () => {
     const resumeContent = document.getElementById('resume-preview');
     if (!resumeContent) return alert("Erro ao gerar PDF.");
@@ -356,7 +343,6 @@ export default function App() {
     setExpandedField({ title, value: currentValue, onSave: saveCallback });
   };
 
-  // --- MÉTODOS DE ATUALIZAÇÃO ---
   const handleDragEnd = (result) => {
     const { source, destination, type } = result;
     if (!destination) return;
@@ -412,7 +398,6 @@ export default function App() {
   const addArrayItemToItem = (s, iIdx, arrF) => setData(p => ({ ...p, [s]: p[s].map((it, i) => i === iIdx ? { ...it, [arrF]: [...it[arrF], ""] } : it) }));
   const removeArrayItemFromItem = (s, iIdx, arrF, arrI) => setData(p => ({ ...p, [s]: p[s].map((it, i) => i === iIdx ? { ...it, [arrF]: it[arrF].filter((_, k) => k !== arrI) } : it) }));
 
-  // Custom Sections
   const addCustomSection = (type) => {
     const id = `custom-${Date.now()}`;
     const newSection = { id: id, title: "Nova Seção", type: type, content: type === 'text' ? '' : [], visible: true };
@@ -429,7 +414,24 @@ export default function App() {
   const addDetailedItem = (sid) => setData(p => ({ ...p, customSections: p.customSections.map(s => s.id === sid ? { ...s, content: [...s.content, { title: '', subtitle: '', date: '', location: '', description: [''] }] } : s) }));
   const removeDetailedItem = (sid, idx) => setData(p => ({ ...p, customSections: p.customSections.map(s => s.id === sid ? { ...s, content: s.content.filter((_, i) => i !== idx) } : s) }));
   const updateDetailedItem = (sid, idx, f, v) => setData(p => ({ ...p, customSections: p.customSections.map(s => s.id === sid ? { ...s, content: s.content.map((item, i) => i === idx ? { ...item, [f]: v } : item) } : s) }));
-  const updateDetailedItemDesc = (sid, idx, di, v) => setData(p => ({ ...p, customSections: p.customSections.map(s => s.id === sid ? { ...s, content: s.content.map((item, i) => i === idx ? { ...item, description: item.description.map((d, k) => k === di ? v : d) } : item) } : s) }));
+  
+  const updateDetailedItemDesc = (sid, idx, ignoredField, di, v) => {
+    setData(p => ({
+        ...p,
+        customSections: p.customSections.map(s => 
+            s.id === sid ? {
+                ...s,
+                content: s.content.map((item, i) => 
+                    i === idx ? {
+                        ...item,
+                        description: item.description.map((d, k) => k === di ? v : d)
+                    } : item
+                )
+            } : s
+        )
+    }));
+  };
+  
   const addDetailedItemDescLine = (sid, idx) => setData(p => ({ ...p, customSections: p.customSections.map(s => s.id === sid ? { ...s, content: s.content.map((item, i) => i === idx ? { ...item, description: [...item.description, ""] } : item) } : s) }));
   const removeDetailedItemDescLine = (sid, idx, di) => setData(p => ({ ...p, customSections: p.customSections.map(s => s.id === sid ? { ...s, content: s.content.map((item, i) => i === idx ? { ...item, description: item.description.filter((_, k) => k !== di) } : item) } : s) }));
 
@@ -441,19 +443,16 @@ export default function App() {
       <div className="bg-blue-50 p-4 rounded-lg border border-blue-200 space-y-4">
         <label className="flex items-center text-sm font-bold text-blue-800"><Maximize2 size={16} className="mr-2"/> Geometria e Espaçamento</label>
         
-        {/* CONTROLE DE FONTE */}
         <div className="space-y-1">
           <div className="flex justify-between text-xs text-blue-800 font-semibold"><span>Tamanho da Fonte Base</span><span>{settings.fontSizeBase}pt</span></div>
           <input type="range" min="9" max="12" step="0.5" value={settings.fontSizeBase} onChange={e => setSettings({...settings, fontSizeBase: parseFloat(e.target.value)})} className="w-full h-2 bg-blue-200 rounded-lg appearance-none cursor-pointer" />
         </div>
 
-        {/* CONTROLE DE ENTRELINHA (SUBSTITUI OS BOTÕES DE DENSIDADE) */}
         <div className="space-y-1">
           <div className="flex justify-between text-xs text-blue-800 font-semibold"><span>Altura da Linha (Entrelinha)</span><span>{settings.lineHeight}</span></div>
           <input type="range" min="1.0" max="2.0" step="0.05" value={settings.lineHeight} onChange={e => setSettings({...settings, lineHeight: parseFloat(e.target.value)})} className="w-full h-2 bg-blue-200 rounded-lg appearance-none cursor-pointer" />
         </div>
         
-        {/* CONTROLE DE MARGEM DO CABEÇALHO */}
         <div className="space-y-1">
              <div className="flex justify-between text-xs text-blue-800 font-semibold">
                 <span>Margem do Cabeçalho</span>
@@ -480,7 +479,6 @@ export default function App() {
              </select>
         </div>
 
-        {/* ESPAÇAMENTO ENTRE ITENS */}
         <div className="space-y-1 border-t border-blue-100 pt-3">
              <div className="flex justify-between text-xs text-blue-800 font-semibold mb-2">
                 <span>Espaçamento entre Itens (Listas)</span>
@@ -494,7 +492,6 @@ export default function App() {
              />
         </div>
 
-        {/* ESPAÇAMENTO ENTRE SEÇÕES */}
         <div className="space-y-1 border-t border-blue-100 pt-3">
              <div className="flex justify-between text-xs text-blue-800 font-semibold mb-2">
                 <span>Espaçamento entre Seções</span>
@@ -513,7 +510,6 @@ export default function App() {
           <button onClick={() => setSettings({...settings, textAlign: settings.textAlign === 'justify' ? 'left' : 'justify'})} className={`p-1 rounded ${settings.textAlign === 'justify' ? 'bg-blue-200 text-blue-800' : 'bg-gray-100 text-gray-400'}`}><AlignJustify size={18}/></button>
         </div>
 
-        {/* QUEBRA DE PÁGINA */}
         <div className="flex items-center justify-between border-t border-blue-100 pt-3">
           <span className="text-sm text-blue-800 w-2/3">Permitir Quebra de Páginas Dentro de Tópicos</span>
           <input 
@@ -632,7 +628,7 @@ export default function App() {
           <div className="space-y-1 relative group">
             <p className="text-xs text-gray-500">Dica: Use **palavra** para negrito.</p>
             <textarea className="w-full h-48 p-3 border rounded text-sm outline-none focus:ring-2 focus:ring-blue-500" value={section.content} onChange={(e) => {setData(prev => ({...prev, customSections: prev.customSections.map(s => s.id === section.id ? { ...s, content: e.target.value } : s)}))}} placeholder="Digite o texto da seção aqui..."/>
-            <RichTextControl 
+            <RichTextToolbar 
               onFormat={(type) => {/* Simplificação */}} 
               onExpand={() => handleOpenExpand(section.title, section.content, (val) => setData(prev => ({...prev, customSections: prev.customSections.map(s => s.id === section.id ? { ...s, content: val } : s)})) )}
             />
@@ -684,7 +680,6 @@ export default function App() {
     <div className="space-y-4">
       <h2 className="text-xl font-bold border-b pb-2">Pessoal</h2>
       
-      {/* SEÇÃO DE FOTO DO PERFIL COM ESTÚDIO */}
       <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 mb-4">
         <label className="flex items-center text-sm font-bold text-gray-800 mb-2">
             <ImageIcon size={16} className="mr-2"/> Foto do Perfil & Ajustes
@@ -707,7 +702,6 @@ export default function App() {
                         <input type="file" className="hidden" accept="image/*" onChange={handlePhotoUpload} />
                      </label>
                 </div>
-                {/* PREVIEW MINIATURA */}
                 {data.personal.photo && (
                     <div className="w-20 h-20 rounded border border-gray-300 overflow-hidden bg-white shadow-sm flex-shrink-0 flex items-center justify-center">
                         <img src={data.personal.photo} alt="Preview" className="max-w-full max-h-full object-contain" />
@@ -715,10 +709,8 @@ export default function App() {
                 )}
             </div>
 
-            {/* CONTROLES DO ESTÚDIO (SÓ APARECEM SE TIVER FOTO E ESTIVER ATIVADA) */}
             {data.personal.showPhoto && (
                 <div className="border-t border-gray-200 pt-3 space-y-3">
-                    {/* 1. ALINHAMENTO DO BLOCO DA FOTO */}
                     <div className="flex items-center justify-between">
                         <span className="text-xs font-bold text-gray-500 uppercase flex items-center"><Layout size={12} className="mr-1"/> Posição da Foto</span>
                         <div className="flex gap-1">
@@ -728,7 +720,6 @@ export default function App() {
                         </div>
                     </div>
 
-                    {/* 2. FORMATO DA MOLDURA */}
                     <div className="flex items-center justify-between">
                         <span className="text-xs font-bold text-gray-500 uppercase flex items-center"><Crop size={12} className="mr-1"/> Formato</span>
                         <div className="flex gap-1">
@@ -738,7 +729,6 @@ export default function App() {
                         </div>
                     </div>
 
-                    {/* 3. ZOOM (SCALE) */}
                     <div className="space-y-1">
                         <div className="flex justify-between text-xs text-gray-600">
                             <span className="flex items-center"><ZoomIn size={12} className="mr-1"/> Zoom</span>
@@ -752,7 +742,6 @@ export default function App() {
                         />
                     </div>
 
-                    {/* 4. POSIÇÃO X/Y (MOVE) */}
                     <div className="grid grid-cols-2 gap-3">
                         <div className="space-y-1">
                             <div className="flex justify-between text-xs text-gray-600">
@@ -778,7 +767,6 @@ export default function App() {
                         </div>
                     </div>
 
-                    {/* 5. EFEITOS */}
                     <div className="flex items-center justify-between pt-1">
                         <span className="text-xs font-bold text-gray-500 uppercase">Preto e Branco</span>
                         <input 
@@ -823,7 +811,7 @@ export default function App() {
             value={data.summary} 
             onChange={e => updateSimpleField('summary', e.target.value)} 
           />
-          <RichTextControl 
+          <RichTextToolbar 
             onFormat={handleFormatSummary} 
             onExpand={() => handleOpenExpand("Resumo Profissional", data.summary, (val) => updateSimpleField('summary', val))}
           />
