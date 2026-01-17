@@ -24,12 +24,6 @@ export default function ResumePreview({ data, settings }) {
   const eduColWidthCSS = `${settings.educationColumnWidth}mm`;
   const projColWidthCSS = `${settings.projectsColumnWidth}mm`;
 
-  const listContainerStyle = {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: `${settings.itemSpacing}mm`
-  };
-
   const pageBreakClass = settings.pageBreakAuto ? '' : 'keep-together';
 
   const { 
@@ -39,7 +33,19 @@ export default function ResumePreview({ data, settings }) {
     photoFlip, photoCover, photoBorder, photoShadow
   } = data.personal;
 
-  const renderListItems = (items) => {
+  // Função auxiliar para pegar espaçamento da seção ou o global
+  const getSectionSpacing = (sectionId) => {
+      const specific = settings.sectionItemSpacings?.[sectionId];
+      return specific !== undefined ? `${specific}mm` : `${settings.itemSpacing}mm`;
+  };
+
+  // ESTILO DINÂMICO PARA TEXTO À DIREITA (DATA/LOCAL/TAGS)
+  // Se a opção estiver marcada, usa bold e remove transparência. Se não, usa medium e opacidade.
+  const rightTextStyle = settings.rightTextBold 
+    ? "font-bold text-gray-900" 
+    : "font-medium text-gray-700 opacity-75";
+
+  const renderListItems = (items, sectionId) => {
     const activeStyle = LIST_STYLES[settings.listStyle] || LIST_STYLES['disc'];
     const isWideMarker = ['arrow', 'check', 'dash'].includes(settings.listStyle);
 
@@ -69,8 +75,9 @@ export default function ResumePreview({ data, settings }) {
             }
         }
 
+        // ADICIONADO: marker:font-bold para forçar o símbolo a ser negrito
         return (
-            <li key={i} className={`break-words ${indentClass} ${bulletClass} ${extraClasses}`} style={{ textAlign: settings.textAlign, textJustify: 'inter-word' }}>
+            <li key={i} className={`break-words ${indentClass} ${bulletClass} ${extraClasses} marker:font-bold`} style={{ textAlign: settings.textAlign, textJustify: 'inter-word' }}>
                 {formatText(text)}
             </li>
         );
@@ -166,6 +173,11 @@ export default function ResumePreview({ data, settings }) {
 
   const renderSection = (sectionId) => {
     const sectionStyle = { marginBottom: `${settings.sectionSpacing}mm` };
+    const currentListStyle = {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: getSectionSpacing(sectionId)
+    };
 
     if (sectionId.startsWith('custom-')) {
         const sec = customSections.find(s => s.id === sectionId);
@@ -176,25 +188,25 @@ export default function ResumePreview({ data, settings }) {
               <h3 className="dynamic-title text-[1.1em] uppercase tracking-wider mb-1 border-b" style={{ color: settings.themeColor, fontWeight: settings.sectionTitleBold ? '700' : '400', borderColor: settings.themeColor }}>{sec.title}</h3>
               {sec.type === 'text' && <p className="break-words" style={{ textAlign: settings.textAlign, textJustify: 'inter-word' }}>{formatText(sec.content)}</p>}
               {sec.type === 'list' && (
-                <ul className="list-outside ml-4" style={listContainerStyle}>
-                  {renderListItems(sec.content)}
+                <ul className="list-outside ml-4" style={currentListStyle}>
+                  {renderListItems(sec.content, sectionId)}
                 </ul>
               )}
               {sec.type === 'detailed' && (
-                 <div style={listContainerStyle}>
+                 <div style={currentListStyle}>
                   {(Array.isArray(sec.content) ? sec.content : []).map((item, i) => (
                     <div key={i} className={pageBreakClass}>
                       <div className="flex flex-row items-baseline justify-between flex-row-print">
                         <div className="font-bold text-[1.05em] leading-tight break-words flex-1 pr-3">{formatText(item.title)}</div>
-                        <div className="text-[0.9em] opacity-75 text-right leading-tight flex-shrink-0" style={{ width: expColWidthCSS }}>{item.location}</div>
+                        <div className={`text-[0.9em] text-right leading-tight flex-shrink-0 ${rightTextStyle}`} style={{ width: expColWidthCSS }}>{item.location}</div>
                       </div>
                       <div className="flex flex-row items-baseline justify-between flex-row-print">
                         <div className="italic font-medium leading-tight break-words flex-1 pr-3">{formatText(item.subtitle)}</div>
-                        <div className="text-[0.9em] opacity-75 font-medium text-right leading-tight flex-shrink-0" style={{ width: expColWidthCSS }}>{item.date}</div>
+                        <div className={`text-[0.9em] text-right leading-tight flex-shrink-0 ${rightTextStyle}`} style={{ width: expColWidthCSS }}>{item.date}</div>
                       </div>
                       <div className="mt-1" style={{ paddingRight: expColWidthCSS }}>
-                        <ul className="list-outside ml-4" style={listContainerStyle}>
-                          {renderListItems(item.description)}
+                        <ul className="list-outside ml-4" style={currentListStyle}>
+                          {renderListItems(item.description, sectionId)}
                         </ul>
                       </div>
                     </div>
@@ -217,7 +229,7 @@ export default function ResumePreview({ data, settings }) {
             return structure.skills.visible && data.skills.length > 0 && (
                 <section key="skills" className={`${pageBreakClass}`} style={sectionStyle}>
                     <h3 className="dynamic-title text-[1.1em] uppercase tracking-wider mb-1 border-b" style={{ color: settings.themeColor, fontWeight: settings.sectionTitleBold ? '700' : '400', borderColor: settings.themeColor }}>{structure.skills.title}</h3>
-                    <div style={listContainerStyle}>
+                    <div style={currentListStyle}>
                     {data.skills.map((skill, i) => (
                         <div key={i} className="flex flex-row items-baseline gap-4" >
                         <div className="font-bold text-[0.95em] leading-tight break-words flex-shrink-0" style={{ width: `${settings.leftColumnWidth}mm` }}>{formatText(skill.category)}</div>
@@ -231,17 +243,17 @@ export default function ResumePreview({ data, settings }) {
             return structure.projects.visible && data.projects.length > 0 && (
                 <section key="projects" style={sectionStyle}>
                     <h3 className="dynamic-title text-[1.1em] uppercase tracking-wider mb-2 border-b" style={{ color: settings.themeColor, fontWeight: settings.sectionTitleBold ? '700' : '400', borderColor: settings.themeColor }}>{structure.projects.title}</h3>
-                    <div style={listContainerStyle}>
+                    <div style={currentListStyle}>
                     {data.projects.map((proj, i) => (
                         <div key={i} className={`${pageBreakClass} flex flex-row items-start gap-8 flex-row-print`}>
                         <div className="flex-1">
                             <h4 className="font-bold text-[1.05em] break-words mb-1">{proj.title}</h4>
-                            <ul className="list-outside ml-4" style={listContainerStyle}>
-                                {renderListItems(proj.description)}
+                            <ul className="list-outside ml-4" style={currentListStyle}>
+                                {renderListItems(proj.description, sectionId)}
                             </ul>
                         </div>
                         <div className="flex-shrink-0 flex items-start justify-end mt-1" style={{ width: projColWidthCSS }}>
-                            <span className="text-[0.85em] bg-gray-100 px-2 py-1 rounded border border-gray-200 inline-block break-words hyphens-auto" style={{ hyphens: 'auto' }}>
+                            <span className={`text-[0.85em] bg-gray-100 px-2 py-1 rounded border border-gray-200 inline-block break-words hyphens-auto ${settings.rightTextBold ? 'font-bold text-gray-800' : 'font-medium text-gray-600'}`} style={{ hyphens: 'auto' }}>
                                 {proj.tech}
                             </span>
                         </div>
@@ -254,7 +266,7 @@ export default function ResumePreview({ data, settings }) {
             return structure.experience.visible && data.experience.length > 0 && (
                 <section key="experience" style={sectionStyle}>
                     <h3 className="dynamic-title text-[1.1em] uppercase tracking-wider mb-2 border-b" style={{ color: settings.themeColor, fontWeight: settings.sectionTitleBold ? '700' : '400', borderColor: settings.themeColor }}>{structure.experience.title}</h3>
-                    <div style={listContainerStyle}>
+                    <div style={currentListStyle}>
                     {data.experience.map((exp, i) => {
                         const hasContent = exp.company?.trim() || exp.role?.trim() || (exp.description || []).some(d => d.trim());
                         if (!hasContent) return null;
@@ -262,15 +274,15 @@ export default function ResumePreview({ data, settings }) {
                         <div key={i} className={pageBreakClass}>
                         <div className="flex flex-row items-baseline justify-between flex-row-print">
                             <div className="font-bold text-[1.05em] leading-tight break-words flex-1 pr-4">{exp.company}</div>
-                            <div className="text-[0.9em] opacity-75 text-right leading-tight flex-shrink-0" style={{ width: expColWidthCSS }}>{exp.location}</div>
+                            <div className={`text-[0.9em] text-right leading-tight flex-shrink-0 ${rightTextStyle}`} style={{ width: expColWidthCSS }}>{exp.location}</div>
                         </div>
                         <div className="flex flex-row items-baseline justify-between flex-row-print">
                             <div className="italic font-medium leading-tight break-words flex-1 pr-4">{exp.role}</div>
-                            <div className="text-[0.9em] opacity-75 font-medium text-right leading-tight flex-shrink-0" style={{ width: expColWidthCSS }}>{exp.period}</div>
+                            <div className={`text-[0.9em] text-right leading-tight flex-shrink-0 ${rightTextStyle}`} style={{ width: expColWidthCSS }}>{exp.period}</div>
                         </div>
                         <div className="mt-1" style={{ paddingRight: expColWidthCSS }}>
-                            <ul className="list-outside ml-4" style={listContainerStyle}>
-                                {renderListItems(exp.description)}
+                            <ul className="list-outside ml-4" style={currentListStyle}>
+                                {renderListItems(exp.description, sectionId)}
                             </ul>
                         </div>
                         </div>
@@ -282,7 +294,7 @@ export default function ResumePreview({ data, settings }) {
             return structure.education.visible && data.education.length > 0 && (
                 <section key="education" style={sectionStyle}>
                     <h3 className="dynamic-title text-[1.1em] uppercase tracking-wider mb-2 border-b" style={{ color: settings.themeColor, fontWeight: settings.sectionTitleBold ? '700' : '400', borderColor: settings.themeColor }}>{structure.education.title}</h3>
-                    <div style={{ ...listContainerStyle, gap: `${Math.min(settings.itemSpacing, 4)}mm` }}>
+                    <div style={{ ...currentListStyle, gap: `${Math.min(parseFloat(getSectionSpacing(sectionId)), 4)}mm` }}>
                     {data.education.map((edu, i) => {
                         const hasContent = edu.institution?.trim() || edu.degree?.trim();
                         if (!hasContent) return null;
@@ -290,11 +302,11 @@ export default function ResumePreview({ data, settings }) {
                         <div key={i} className={pageBreakClass}>
                             <div className="flex flex-row items-baseline justify-between flex-row-print">
                             <div className="font-bold leading-tight break-words flex-1 pr-4">{edu.degree}</div>
-                            <div className="text-[0.9em] opacity-75 text-right leading-tight flex-shrink-0" style={{ width: eduColWidthCSS }}>{edu.period}</div>
+                            <div className={`text-[0.9em] text-right leading-tight flex-shrink-0 ${rightTextStyle}`} style={{ width: eduColWidthCSS }}>{edu.period}</div>
                             </div>
                             <div className="flex flex-row items-baseline justify-between flex-row-print">
                             <div className="leading-tight break-words flex-1 pr-4">{edu.institution}</div>
-                            <div className="text-[0.9em] opacity-75 text-right leading-tight flex-shrink-0" style={{ width: eduColWidthCSS }}>{edu.location}</div>
+                            <div className={`text-[0.9em] text-right leading-tight flex-shrink-0 ${rightTextStyle}`} style={{ width: eduColWidthCSS }}>{edu.location}</div>
                             </div>
                             {edu.details && (
                             <div className="mt-0.5" style={{ paddingRight: eduColWidthCSS }}>
@@ -310,12 +322,12 @@ export default function ResumePreview({ data, settings }) {
             return structure.others.visible && data.others.length > 0 && (
                 <section key="others" className={`${pageBreakClass}`} style={sectionStyle}>
                     <h3 className="dynamic-title text-[1.1em] uppercase tracking-wider mb-1 border-b" style={{ color: settings.themeColor, fontWeight: settings.sectionTitleBold ? '700' : '400', borderColor: settings.themeColor }}>{structure.others.title}</h3>
-                    <div style={{ paddingRight: expColWidthCSS, ...listContainerStyle }}>
+                    <div style={{ paddingRight: expColWidthCSS, ...currentListStyle }}>
                         {data.others.map((item, i) => (
                             <div key={i} className={pageBreakClass}>
                                 {item.title && <h4 className="font-bold text-[0.95em] mb-1">{item.title}</h4>}
-                                <ul className="list-outside ml-4" style={listContainerStyle}>
-                                    {renderListItems(item.description)}
+                                <ul className="list-outside ml-4" style={currentListStyle}>
+                                    {renderListItems(item.description, sectionId)}
                                 </ul>
                             </div>
                         ))}
@@ -337,7 +349,7 @@ export default function ResumePreview({ data, settings }) {
   const lineStyle = { 
     width: '100%',
     height: '2px', 
-    backgroundColor: settings.showPageLines ? settings.themeColor : 'transparent', // CORREÇÃO: Transparente se desligado
+    backgroundColor: settings.showPageLines ? settings.themeColor : 'transparent', // Se false, fica transparente mas ocupa espaço
   };
 
   const typographyStyles = {
@@ -347,17 +359,15 @@ export default function ResumePreview({ data, settings }) {
     lineHeight: settings.lineHeight, 
   };
 
-  const containerStyles = { 
-    ...typographyStyles,
-    width: '210mm',
-    minHeight: '297mm',
-    boxSizing: 'border-box',
-    position: 'relative', 
-  };
-
-  // --- MODO UNIFICADO (TABELA PARA AMBOS OS CASOS) ---
+  // ESTRUTURA UNIFICADA (TABELA PARA TODOS OS MODOS)
   return (
-    <div id="resume-preview" lang="pt-BR" className="bg-white shadow-2xl relative" style={containerStyles}>
+    <div id="resume-preview" lang="pt-BR" className="bg-white shadow-2xl relative" style={{
+        ...typographyStyles,
+        width: '210mm',
+        minHeight: '297mm',
+        boxSizing: 'border-box',
+        position: 'relative'
+    }}>
         {settings.showGuides && (
             <>
             <div className="absolute border border-green-400 border-dashed z-50 pointer-events-none page-guide" style={{ top: 0, bottom: 0, left: 0, right: 0 }}></div>
@@ -372,7 +382,7 @@ export default function ResumePreview({ data, settings }) {
             left: '15mm',   
             right: '15mm',  
             height: '2px',
-            backgroundColor: settings.showPageLines ? settings.themeColor : 'transparent', // CORREÇÃO
+            backgroundColor: settings.showPageLines ? settings.themeColor : 'transparent', 
             zIndex: 9999
         }}></div>
 
@@ -380,7 +390,7 @@ export default function ResumePreview({ data, settings }) {
             <thead>
                 <tr>
                     <td style={{ paddingTop: '20mm', paddingBottom: '2mm', paddingLeft: '15mm', paddingRight: '15mm' }}>
-                        {/* A linha agora existe fisicamente, mas fica invisível se a opção estiver desmarcada */}
+                        {/* A linha existe fisicamente, mas fica invisível se a opção estiver desmarcada */}
                         <div className="preview-line" style={lineStyle}></div>
                     </td>
                 </tr>
