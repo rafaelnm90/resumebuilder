@@ -4,7 +4,9 @@ export const FONTS = {
   'Merriweather': { name: 'Merriweather (Serif)', url: 'https://fonts.googleapis.com/css2?family=Merriweather:wght@300;400;700&display=swap' },
   'Lato': { name: 'Lato (Moderno)', url: 'https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap' },
   'Open Sans': { name: 'Open Sans (Neutro)', url: 'https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700&display=swap' },
-  'Lora': { name: 'Lora (Elegante)', url: 'https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,700;1,400&display=swap' }
+  'Lora': { name: 'Lora (Elegante)', url: 'https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,700;1,400&display=swap' },
+  'Arial': { name: 'Arial (Sistema)', url: '' },
+  'Times New Roman': { name: 'Times New Roman (Sistema)', url: '' }
 };
 
 export const LIST_STYLES = {
@@ -19,25 +21,27 @@ export const LIST_STYLES = {
 
 export const INITIAL_SETTINGS = {
   font: 'Roboto',
-  themeColor: '#000000', // CORRIGIDO: Preto
+  themeColor: '#000000', 
+  bodyColor: '#374151', 
   sectionTitleBold: true,
   showGuides: true,
-  fontSizeBase: 10,      // CORRIGIDO: 10pt
+  showPageLines: false, // NOVO: Controle das linhas de página
+  fontSizeBase: 10,      
   textAlign: 'justify',
   listStyle: 'disc',
   
-  // CONTROLES GRANULARES (Valores do vídeo)
-  lineHeight: 1.2,       // CORRIGIDO: 1.2
-  headerSpacing: 5,      // CORRIGIDO: 5mm
-  itemSpacing: 1,        // CORRIGIDO: 1mm
-  sectionSpacing: 3,     // CORRIGIDO: 3mm
+  // CONTROLES GRANULARES
+  lineHeight: 1.2,       
+  headerSpacing: 5,      
+  itemSpacing: 1,        
+  sectionSpacing: 3,     
   pageBreakAuto: false,  
   
-  // Margens de Coluna (Valores do vídeo)
-  experienceColumnWidth: 40, // CORRIGIDO
-  educationColumnWidth: 40,  // CORRIGIDO
-  projectsColumnWidth: 32,   // CORRIGIDO
-  leftColumnWidth: 46        // CORRIGIDO
+  // Margens de Coluna
+  experienceColumnWidth: 40, 
+  educationColumnWidth: 40,  
+  projectsColumnWidth: 32,   
+  leftColumnWidth: 46        
 };
 
 export const INITIAL_DATA = {
@@ -59,7 +63,7 @@ export const INITIAL_DATA = {
     location: "Lavras, MG",
     linkedin: "linkedin.com/in/rafael-miranda",
     github: "github.com/rafael-miranda",
-    youtube: "",
+    youtube: "youtube.com/@rafael-miranda", 
     lattes: "lattes.cnpq.br/123456789", 
     website: "",
     
@@ -72,8 +76,16 @@ export const INITIAL_DATA = {
     photoShape: 'circle', 
     photoScale: 100,      
     photoX: 0,            
-    photoY: 0,            
-    photoGrayscale: false 
+    photoY: 0,
+    photoRotate: 0,        
+    photoBrightness: 100,  
+    photoContrast: 100,    
+    photoSaturation: 100,
+    photoGrayscale: false,
+    photoFlip: false,     
+    photoCover: false,    
+    photoBorder: 0,       
+    photoShadow: false    
   },
   summary: "Doutor em Genética e Melhoramento com perfil híbrido e estratégico, integrando a expertise agronômica à engenharia de software (Ciência da Computação em curso). Especialista em **Computational Breeding**, atuo na interface entre Biologia e Dados desenvolvendo ferramentas AgTech que automatizam pipelines complexos de Big Data Genômico e análises biométricas. Busco integrar o time de P&D da **Bayer** em Uberlândia para traduzir desafios biológicos em soluções computacionais escaláveis, acelerando a inovação genética e a tomada de decisão no campo.",
   skills: [
