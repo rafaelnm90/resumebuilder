@@ -2,18 +2,16 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { 
   Briefcase, GraduationCap, User, Code, FileText, Download, Plus, Trash2, 
-  ChevronRight, Globe, Settings, Palette, Type, Hash, Layout, Eye, EyeOff, 
-  AlignJustify, Maximize2, Minimize2, MoveHorizontal, Columns, ZoomIn, ZoomOut,
+  ChevronRight, Globe, Settings, Palette, Type, Layout, Eye, EyeOff, 
+  AlignJustify, Maximize2, MoveHorizontal, Columns, ZoomIn, ZoomOut,
   Menu, X, Layers, List, Grid, PenTool, GripVertical, Bold, Italic, Maximize,
-  Youtube, Image as ImageIcon, Upload, AlignLeft, AlignCenter, AlignRight,
-  Circle, Square, Move, Crop, ArrowUp, Info, 
-  RotateCw, RotateCcw, Sun, FlipHorizontal, Droplet, Frame 
+  Image as ImageIcon, Upload, AlignLeft, AlignCenter, AlignRight,
+  Circle, Square, Move, Crop, Info, 
+  RotateCw, RotateCcw, Sun, FlipHorizontal, Droplet, Frame, Sliders 
 } from 'lucide-react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import ResumePreview from './ResumePreview';
 import { INITIAL_DATA, INITIAL_SETTINGS, FONTS, LIST_STYLES } from './constants';
-
-const EXIBIR_LOGS = false;
 
 // --- MAPA DE ÍCONES PARA A BARRA LATERAL DINÂMICA ---
 const SECTION_ICONS = {
@@ -264,6 +262,9 @@ export default function App() {
   const [sidebarWidth, setSidebarWidth] = useState(380);
   const [isResizing, setIsResizing] = useState(false);
   const [expandedField, setExpandedField] = useState(null);
+  
+  // Controle de abertura do menu de espaçamento avançado
+  const [isSpacingAdvancedOpen, setIsSpacingAdvancedOpen] = useState(false);
 
   const summaryRef = useRef(null);
 
@@ -303,6 +304,7 @@ export default function App() {
       window.removeEventListener('mousemove', resize);
       window.removeEventListener('mouseup', stopResizing);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isResizing]);
 
   const handlePrint = () => {
@@ -316,10 +318,6 @@ export default function App() {
     // Remove guias de preview antes de imprimir
     const guides = contentClone.querySelectorAll('.page-guide');
     guides.forEach(g => g.remove());
-    
-    // --- LIMPEZA E PREPARAÇÃO PARA IMPRESSÃO ---
-    // A margem física da folha é zero no navegador (usamos padding interno para margens)
-    // Isso evita conflitos entre a margem do @page e o conteúdo da tabela
     
     contentClone.style.transform = 'none';
     contentClone.style.zoom = '1';
@@ -341,7 +339,7 @@ export default function App() {
             @media print {
               @page { 
                   size: A4; 
-                  margin: 0; /* Margem zero, pois o padding do ResumePreview controla o espaço */
+                  margin: 0; 
               }
               
               body { 
@@ -357,7 +355,6 @@ export default function App() {
               .content-container { width: 100% !important; margin: 0 !important; }
               a { text-decoration: none !important; color: inherit !important; }
               
-              /* Garante que o header/footer da tabela se repita (se estiver em modo tabela) */
               thead { display: table-header-group; }
               tfoot { display: table-footer-group; }
             }
@@ -469,6 +466,17 @@ export default function App() {
   
   const addDetailedItemDescLine = (sid, idx) => setData(p => ({ ...p, customSections: p.customSections.map(s => s.id === sid ? { ...s, content: s.content.map((item, i) => i === idx ? { ...item, description: [...item.description, ""] } : item) } : s) }));
   const removeDetailedItemDescLine = (sid, idx, di) => setData(p => ({ ...p, customSections: p.customSections.map(s => s.id === sid ? { ...s, content: s.content.map((item, i) => i === idx ? { ...item, description: item.description.filter((_, k) => k !== di) } : item) } : s) }));
+  
+  // Atualiza o espaçamento específico de uma seção
+  const updateSectionSpacing = (sectionId, value) => {
+      setSettings(prev => ({
+          ...prev,
+          sectionItemSpacings: {
+              ...prev.sectionItemSpacings,
+              [sectionId]: parseFloat(value)
+          }
+      }));
+  };
 
   // --- RENDERERS ---
 
@@ -492,7 +500,7 @@ export default function App() {
                     <div className={`absolute top-1 w-3 h-3 bg-white rounded-full shadow transition-transform ${settings.showPageLines ? 'left-6' : 'left-1'}`}></div>
                 </button>
              </div>
-             <p className="text-[10px] text-gray-500 leading-tight pr-4">Adiciona linhas finas coloridas no topo e base da área de texto em todas as páginas impressas.</p>
+             <p className="text-[10px] text-gray-500 leading-tight pr-4">Adiciona linhas finas coloridas no topo e base da área de texto. (A estrutura do documento permanece idêntica)</p>
          </div>
       </div>
 
@@ -535,17 +543,85 @@ export default function App() {
              </select>
         </div>
 
+        {/* --- CONTROLE DE ESPAÇAMENTO ENTRE ITENS (GLOBAL & GRANULAR) --- */}
         <div className="space-y-1 border-t border-blue-100 pt-3">
              <div className="flex justify-between text-xs text-blue-800 font-semibold mb-2">
-                <span>Espaçamento entre Itens (Listas)</span>
+                <span>Espaçamento entre Itens (Global)</span>
                 <span>{settings.itemSpacing}mm</span>
              </div>
              <input 
                 type="range" min="0" max="15" step="0.5" 
                 value={settings.itemSpacing || 0} 
                 onChange={e => setSettings({...settings, itemSpacing: parseFloat(e.target.value)})}
-                className="w-full h-2 bg-blue-200 rounded-lg appearance-none cursor-pointer"
+                className="w-full h-2 bg-blue-200 rounded-lg appearance-none cursor-pointer mb-2"
              />
+
+             {/* Acordeão para Ajuste Fino */}
+             <div className="bg-white bg-opacity-60 rounded border border-blue-200 overflow-hidden">
+                 <button 
+                    onClick={() => setIsSpacingAdvancedOpen(!isSpacingAdvancedOpen)}
+                    className="w-full px-3 py-2 flex items-center justify-between text-xs text-blue-700 font-bold hover:bg-blue-100 transition-colors"
+                 >
+                     <span className="flex items-center"><Sliders size={12} className="mr-2"/> Ajuste Fino por Seção</span>
+                     <ChevronRight size={14} className={`transform transition-transform ${isSpacingAdvancedOpen ? 'rotate-90' : ''}`}/>
+                 </button>
+                 
+                 {isSpacingAdvancedOpen && (
+                     <div className="p-3 space-y-3 border-t border-blue-100 animate-in fade-in slide-in-from-top-1 duration-200">
+                         <p className="text-[10px] text-gray-500 italic mb-2">Defina valores específicos para sobrescrever o global. Arraste para a esquerda (0) para usar o padrão.</p>
+                         {data.sectionOrder.map(sectionId => {
+                             if (sectionId === 'summary') return null; // Resumo é texto corrido
+                             const isCustom = sectionId.startsWith('custom-');
+                             const config = isCustom ? data.customSections.find(s => s.id === sectionId) : data.structure[sectionId];
+                             if (!config || !config.visible) return null;
+                             if (isCustom && config.type === 'text') return null;
+
+                             const currentVal = settings.sectionItemSpacings[sectionId];
+                             const displayVal = currentVal !== undefined ? `${currentVal}mm` : '(Global)';
+
+                             return (
+                                 <div key={sectionId} className="space-y-1">
+                                     <div className="flex justify-between text-[11px] text-blue-900 font-medium">
+                                         <span className="truncate w-2/3">{config.title}</span>
+                                         <span className="text-gray-500">{displayVal}</span>
+                                     </div>
+                                     <div className="flex items-center gap-2">
+                                        <input 
+                                            type="range" min="-1" max="15" step="0.5" 
+                                            // -1 representa "usar global"
+                                            value={currentVal !== undefined ? currentVal : -1} 
+                                            onChange={e => {
+                                                const val = parseFloat(e.target.value);
+                                                if (val === -1) {
+                                                    const newSpacings = {...settings.sectionItemSpacings};
+                                                    delete newSpacings[sectionId];
+                                                    setSettings({...settings, sectionItemSpacings: newSpacings});
+                                                } else {
+                                                    updateSectionSpacing(sectionId, val);
+                                                }
+                                            }}
+                                            className="w-full h-1.5 bg-blue-200 rounded-lg appearance-none cursor-pointer"
+                                        />
+                                        {currentVal !== undefined && (
+                                            <button 
+                                                onClick={() => {
+                                                    const newSpacings = {...settings.sectionItemSpacings};
+                                                    delete newSpacings[sectionId];
+                                                    setSettings({...settings, sectionItemSpacings: newSpacings});
+                                                }}
+                                                className="text-red-400 hover:text-red-600 p-0.5"
+                                                title="Resetar para Global"
+                                            >
+                                                <X size={12}/>
+                                            </button>
+                                        )}
+                                     </div>
+                                 </div>
+                             );
+                         })}
+                     </div>
+                 )}
+             </div>
         </div>
 
         <div className="space-y-1 border-t border-blue-100 pt-3">
@@ -570,7 +646,6 @@ export default function App() {
           <div className="flex items-center gap-4 group relative">
             <span className="text-sm text-blue-800 cursor-help">Manter Itens Juntos (Evitar Quebra)</span>
             <Info size={20} className="text-blue-600 cursor-help"/>
-            {/* CORREÇÃO DO LAYOUT: z-[9999] e pointer-events-none */}
             <div className="absolute bottom-full left-0 mb-2 w-64 p-3 bg-gray-800 text-white text-xs rounded shadow-lg hidden group-hover:block z-[9999] pointer-events-none">
               Quando ativado, força um item inteiro (ex: uma experiência) a ir para a próxima página caso não caiba na atual, evitando que ele seja cortado ao meio.
               <div className="absolute top-full left-4 -mt-1 border-4 border-transparent border-t-gray-800"></div>
@@ -643,6 +718,17 @@ export default function App() {
              </select>
         </div>
 
+        {/* NOVO: CHECKBOX PARA TEXTO DIREITA NEGRITO */}
+        <div className="flex items-center justify-between pt-2 border-t border-gray-100 mt-2">
+            <span className="text-xs font-bold text-gray-600">Negrito em Datas e Locais (Direita)</span>
+            <input 
+                type="checkbox" 
+                checked={settings.rightTextBold || false} 
+                onChange={e => setSettings({...settings, rightTextBold: e.target.checked})} 
+                className="w-4 h-4 text-blue-600 rounded cursor-pointer" 
+            />
+        </div>
+
         <div className="grid grid-cols-2 gap-4 pt-2">
             {/* 2. COR DO TEMA */}
             <div className="space-y-1">
@@ -667,6 +753,9 @@ export default function App() {
       </div>
     </div>
   );
+  
+  // ... Restante do código do App.js permanece igual (funções de renderização de seções, tabs, etc.)
+  // IMPORTANTE: MANTIVE A ESTRUTURA ORIGINAL DAS OUTRAS FUNÇÕES PARA NÃO QUEBRAR
   
   const renderSectionManagementForm = () => (
     <div className="space-y-6">
@@ -1122,18 +1211,11 @@ export default function App() {
             <div className="pt-2 border-t border-slate-700 mt-2">
                 <p className="px-4 text-xs font-semibold text-slate-500 uppercase mb-2 tracking-wider">Seções do Currículo</p>
                 {data.sectionOrder.map(sectionId => {
-                    // Identifica se é Customizada ou Padrão
                     const isCustom = sectionId.startsWith('custom-');
-                    
-                    // Busca os dados da seção (Título, Visibilidade, etc)
                     const sectionConfig = isCustom 
                         ? data.customSections.find(s => s.id === sectionId) 
                         : data.structure[sectionId];
-
-                    // Segurança: se não achar a seção, não renderiza
                     if (!sectionConfig) return null;
-
-                    // Define o Ícone (Se for custom, usa PenTool, se for padrão, busca no mapa)
                     const IconComponent = isCustom ? PenTool : (SECTION_ICONS[sectionId] || FileText);
 
                     return (
@@ -1143,7 +1225,6 @@ export default function App() {
                             className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors whitespace-nowrap ${activeTab === sectionId ? 'bg-blue-600 text-white shadow-lg' : 'hover:bg-slate-800'}`}
                         >
                             <IconComponent size={18} />
-                            {/* Aqui garante que o NOME ATUALIZADO seja exibido */}
                             <span className="font-medium truncate">{sectionConfig.title}</span>
                             {activeTab === sectionId && <ChevronRight size={16} className="ml-auto" />}
                         </button>
