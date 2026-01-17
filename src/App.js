@@ -6,13 +6,24 @@ import {
   AlignJustify, Maximize2, Minimize2, MoveHorizontal, Columns, ZoomIn, ZoomOut,
   Menu, X, Layers, List, Grid, PenTool, GripVertical, Bold, Italic, Maximize,
   Youtube, Image as ImageIcon, Upload, AlignLeft, AlignCenter, AlignRight,
-  Circle, Square, Move, Crop, ArrowUp, Info // NOVO: Import do ícone Info
+  Circle, Square, Move, Crop, ArrowUp, Info, 
+  RotateCw, RotateCcw, Sun, FlipHorizontal, Droplet, Frame 
 } from 'lucide-react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import ResumePreview from './ResumePreview';
 import { INITIAL_DATA, INITIAL_SETTINGS, FONTS, LIST_STYLES } from './constants';
 
 const EXIBIR_LOGS = false;
+
+// --- MAPA DE ÍCONES PARA A BARRA LATERAL DINÂMICA ---
+const SECTION_ICONS = {
+  summary: FileText,
+  skills: Code,
+  projects: Briefcase,
+  experience: Briefcase,
+  education: GraduationCap,
+  others: Globe
+};
 
 // --- UTILS DE FORMATAÇÃO ---
 const insertFormatting = (ref, type) => {
@@ -301,27 +312,35 @@ export default function App() {
     if (!printWindow) return alert("Por favor, permita pop-ups para baixar o PDF.");
 
     const contentClone = resumeContent.cloneNode(true);
+    
+    // Remove guias de preview antes de imprimir
     const guides = contentClone.querySelectorAll('.page-guide');
     guides.forEach(g => g.remove());
+    // NOTA: As 'preview-line' AGORA SÃO MANTIDAS pois fazem parte do layout do documento
     
     contentClone.style.transform = 'none';
     contentClone.style.zoom = '1';
     contentClone.style.margin = '0'; 
     contentClone.style.padding = '0'; 
+    
+    // Como os elementos agora são do fluxo, removemos a lógica de margem dinâmica para headers
+    const pageMargin = '15mm';
 
     printWindow.document.write(`
       <html lang="pt-BR">
         <head>
           <title>Currículo - ${data.personal.name}</title>
-          <link href="${FONTS[settings.font].url}" rel="stylesheet">
+          ${FONTS[settings.font].url ? `<link href="${FONTS[settings.font].url}" rel="stylesheet">` : ''}
           <script src="https://cdn.tailwindcss.com"></script>
           <style>
             *, *::before, *::after { box-sizing: border-box !important; }
             .keep-together { page-break-inside: avoid !important; break-inside: avoid !important; display: block !important; }
             h3, .dynamic-title { page-break-after: avoid !important; break-after: avoid !important; }
             html, body, p, li, div, span { -webkit-hyphens: auto !important; -ms-hyphens: auto !important; hyphens: auto !important; word-break: break-word !important; }
+            
             @media print {
-              @page { size: A4; margin: 20mm 15mm; }
+              @page { size: A4; margin: ${pageMargin}; }
+              
               body { margin: 0; padding: 0; background-color: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
               #resume-preview { width: 100% !important; height: auto !important; margin: 0 !important; padding: 0 !important; border: none !important; box-shadow: none !important; transform: none !important; overflow: visible !important; }
               .flex-row-print { display: flex !important; flex-direction: row !important; }
@@ -333,7 +352,10 @@ export default function App() {
             .dynamic-title { color: ${settings.themeColor} !important; font-weight: ${settings.sectionTitleBold ? '700' : '400'} !important; border-bottom: 1px solid ${settings.themeColor} !important; opacity: 0.9; }
           </style>
         </head>
-        <body>${contentClone.outerHTML}<script>setTimeout(() => { window.print(); window.close(); }, 1000);</script></body>
+        <body>
+            ${contentClone.outerHTML}
+            <script>setTimeout(() => { window.print(); window.close(); }, 1000);</script>
+        </body>
       </html>
     `);
     printWindow.document.close();
@@ -440,6 +462,27 @@ export default function App() {
   const renderSettingsForm = () => (
     <div className="space-y-6">
       <h2 className="text-xl font-bold text-gray-800 border-b pb-2 flex items-center"><Layout className="mr-2" size={20}/> Layout & Otimização</h2>
+      
+      {/* BLOCO: DECORAÇÃO DE PÁGINA (PADRONIZADO VISUALMENTE COM GEOMETRIA) */}
+      <div className="bg-white p-4 rounded-lg border border-gray-200 space-y-4 shadow-sm">
+         <label className="flex items-center text-sm font-bold text-gray-700 uppercase border-b pb-1 mb-2">
+            <Frame size={16} className="mr-2"/> Decoração de Página
+         </label>
+         
+         <div className="space-y-1">
+             <div className="flex justify-between items-center text-xs text-gray-800 font-semibold">
+                <span>Linhas Decorativas (Topo/Base)</span>
+                <button 
+                    onClick={() => setSettings({...settings, showPageLines: !settings.showPageLines})} 
+                    className={`w-10 h-5 rounded-full relative transition-colors flex-shrink-0 ${settings.showPageLines ? 'bg-green-500' : 'bg-gray-300'}`}
+                >
+                    <div className={`absolute top-1 w-3 h-3 bg-white rounded-full shadow transition-transform ${settings.showPageLines ? 'left-6' : 'left-1'}`}></div>
+                </button>
+             </div>
+             <p className="text-[10px] text-gray-500 leading-tight pr-4">Adiciona linhas finas coloridas no início e no fim do conteúdo do currículo.</p>
+         </div>
+      </div>
+
       <div className="bg-blue-50 p-4 rounded-lg border border-blue-200 space-y-4">
         <label className="flex items-center text-sm font-bold text-blue-800"><Maximize2 size={16} className="mr-2"/> Geometria e Espaçamento</label>
         
@@ -511,21 +554,21 @@ export default function App() {
         </div>
 
         <div className="flex items-center justify-between border-t border-blue-100 pt-3">
-          <div className="flex items-center gap-2 group relative">
-            <span className="text-sm text-blue-800 cursor-help">Permitir Quebra de Páginas Dentro de Tópicos</span>
-            {/* NOVO: Ícone de Info com Tooltip */}
-            <Info size={14} className="text-blue-500 cursor-help"/>
-            <div className="absolute bottom-full left-0 mb-2 w-64 p-3 bg-gray-800 text-white text-xs rounded shadow-lg hidden group-hover:block z-50 pointer-events-none">
-              Ative para permitir que um único item (ex: uma experiência longa) seja dividido entre duas páginas. Mantenha desativado para forçar o item a ir inteiro para a próxima página.
+          <div className="flex items-center gap-4 group relative">
+            <span className="text-sm text-blue-800 cursor-help">Manter Itens Juntos (Evitar Quebra)</span>
+            <Info size={20} className="text-blue-600 cursor-help"/>
+            {/* CORREÇÃO DO LAYOUT: z-[9999] e pointer-events-none */}
+            <div className="absolute bottom-full left-0 mb-2 w-64 p-3 bg-gray-800 text-white text-xs rounded shadow-lg hidden group-hover:block z-[9999] pointer-events-none">
+              Quando ativado, força um item inteiro (ex: uma experiência) a ir para a próxima página caso não caiba na atual, evitando que ele seja cortado ao meio.
               <div className="absolute top-full left-4 -mt-1 border-4 border-transparent border-t-gray-800"></div>
             </div>
           </div>
-          <input 
-            type="checkbox" 
-            checked={settings.pageBreakAuto || false} 
-            onChange={e => setSettings({...settings, pageBreakAuto: e.target.checked})} 
-            className="w-4 h-4 text-blue-600 rounded cursor-pointer" 
-          />
+          <button 
+            onClick={() => setSettings({...settings, pageBreakAuto: !settings.pageBreakAuto})} 
+            className={`w-10 h-5 rounded-full relative transition-colors flex-shrink-0 ${!settings.pageBreakAuto ? 'bg-green-500' : 'bg-gray-300'}`}
+          >
+            <div className={`absolute top-1 w-3 h-3 bg-white rounded-full shadow transition-transform ${!settings.pageBreakAuto ? 'left-6' : 'left-1'}`}></div>
+          </button>
         </div>
 
         <div className="space-y-4 mt-4 border-t border-blue-200 pt-3">
@@ -566,18 +609,51 @@ export default function App() {
           <input type="checkbox" checked={settings.showGuides} onChange={e => setSettings({...settings, showGuides: e.target.checked})} className="w-5 h-5 text-yellow-600 rounded cursor-pointer" />
         </div>
       </div>
-      <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 space-y-4">
-        <label className="flex items-center text-sm font-bold text-gray-700"><Palette size={16} className="mr-2"/> Cores e Títulos</label>
-        <div className="flex items-center gap-2">
-          <input type="color" value={settings.themeColor} onChange={e => setSettings({...settings, themeColor: e.target.value})} className="h-8 w-12 cursor-pointer border rounded" />
-          <span className="text-xs font-mono">{settings.themeColor}</span>
+      
+      {/* BLOCO: TIPOGRAFIA & CORES */}
+      <div className="bg-white p-4 rounded-lg border border-gray-200 space-y-4 shadow-sm">
+        <label className="flex items-center text-sm font-bold text-gray-700 uppercase border-b pb-1 mb-2">
+          <Type size={16} className="mr-2"/> Tipografia & Paleta
+        </label>
+
+        {/* 1. SELEÇÃO DE FONTE */}
+        <div className="space-y-1">
+             <div className="flex justify-between text-xs text-gray-600 font-semibold mb-1"><span>Família da Fonte</span></div>
+             <select 
+                value={settings.font} 
+                onChange={e => setSettings({...settings, font: e.target.value})}
+                className="w-full p-2 text-sm border rounded bg-gray-50 focus:border-blue-500 outline-none"
+             >
+                {Object.entries(FONTS).map(([key, fontData]) => (
+                    <option key={key} value={key}>{fontData.name}</option>
+                ))}
+             </select>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4 pt-2">
+            {/* 2. COR DO TEMA */}
+            <div className="space-y-1">
+                <span className="text-xs font-bold text-gray-500 block mb-1">Cor de Destaque</span>
+                <p className="text-[10px] text-gray-400 mb-1 leading-tight">Títulos, ícones e bordas</p>
+                <div className="flex items-center gap-2 border p-1 rounded bg-gray-50">
+                    <input type="color" value={settings.themeColor} onChange={e => setSettings({...settings, themeColor: e.target.value})} className="h-8 w-10 cursor-pointer border-none bg-transparent" title="Escolher cor do tema"/>
+                    <span className="text-xs font-mono text-gray-600">{settings.themeColor}</span>
+                </div>
+            </div>
+
+            {/* 3. COR DO TEXTO */}
+            <div className="space-y-1">
+                <span className="text-xs font-bold text-gray-500 block mb-1">Cor do Texto</span>
+                <p className="text-[10px] text-gray-400 mb-1 leading-tight">Corpo, listas e resumos</p>
+                <div className="flex items-center gap-2 border p-1 rounded bg-gray-50">
+                    <input type="color" value={settings.bodyColor || '#374151'} onChange={e => setSettings({...settings, bodyColor: e.target.value})} className="h-8 w-10 cursor-pointer border-none bg-transparent" title="Escolher cor do texto"/>
+                    <span className="text-xs font-mono text-gray-600">{settings.bodyColor}</span>
+                </div>
+            </div>
         </div>
       </div>
     </div>
   );
-
-  // ... (o restante do código permanece exatamente como na versão funcional que enviei anteriormente, garantindo que a digitação continue funcionando)
-  // ... (incluindo a correção crítica em updateDetailedItemDesc e a RichTextToolbar estática para não cobrir o texto)
   
   const renderSectionManagementForm = () => (
     <div className="space-y-6">
@@ -785,15 +861,67 @@ export default function App() {
                         </div>
                     </div>
 
-                    {/* 5. EFEITOS */}
-                    <div className="flex items-center justify-between pt-1">
-                        <span className="text-xs font-bold text-gray-500 uppercase">Preto e Branco</span>
+                    {/* 5. EFEITOS ESPECIAIS (Borda, Sombra, Flip, PB, Cover) */}
+                    <div className="grid grid-cols-2 gap-3 pt-2">
+                        {/* Sombra */}
+                        <div className="flex items-center justify-between">
+                            <span className="text-xs font-bold text-gray-500 uppercase flex items-center"><Layers size={12} className="mr-1"/> Sombra</span>
+                            <input type="checkbox" checked={data.personal.photoShadow || false} onChange={(e) => updateField('personal', 'photoShadow', e.target.checked)} className="w-4 h-4 text-blue-600 rounded cursor-pointer"/>
+                        </div>
+                        {/* Preto e Branco */}
+                        <div className="flex items-center justify-between">
+                            <span className="text-xs font-bold text-gray-500 uppercase flex items-center"><Circle size={12} className="mr-1"/> P/B</span>
+                            <input type="checkbox" checked={data.personal.photoGrayscale || false} onChange={(e) => updateField('personal', 'photoGrayscale', e.target.checked)} className="w-4 h-4 text-blue-600 rounded cursor-pointer"/>
+                        </div>
+                         {/* Espelhar */}
+                        <div className="flex items-center justify-between">
+                            <span className="text-xs font-bold text-gray-500 uppercase flex items-center"><FlipHorizontal size={12} className="mr-1"/> Espelhar</span>
+                            <input type="checkbox" checked={data.personal.photoFlip || false} onChange={(e) => updateField('personal', 'photoFlip', e.target.checked)} className="w-4 h-4 text-blue-600 rounded cursor-pointer"/>
+                        </div>
+                        {/* Preencher (Cover) */}
+                        <div className="flex items-center justify-between">
+                            <span className="text-xs font-bold text-gray-500 uppercase flex items-center"><Maximize size={12} className="mr-1"/> Preencher</span>
+                            <input type="checkbox" checked={data.personal.photoCover || false} onChange={(e) => updateField('personal', 'photoCover', e.target.checked)} className="w-4 h-4 text-blue-600 rounded cursor-pointer"/>
+                        </div>
+                    </div>
+
+                    {/* 6. BORDA (Espessura) */}
+                    <div className="space-y-1 pt-2">
+                        <div className="flex justify-between text-xs text-gray-600">
+                            <span className="flex items-center"><Frame size={12} className="mr-1"/> Borda Colorida</span>
+                            <span>{data.personal.photoBorder || 0}px</span>
+                        </div>
                         <input 
-                            type="checkbox" 
-                            checked={data.personal.photoGrayscale || false} 
-                            onChange={(e) => updateField('personal', 'photoGrayscale', e.target.checked)}
-                            className="w-4 h-4 text-blue-600 rounded cursor-pointer"
+                            type="range" min="0" max="10" step="1" 
+                            value={data.personal.photoBorder || 0} 
+                            onChange={(e) => updateField('personal', 'photoBorder', parseInt(e.target.value))}
+                            className="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
                         />
+                    </div>
+
+                    {/* 7. ROTAÇÃO */}
+                    <div className="flex items-center justify-between pt-2">
+                        <span className="text-xs font-bold text-gray-500 uppercase flex items-center"><RotateCw size={12} className="mr-1"/> Rotação</span>
+                        <div className="flex gap-1">
+                            <button onClick={() => updateField('personal', 'photoRotate', (data.personal.photoRotate || 0) - 90)} className="p-1.5 hover:bg-gray-200 rounded text-gray-600" title="-90º"><RotateCcw size={16}/></button>
+                            <button onClick={() => updateField('personal', 'photoRotate', (data.personal.photoRotate || 0) + 90)} className="p-1.5 hover:bg-gray-200 rounded text-gray-600" title="+90º"><RotateCw size={16}/></button>
+                        </div>
+                    </div>
+
+                    {/* 8. BRILHO, CONTRASTE & SATURAÇÃO */}
+                    <div className="grid grid-cols-3 gap-2 pt-2">
+                        <div className="space-y-1">
+                            <div className="flex justify-center text-xs text-gray-600" title="Brilho"><Sun size={12}/></div>
+                            <input type="range" min="50" max="150" value={data.personal.photoBrightness || 100} onChange={(e) => updateField('personal', 'photoBrightness', parseInt(e.target.value))} className="w-full h-1.5 bg-gray-200 rounded-lg cursor-pointer accent-blue-600"/>
+                        </div>
+                        <div className="space-y-1">
+                            <div className="flex justify-center text-xs text-gray-600" title="Contraste"><Circle size={12}/></div>
+                            <input type="range" min="50" max="150" value={data.personal.photoContrast || 100} onChange={(e) => updateField('personal', 'photoContrast', parseInt(e.target.value))} className="w-full h-1.5 bg-gray-200 rounded-lg cursor-pointer accent-blue-600"/>
+                        </div>
+                         <div className="space-y-1">
+                            <div className="flex justify-center text-xs text-gray-600" title="Saturação"><Droplet size={12}/></div>
+                            <input type="range" min="0" max="200" value={data.personal.photoSaturation || 100} onChange={(e) => updateField('personal', 'photoSaturation', parseInt(e.target.value))} className="w-full h-1.5 bg-gray-200 rounded-lg cursor-pointer accent-blue-600"/>
+                        </div>
                     </div>
                 </div>
             )}
@@ -807,8 +935,8 @@ export default function App() {
         <Input label="Local" value={data.personal.location} onChange={v=>updateField('personal','location',v)} onExpandRequest={handleOpenExpand}/>
         <Input label="LinkedIn" value={data.personal.linkedin} onChange={v=>updateField('personal','linkedin',v)} onExpandRequest={handleOpenExpand}/>
         <Input label="GitHub" value={data.personal.github} onChange={v=>updateField('personal','github',v)} onExpandRequest={handleOpenExpand}/>
-        <Input label="YouTube (Canal/Link)" value={data.personal.youtube || ''} onChange={v=>updateField('personal','youtube',v)} onExpandRequest={handleOpenExpand}/>
         <Input label="Currículo Lattes (Link/ID)" value={data.personal.lattes || ''} onChange={v=>updateField('personal','lattes',v)} onExpandRequest={handleOpenExpand}/>
+        <Input label="YouTube (Canal/Link)" value={data.personal.youtube || ''} onChange={v=>updateField('personal','youtube',v)} onExpandRequest={handleOpenExpand}/>
       </div>
     </div>
   );
@@ -950,12 +1078,6 @@ export default function App() {
     { id: 'settings', label: 'Layout & Otimização', icon: Settings },
     { id: 'sections', label: 'Gerenciar Seções', icon: Layers },
     { id: 'personal', label: 'Pessoal', icon: User },
-    { id: 'summary', label: 'Resumo', icon: FileText },
-    { id: 'skills', label: 'Competências', icon: Code },
-    { id: 'projects', label: 'Projetos', icon: Briefcase },
-    { id: 'experience', label: 'Experiência', icon: Briefcase },
-    { id: 'education', label: 'Formação', icon: GraduationCap },
-    { id: 'others', label: 'Outros', icon: Globe },
   ];
 
   return (
@@ -974,8 +1096,47 @@ export default function App() {
         <nav className={`bg-slate-900 text-slate-300 flex-shrink-0 h-auto md:h-screen sticky top-0 overflow-y-auto transition-all duration-300 ${isSidebarOpen ? 'w-full md:w-64' : 'w-0 md:w-0 overflow-hidden'}`}>
           <div className="p-6 border-b border-slate-700 flex justify-between items-center"><div><h1 className="text-white font-bold text-xl whitespace-nowrap">Resume Builder</h1><p className="text-xs text-slate-500 mt-1 whitespace-nowrap">V7.3 - Stable</p></div></div>
           <div className="p-4 space-y-1">
-            {tabs.map(tab => (<button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors whitespace-nowrap ${activeTab === tab.id ? 'bg-blue-600 text-white shadow-lg' : 'hover:bg-slate-800'} ${tab.id === 'settings' ? 'mb-4 ring-1 ring-slate-600' : ''}`}><tab.icon size={18} /><span className="font-medium">{tab.label}</span>{activeTab === tab.id && <ChevronRight size={16} className="ml-auto" />}</button>))}
-            {data.customSections.map(sec => (<button key={sec.id} onClick={() => setActiveTab(sec.id)} className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors whitespace-nowrap ${activeTab === sec.id ? 'bg-blue-600 text-white shadow-lg' : 'hover:bg-slate-800'}`}><PenTool size={18} /><span className="font-medium truncate">{sec.title}</span>{activeTab === sec.id && <ChevronRight size={16} className="ml-auto" />}</button>))}
+            {/* TABS FIXAS */}
+            {tabs.map(tab => (
+                <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors whitespace-nowrap ${activeTab === tab.id ? 'bg-blue-600 text-white shadow-lg' : 'hover:bg-slate-800'} ${tab.id === 'settings' ? 'mb-4 ring-1 ring-slate-600' : ''}`}>
+                    <tab.icon size={18} />
+                    <span className="font-medium">{tab.label}</span>
+                    {activeTab === tab.id && <ChevronRight size={16} className="ml-auto" />}
+                </button>
+            ))}
+
+            {/* SEÇÕES DINÂMICAS */}
+            <div className="pt-2 border-t border-slate-700 mt-2">
+                <p className="px-4 text-xs font-semibold text-slate-500 uppercase mb-2 tracking-wider">Seções do Currículo</p>
+                {data.sectionOrder.map(sectionId => {
+                    // Identifica se é Customizada ou Padrão
+                    const isCustom = sectionId.startsWith('custom-');
+                    
+                    // Busca os dados da seção (Título, Visibilidade, etc)
+                    const sectionConfig = isCustom 
+                        ? data.customSections.find(s => s.id === sectionId) 
+                        : data.structure[sectionId];
+
+                    // Segurança: se não achar a seção, não renderiza
+                    if (!sectionConfig) return null;
+
+                    // Define o Ícone (Se for custom, usa PenTool, se for padrão, busca no mapa)
+                    const IconComponent = isCustom ? PenTool : (SECTION_ICONS[sectionId] || FileText);
+
+                    return (
+                        <button 
+                            key={sectionId} 
+                            onClick={() => setActiveTab(sectionId)} 
+                            className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors whitespace-nowrap ${activeTab === sectionId ? 'bg-blue-600 text-white shadow-lg' : 'hover:bg-slate-800'}`}
+                        >
+                            <IconComponent size={18} />
+                            {/* Aqui garante que o NOME ATUALIZADO seja exibido */}
+                            <span className="font-medium truncate">{sectionConfig.title}</span>
+                            {activeTab === sectionId && <ChevronRight size={16} className="ml-auto" />}
+                        </button>
+                    );
+                })}
+            </div>
           </div>
           <div className="p-6 mt-auto border-t border-slate-700"><button onClick={handlePrint} className="w-full flex justify-center items-center bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-bold transition-all shadow-md active:scale-95 whitespace-nowrap"><Download size={20} className="mr-2" /> Baixar PDF</button></div>
         </nav>
