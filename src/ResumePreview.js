@@ -45,6 +45,8 @@ export default function ResumePreview({ data, settings }) {
     ? "font-bold text-gray-900" 
     : "font-medium text-gray-700 opacity-75";
 
+  // src/ResumePreview.js
+
   const renderListItems = (items, sectionId) => {
     const activeStyle = LIST_STYLES[settings.listStyle] || LIST_STYLES['disc'];
     const isWideMarker = ['arrow', 'check', 'dash'].includes(settings.listStyle);
@@ -75,10 +77,26 @@ export default function ResumePreview({ data, settings }) {
             }
         }
 
-        // ADICIONADO: marker:font-bold para forçar o símbolo a ser negrito
+        // ALTERAÇÃO: 
+        // 1. Cor do marcador depende de settings.listMarkerUseThemeColor
+        // 2. Se for TRUE: usa ThemeColor
+        // 3. Se for FALSE: usa BodyColor
+        
+        const markerColor = settings.listMarkerUseThemeColor ? settings.themeColor : (settings.bodyColor || '#374151');
+
         return (
-            <li key={i} className={`break-words ${indentClass} ${bulletClass} ${extraClasses} marker:font-bold`} style={{ textAlign: settings.textAlign, textJustify: 'inter-word' }}>
-                {formatText(text)}
+            <li 
+                key={i} 
+                className={`break-words ${indentClass} ${bulletClass} ${extraClasses} ${settings.listMarkerBold ? 'marker:font-bold' : ''}`} 
+                style={{ 
+                    textAlign: settings.textAlign, 
+                    textJustify: 'inter-word',
+                    color: isHeader ? settings.bodyColor : markerColor // Aqui aplica a lógica
+                }}
+            >
+                <span style={{ color: settings.bodyColor || '#374151' }}>
+                    {formatText(text)}
+                </span>
             </li>
         );
     });
