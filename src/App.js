@@ -478,13 +478,11 @@ export default function App() {
       }));
   };
 
-  // --- RENDERERS ---
-
   const renderSettingsForm = () => (
     <div className="space-y-6">
       <h2 className="text-xl font-bold text-gray-800 border-b pb-2 flex items-center"><Layout className="mr-2" size={20}/> Layout & Otimização</h2>
       
-      {/* BLOCO: DECORAÇÃO DE PÁGINA (PADRONIZADO VISUALMENTE COM GEOMETRIA) */}
+      {/* BLOCO: DECORAÇÃO DE PÁGINA */}
       <div className="bg-white p-4 rounded-lg border border-gray-200 space-y-4 shadow-sm">
          <label className="flex items-center text-sm font-bold text-gray-700 uppercase border-b pb-1 mb-2">
             <Frame size={16} className="mr-2"/> Decoração de Página
@@ -530,17 +528,38 @@ export default function App() {
              />
         </div>
 
+        {/* --- ESTILO DOS MARCADORES (ATUALIZADO COM SELETOR DE COR) --- */}
         <div className="space-y-1 border-t border-blue-100 pt-3">
              <div className="flex justify-between text-xs text-blue-800 font-semibold mb-1"><span>Estilo dos Marcadores</span></div>
-             <select 
-                value={settings.listStyle || 'disc'} 
-                onChange={e => setSettings({...settings, listStyle: e.target.value})}
-                className="w-full p-2 text-sm border rounded bg-white focus:border-blue-500 outline-none"
-             >
-                {Object.entries(LIST_STYLES).map(([key, style]) => (
-                    <option key={key} value={key}>{style.label}</option>
-                ))}
-             </select>
+             <div className="flex gap-2">
+                 <select 
+                    value={settings.listStyle || 'disc'} 
+                    onChange={e => setSettings({...settings, listStyle: e.target.value})}
+                    className="flex-1 p-2 text-sm border rounded bg-white focus:border-blue-500 outline-none"
+                 >
+                    {Object.entries(LIST_STYLES).map(([key, style]) => (
+                        <option key={key} value={key}>{style.label}</option>
+                    ))}
+                 </select>
+                 
+                 {/* Botão de Negrito */}
+                 <button 
+                    onClick={() => setSettings({...settings, listMarkerBold: !settings.listMarkerBold})}
+                    className={`px-3 border rounded transition-colors ${settings.listMarkerBold ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-400 border-gray-300 hover:bg-gray-50'}`}
+                    title="Alternar Marcador em Negrito"
+                 >
+                    <Bold size={16} />
+                 </button>
+
+                 {/* Botão de Cor (Tema vs Texto) */}
+                 <button 
+                    onClick={() => setSettings({...settings, listMarkerUseThemeColor: !settings.listMarkerUseThemeColor})}
+                    className={`px-3 border rounded transition-colors ${settings.listMarkerUseThemeColor ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-400 border-gray-300 hover:bg-gray-50'}`}
+                    title={settings.listMarkerUseThemeColor ? "Cor do Marcador: Usar Tema" : "Cor do Marcador: Usar Cor do Texto"}
+                 >
+                    <Palette size={16} />
+                 </button>
+             </div>
         </div>
 
         {/* --- CONTROLE DE ESPAÇAMENTO ENTRE ITENS (GLOBAL & GRANULAR) --- */}
@@ -718,7 +737,7 @@ export default function App() {
              </select>
         </div>
 
-        {/* NOVO: CHECKBOX PARA TEXTO DIREITA NEGRITO */}
+        {/* CHECKBOX PARA TEXTO DIREITA NEGRITO */}
         <div className="flex items-center justify-between pt-2 border-t border-gray-100 mt-2">
             <span className="text-xs font-bold text-gray-600">Negrito em Datas e Locais (Direita)</span>
             <input 
@@ -753,9 +772,6 @@ export default function App() {
       </div>
     </div>
   );
-  
-  // ... Restante do código do App.js permanece igual (funções de renderização de seções, tabs, etc.)
-  // IMPORTANTE: MANTIVE A ESTRUTURA ORIGINAL DAS OUTRAS FUNÇÕES PARA NÃO QUEBRAR
   
   const renderSectionManagementForm = () => (
     <div className="space-y-6">
