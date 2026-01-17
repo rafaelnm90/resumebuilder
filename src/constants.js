@@ -25,17 +25,23 @@ export const INITIAL_SETTINGS = {
   bodyColor: '#374151', 
   sectionTitleBold: true,
   showGuides: true,
-  showPageLines: false, // NOVO: Controle das linhas de página
+  showPageLines: true, 
   fontSizeBase: 10,      
   textAlign: 'justify',
   listStyle: 'disc',
+  
+  // NOVA CONFIGURAÇÃO SOLICITADA
+  rightTextBold: false, // Controla se datas, locais e tags ficam em negrito
   
   // CONTROLES GRANULARES
   lineHeight: 1.2,       
   headerSpacing: 5,      
   itemSpacing: 1,        
   sectionSpacing: 3,     
-  pageBreakAuto: false,  
+  pageBreakAuto: false,
+  
+  // Espaçamentos específicos por seção
+  sectionItemSpacings: {}, 
   
   // Margens de Coluna
   experienceColumnWidth: 40, 
