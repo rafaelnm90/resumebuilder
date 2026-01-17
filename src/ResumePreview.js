@@ -24,14 +24,12 @@ export default function ResumePreview({ data, settings }) {
   const eduColWidthCSS = `${settings.educationColumnWidth}mm`;
   const projColWidthCSS = `${settings.projectsColumnWidth}mm`;
 
-  // Lógica de Espaçamento Dinâmico (Flex Gap)
   const listContainerStyle = {
     display: 'flex',
     flexDirection: 'column',
     gap: `${settings.itemSpacing}mm`
   };
 
-  // Lógica de Quebra de Página (Se Auto=True, remove 'keep-together')
   const pageBreakClass = settings.pageBreakAuto ? '' : 'keep-together';
 
   const { 
@@ -41,16 +39,12 @@ export default function ResumePreview({ data, settings }) {
     photoFlip, photoCover, photoBorder, photoShadow
   } = data.personal;
 
-  // Helper para renderizar itens de lista
   const renderListItems = (items) => {
-    // Busca a configuração de estilo (Padrão: disc)
     const activeStyle = LIST_STYLES[settings.listStyle] || LIST_STYLES['disc'];
-    
-    // Verifica se é um dos estilos que precisa de mais espaçamento
     const isWideMarker = ['arrow', 'check', 'dash'].includes(settings.listStyle);
 
     return (items || []).map((item, i) => {
-        if (!item || !item.trim()) return null; // Oculta itens vazios
+        if (!item || !item.trim()) return null;
         
         const isHeader = item.startsWith('## ');
         const isSub = item.startsWith('>> ');
@@ -62,18 +56,14 @@ export default function ResumePreview({ data, settings }) {
 
         if (isHeader) {
             text = item.slice(3);
-            bulletClass = 'list-none'; // Remove bullet
-            // MARGEM SUPERIOR AUMENTADA (mt-6) para separar visualmente do bloco anterior
+            bulletClass = 'list-none'; 
             extraClasses = 'font-bold mt-6 mb-1 pt-1'; 
         } else if (isSub) {
             text = item.slice(3);
             bulletClass = activeStyle.cssSub;
             indentClass = 'ml-6';
-            // Ajuste fino para sub-itens de ícones largos
             if (isWideMarker) extraClasses = 'pl-2';
         } else {
-            // Item normal
-            // PADDING LATERAL AUMENTADO (pl-3) para ícones largos
             if (isWideMarker) {
                 extraClasses = 'pl-3';
             }
@@ -87,7 +77,6 @@ export default function ResumePreview({ data, settings }) {
     });
   };
 
-  // Lógica de Renderização do Header
   const renderHeader = () => {
     const isPhotoVisible = showPhoto && photo;
     const align = photoAlignment || 'center'; 
@@ -97,11 +86,10 @@ export default function ResumePreview({ data, settings }) {
     let photoContainerClasses = "flex-shrink-0 ";
     let contactJustify = "justify-center";
     
-    // PADDING INFERIOR DO HEADER (CONTROLADO PELO SLIDER)
     const headerStyle = { 
         borderColor: settings.themeColor,
         marginBottom: `${settings.headerSpacing}mm`,
-        paddingBottom: `${settings.headerSpacing / 2}mm` // Padding proporcional à margem
+        paddingBottom: `${settings.headerSpacing / 2}mm` 
     };
 
     if (isPhotoVisible) {
@@ -124,8 +112,6 @@ export default function ResumePreview({ data, settings }) {
         textContainerClasses += "text-center";
     }
 
-    // CÁLCULO DA ESCALA COM FLIP
-    // Se Flip estiver ativo, multiplicamos o X por -1
     const scaleX = (photoScale / 100) * (photoFlip ? -1 : 1);
     const scaleY = (photoScale / 100);
 
@@ -133,7 +119,6 @@ export default function ResumePreview({ data, settings }) {
         width: '100%',
         height: '100%',
         objectFit: photoCover ? 'cover' : 'contain', 
-        // APLICAÇÃO DOS NOVOS FILTROS E ROTAÇÃO
         transform: `scale(${scaleX}, ${scaleY}) translate(${photoX}%, ${photoY}%) rotate(${photoRotate || 0}deg)`,
         filter: `${photoGrayscale ? 'grayscale(100%)' : ''} brightness(${photoBrightness || 100}%) contrast(${photoContrast || 100}%) saturate(${photoSaturation || 100}%)`,
         transition: 'transform 0.1s'
@@ -151,7 +136,6 @@ export default function ResumePreview({ data, settings }) {
                         className="w-28 h-28 overflow-hidden bg-gray-100"
                         style={{ 
                             borderRadius: frameRadius,
-                            // BORDA E SOMBRA AGORA NO CONTAINER
                             borderWidth: `${photoBorder || 0}px`,
                             borderColor: settings.themeColor,
                             borderStyle: 'solid',
@@ -181,7 +165,6 @@ export default function ResumePreview({ data, settings }) {
   };
 
   const renderSection = (sectionId) => {
-    // Helper de estilo para margin-bottom dinâmico
     const sectionStyle = { marginBottom: `${settings.sectionSpacing}mm` };
 
     if (sectionId.startsWith('custom-')) {
@@ -251,17 +234,13 @@ export default function ResumePreview({ data, settings }) {
                     <div style={listContainerStyle}>
                     {data.projects.map((proj, i) => (
                         <div key={i} className={`${pageBreakClass} flex flex-row items-start gap-8 flex-row-print`}>
-                        {/* LADO ESQUERDO */}
                         <div className="flex-1">
                             <h4 className="font-bold text-[1.05em] break-words mb-1">{proj.title}</h4>
                             <ul className="list-outside ml-4" style={listContainerStyle}>
                                 {renderListItems(proj.description)}
                             </ul>
                         </div>
-
-                        {/* LADO DIREITO: Tech Box */}
                         <div className="flex-shrink-0 flex items-start justify-end mt-1" style={{ width: projColWidthCSS }}>
-                            {/* REMOVIDO font-mono, agora herda a fonte global */}
                             <span className="text-[0.85em] bg-gray-100 px-2 py-1 rounded border border-gray-200 inline-block break-words hyphens-auto" style={{ hyphens: 'auto' }}>
                                 {proj.tech}
                             </span>
@@ -347,69 +326,80 @@ export default function ResumePreview({ data, settings }) {
     }
   };
 
-  return (
-    <div 
-      id="resume-preview" 
-      lang="pt-BR"
-      className="bg-white shadow-2xl relative"
-      style={{ 
-        fontFamily: `'${settings.font}', sans-serif`,
-        color: settings.bodyColor || '#374151', // APLICAÇÃO DA COR GLOBAL DO TEXTO
-        width: '210mm',
-        minHeight: '297mm',
-        paddingTop: '20mm',
-        paddingBottom: '20mm',
-        paddingLeft: '15mm',
-        paddingRight: '15mm',
-        fontSize: `${settings.fontSizeBase}pt`,
-        lineHeight: settings.lineHeight, // AGORA USA O SLIDER DIRETAMENTE
-        boxSizing: 'border-box',
-        position: 'relative', // IMPORTANTE PARA O POSICIONAMENTO ABSOLUTO FUNCIONAR
-      }}
-    >
-      <div className="content-container" style={{ width: '100%', height: '100%', position: 'relative' }}>
-        
-         {/* --- LINHA DECORATIVA DO TOPO (AGORA NO FLUXO) --- */}
-        {settings.showPageLines && (
-            <div 
-                className="preview-line" 
-                style={{ 
-                    width: '100%',
-                    height: '2px', 
-                    backgroundColor: settings.themeColor,
-                    marginBottom: '5mm' // Espaço para o Header
-                }}
-            ></div>
-        )}
+  // --- MONTAGEM DO CONTEÚDO ---
+  const ResumeContent = (
+      <>
+        {renderHeader()}
+        {sectionOrder.map(sectionId => renderSection(sectionId))}
+      </>
+  );
 
+  const lineStyle = { 
+    width: '100%',
+    height: '2px', 
+    backgroundColor: settings.showPageLines ? settings.themeColor : 'transparent', // CORREÇÃO: Transparente se desligado
+  };
+
+  const typographyStyles = {
+    fontFamily: `'${settings.font}', sans-serif`,
+    color: settings.bodyColor || '#374151', 
+    fontSize: `${settings.fontSizeBase}pt`,
+    lineHeight: settings.lineHeight, 
+  };
+
+  const containerStyles = { 
+    ...typographyStyles,
+    width: '210mm',
+    minHeight: '297mm',
+    boxSizing: 'border-box',
+    position: 'relative', 
+  };
+
+  // --- MODO UNIFICADO (TABELA PARA AMBOS OS CASOS) ---
+  return (
+    <div id="resume-preview" lang="pt-BR" className="bg-white shadow-2xl relative" style={containerStyles}>
         {settings.showGuides && (
-          <>
+            <>
             <div className="absolute border border-green-400 border-dashed z-50 pointer-events-none page-guide" style={{ top: 0, bottom: 0, left: 0, right: 0 }}></div>
             <div className="absolute border-r border-blue-400 border-dashed h-full z-50 pointer-events-none opacity-50 page-guide" style={{ left: `${settings.leftColumnWidth}mm`, top: 0, bottom: 0 }}></div>
-            <div className="absolute border-l border-red-400 border-dashed h-full z-50 pointer-events-none opacity-40 page-guide" style={{ right: expColWidthCSS, top: 0, bottom: 0 }}></div>
-            <div className="absolute border-l border-orange-400 border-dotted h-full z-50 pointer-events-none opacity-60 page-guide" style={{ right: eduColWidthCSS, top: 0, bottom: 0 }}></div>
-             <div className="absolute border-l border-purple-400 border-dotted h-full z-50 pointer-events-none opacity-60 page-guide" style={{ right: projColWidthCSS, top: 0, bottom: 0 }}></div>
-          </>
+            </>
         )}
 
-        {renderHeader()}
+        {/* LINHA DE RODAPÉ FIXA (Controlada pela cor transparente) */}
+        <div style={{
+            position: 'fixed',
+            bottom: '20mm', 
+            left: '15mm',   
+            right: '15mm',  
+            height: '2px',
+            backgroundColor: settings.showPageLines ? settings.themeColor : 'transparent', // CORREÇÃO
+            zIndex: 9999
+        }}></div>
 
-        {sectionOrder.map(sectionId => renderSection(sectionId))}
-
-        {/* --- LINHA DECORATIVA DA BASE (AGORA NO FLUXO) --- */}
-        {settings.showPageLines && (
-            <div 
-                className="preview-line" 
-                style={{ 
-                    width: '100%',
-                    height: '2px', 
-                    backgroundColor: settings.themeColor,
-                    marginTop: '5mm' // Espaço após o conteúdo
-                }}
-            ></div>
-        )}
-
-      </div>
+        <table style={{ width: '100%', borderCollapse: 'collapse', ...typographyStyles }}>
+            <thead>
+                <tr>
+                    <td style={{ paddingTop: '20mm', paddingBottom: '2mm', paddingLeft: '15mm', paddingRight: '15mm' }}>
+                        {/* A linha agora existe fisicamente, mas fica invisível se a opção estiver desmarcada */}
+                        <div className="preview-line" style={lineStyle}></div>
+                    </td>
+                </tr>
+            </thead>
+            <tfoot>
+                <tr>
+                    <td style={{ height: '20mm', padding: 0 }}></td>
+                </tr>
+            </tfoot>
+            <tbody>
+                <tr>
+                    <td style={{ verticalAlign: 'top', paddingLeft: '15mm', paddingRight: '15mm' }}>
+                        <div className="content-container" style={{ width: '100%', ...typographyStyles }}>
+                            {ResumeContent}
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
     </div>
   );
 }
