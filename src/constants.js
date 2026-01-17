@@ -22,7 +22,7 @@ export const LIST_STYLES = {
 export const INITIAL_SETTINGS = {
   font: 'Roboto',
   themeColor: '#000000', 
-  bodyColor: '#374151', 
+  bodyColor: '#000000', // ALTERADO: De '#374151' para '#000000' (Preto Puro)
   sectionTitleBold: true,
   showGuides: true,
   showPageLines: true, 
@@ -30,8 +30,10 @@ export const INITIAL_SETTINGS = {
   textAlign: 'justify',
   listStyle: 'disc',
   
-  // NOVA CONFIGURAÇÃO SOLICITADA
-  rightTextBold: false, // Controla se datas, locais e tags ficam em negrito
+  // CONFIGURAÇÕES DE MARCADORES
+  listMarkerBold: false,         
+  listMarkerUseThemeColor: true, 
+  rightTextBold: false, 
   
   // CONTROLES GRANULARES
   lineHeight: 1.2,       
