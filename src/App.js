@@ -316,15 +316,15 @@ export default function App() {
     // Remove guias de preview antes de imprimir
     const guides = contentClone.querySelectorAll('.page-guide');
     guides.forEach(g => g.remove());
-    // NOTA: As 'preview-line' AGORA SÃO MANTIDAS pois fazem parte do layout do documento
+    
+    // --- LIMPEZA E PREPARAÇÃO PARA IMPRESSÃO ---
+    // A margem física da folha é zero no navegador (usamos padding interno para margens)
+    // Isso evita conflitos entre a margem do @page e o conteúdo da tabela
     
     contentClone.style.transform = 'none';
     contentClone.style.zoom = '1';
     contentClone.style.margin = '0'; 
     contentClone.style.padding = '0'; 
-    
-    // Como os elementos agora são do fluxo, removemos a lógica de margem dinâmica para headers
-    const pageMargin = '15mm';
 
     printWindow.document.write(`
       <html lang="pt-BR">
@@ -339,14 +339,27 @@ export default function App() {
             html, body, p, li, div, span { -webkit-hyphens: auto !important; -ms-hyphens: auto !important; hyphens: auto !important; word-break: break-word !important; }
             
             @media print {
-              @page { size: A4; margin: ${pageMargin}; }
+              @page { 
+                  size: A4; 
+                  margin: 0; /* Margem zero, pois o padding do ResumePreview controla o espaço */
+              }
               
-              body { margin: 0; padding: 0; background-color: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-              #resume-preview { width: 100% !important; height: auto !important; margin: 0 !important; padding: 0 !important; border: none !important; box-shadow: none !important; transform: none !important; overflow: visible !important; }
+              body { 
+                margin: 0; 
+                background-color: white !important; 
+                -webkit-print-color-adjust: exact; 
+                print-color-adjust: exact;
+              }
+
+              #resume-preview { width: 100% !important; height: auto !important; margin: 0 !important; border: none !important; box-shadow: none !important; transform: none !important; overflow: visible !important; }
               .flex-row-print { display: flex !important; flex-direction: row !important; }
               .dynamic-title { color: ${settings.themeColor} !important; }
               .content-container { width: 100% !important; margin: 0 !important; }
               a { text-decoration: none !important; color: inherit !important; }
+              
+              /* Garante que o header/footer da tabela se repita (se estiver em modo tabela) */
+              thead { display: table-header-group; }
+              tfoot { display: table-footer-group; }
             }
             body { font-family: '${settings.font}', sans-serif; }
             .dynamic-title { color: ${settings.themeColor} !important; font-weight: ${settings.sectionTitleBold ? '700' : '400'} !important; border-bottom: 1px solid ${settings.themeColor} !important; opacity: 0.9; }
@@ -471,7 +484,7 @@ export default function App() {
          
          <div className="space-y-1">
              <div className="flex justify-between items-center text-xs text-gray-800 font-semibold">
-                <span>Linhas Decorativas (Topo/Base)</span>
+                <span>Linhas de Limite (Todas as Páginas)</span>
                 <button 
                     onClick={() => setSettings({...settings, showPageLines: !settings.showPageLines})} 
                     className={`w-10 h-5 rounded-full relative transition-colors flex-shrink-0 ${settings.showPageLines ? 'bg-green-500' : 'bg-gray-300'}`}
@@ -479,7 +492,7 @@ export default function App() {
                     <div className={`absolute top-1 w-3 h-3 bg-white rounded-full shadow transition-transform ${settings.showPageLines ? 'left-6' : 'left-1'}`}></div>
                 </button>
              </div>
-             <p className="text-[10px] text-gray-500 leading-tight pr-4">Adiciona linhas finas coloridas no início e no fim do conteúdo do currículo.</p>
+             <p className="text-[10px] text-gray-500 leading-tight pr-4">Adiciona linhas finas coloridas no topo e base da área de texto em todas as páginas impressas.</p>
          </div>
       </div>
 
