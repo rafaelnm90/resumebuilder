@@ -345,7 +345,8 @@ export default function App() {
               .flex-row-print { display: flex !important; flex-direction: row !important; }
               .dynamic-title { color: ${settings.themeColor} !important; }
               .content-container { width: 100% !important; margin: 0 !important; }
-              a { text-decoration: none !important; color: inherit !important; }
+              /* CORREÇÃO AQUI: Removido 'color: inherit !important' para que links respeitem a cor de destaque */
+              a { text-decoration: none !important; }
               thead { display: table-header-group; }
               tfoot { display: table-footer-group; }
             }
@@ -725,9 +726,10 @@ export default function App() {
                 <button
                     onClick={() => setSettings({...settings, roleUseThemeColor: !settings.roleUseThemeColor})}
                     className={`px-3 py-2 border rounded transition-colors flex items-center justify-center gap-2 text-xs font-medium ${settings.roleUseThemeColor ? 'bg-blue-50 text-blue-700 border-blue-200 ring-1 ring-blue-200' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'}`}
-                    title="Aplicar cor em Cargos e Instituições"
+                    title="Aplicar cor em Cargos, Instituições e URLs"
                 >
-                    <Palette size={14} /> Cargos & Instituições
+                    {/* NOME ATUALIZADO AQUI: */}
+                    <Palette size={14} /> Cargos, Instituições & URLs
                 </button>
                 <button
                     onClick={() => setSettings({...settings, rightTextUseThemeColor: !settings.rightTextUseThemeColor})}
