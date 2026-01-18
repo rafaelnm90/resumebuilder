@@ -36,7 +36,7 @@ export default function ResumePreview({ data, settings }) {
   // Lógica de cores dinâmicas
   const themeColorStyle = settings.themeColor;
   
-  // 1. Cargos & Instituições & URL do Projeto
+  // 1. Cargos & Instituições (EXCLUINDO Título do Projeto)
   const roleColor = settings.roleUseThemeColor ? themeColorStyle : undefined;
   
   // 2. Coluna da Direita (Datas, Locais E TECH)
@@ -345,6 +345,7 @@ export default function ResumePreview({ data, settings }) {
                             <div className={`text-[0.9em] text-right leading-tight flex-shrink-0 ${rightTextStyle}`} style={{ width: eduColWidthCSS, color: rightTextColor }}>{edu.period}</div>
                             </div>
                             <div className="flex flex-row items-baseline justify-between flex-row-print">
+                            {/* APLICANDO COR À INSTITUIÇÃO */}
                             <div className="leading-tight break-words flex-1 pr-4" style={{ color: roleColor }}>{edu.institution}</div>
                             <div className={`text-[0.9em] text-right leading-tight flex-shrink-0 ${rightTextStyle}`} style={{ width: eduColWidthCSS, color: rightTextColor }}>{edu.location}</div>
                             </div>
