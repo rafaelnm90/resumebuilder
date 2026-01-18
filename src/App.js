@@ -7,13 +7,12 @@ import {
   Menu, X, Layers, List, Grid, PenTool, GripVertical, Bold, Italic, Maximize,
   Image as ImageIcon, Upload, AlignLeft, AlignCenter, AlignRight,
   Circle, Square, Move, Crop, Info, 
-  RotateCw, RotateCcw, Sun, FlipHorizontal, Droplet, Frame, Sliders 
+  RotateCw, RotateCcw, Sun, FlipHorizontal, Droplet, Frame, Sliders, Link as LinkIcon
 } from 'lucide-react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import ResumePreview from './ResumePreview';
 import { INITIAL_DATA, INITIAL_SETTINGS, FONTS, LIST_STYLES } from './constants';
 
-// --- MAPA DE ÍCONES PARA A BARRA LATERAL DINÂMICA ---
 const SECTION_ICONS = {
   summary: FileText,
   skills: Code,
@@ -23,7 +22,6 @@ const SECTION_ICONS = {
   others: Globe
 };
 
-// --- UTILS DE FORMATAÇÃO ---
 const insertFormatting = (ref, type) => {
   const input = ref.current;
   if (!input) return undefined;
@@ -38,7 +36,16 @@ const insertFormatting = (ref, type) => {
   return newText;
 };
 
-// --- COMPONENTES AUXILIARES ---
+const handleFormatList = (ref, type, currentVal, setVal) => {
+    const input = ref.current;
+    if (!input) return;
+    const start = input.selectionStart;
+    const end = input.selectionEnd;
+    const text = input.value;
+    const marker = type === 'bold' ? '**' : '*';
+    const newText = text.substring(0, start) + marker + text.substring(start, end) + marker + text.substring(end);
+    setVal(newText);
+};
 
 const RichTextToolbar = ({ onFormat, onExpand }) => (
   <div className="flex gap-1 items-center bg-gray-50 border-l border-t border-r rounded-t px-2 py-1 self-end mr-2">
@@ -69,7 +76,7 @@ const Input = ({ label, value, onChange, onExpandRequest, enableRich = false }) 
         <label className="text-xs font-semibold text-gray-500 uppercase mb-1">{label}</label>
         {(enableRich || onExpandRequest) && (
           <RichTextToolbar 
-            onFormat={handleFormat} 
+            onFormat={enableRich ? handleFormat : null} 
             onExpand={() => onExpandRequest && onExpandRequest(label, value, onChange)} 
           />
         )}
@@ -250,8 +257,6 @@ const ExpandedModal = ({ isOpen, onClose, title, value, onSave }) => {
   );
 };
 
-// --- APP PRINCIPAL ---
-
 export default function App() {
   const [data, setData] = useState(INITIAL_DATA);
   const [settings, setSettings] = useState(INITIAL_SETTINGS);
@@ -262,10 +267,9 @@ export default function App() {
   const [sidebarWidth, setSidebarWidth] = useState(380);
   const [isResizing, setIsResizing] = useState(false);
   const [expandedField, setExpandedField] = useState(null);
-  
-  // Controle de abertura do menu de espaçamento avançado
   const [isSpacingAdvancedOpen, setIsSpacingAdvancedOpen] = useState(false);
 
+  const listTextRef = useRef(null); 
   const summaryRef = useRef(null);
 
   const handlePhotoUpload = (e) => {
@@ -314,8 +318,6 @@ export default function App() {
     if (!printWindow) return alert("Por favor, permita pop-ups para baixar o PDF.");
 
     const contentClone = resumeContent.cloneNode(true);
-    
-    // Remove guias de preview antes de imprimir
     const guides = contentClone.querySelectorAll('.page-guide');
     guides.forEach(g => g.remove());
     
@@ -337,24 +339,13 @@ export default function App() {
             html, body, p, li, div, span { -webkit-hyphens: auto !important; -ms-hyphens: auto !important; hyphens: auto !important; word-break: break-word !important; }
             
             @media print {
-              @page { 
-                  size: A4; 
-                  margin: 0; 
-              }
-              
-              body { 
-                margin: 0; 
-                background-color: white !important; 
-                -webkit-print-color-adjust: exact; 
-                print-color-adjust: exact;
-              }
-
+              @page { size: A4; margin: 0; }
+              body { margin: 0; background-color: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
               #resume-preview { width: 100% !important; height: auto !important; margin: 0 !important; border: none !important; box-shadow: none !important; transform: none !important; overflow: visible !important; }
               .flex-row-print { display: flex !important; flex-direction: row !important; }
               .dynamic-title { color: ${settings.themeColor} !important; }
               .content-container { width: 100% !important; margin: 0 !important; }
               a { text-decoration: none !important; color: inherit !important; }
-              
               thead { display: table-header-group; }
               tfoot { display: table-footer-group; }
             }
@@ -467,7 +458,6 @@ export default function App() {
   const addDetailedItemDescLine = (sid, idx) => setData(p => ({ ...p, customSections: p.customSections.map(s => s.id === sid ? { ...s, content: s.content.map((item, i) => i === idx ? { ...item, description: [...item.description, ""] } : item) } : s) }));
   const removeDetailedItemDescLine = (sid, idx, di) => setData(p => ({ ...p, customSections: p.customSections.map(s => s.id === sid ? { ...s, content: s.content.map((item, i) => i === idx ? { ...item, description: item.description.filter((_, k) => k !== di) } : item) } : s) }));
   
-  // Atualiza o espaçamento específico de uma seção
   const updateSectionSpacing = (sectionId, value) => {
       setSettings(prev => ({
           ...prev,
@@ -482,7 +472,6 @@ export default function App() {
     <div className="space-y-6">
       <h2 className="text-xl font-bold text-gray-800 border-b pb-2 flex items-center"><Layout className="mr-2" size={20}/> Layout & Otimização</h2>
       
-      {/* BLOCO: DECORAÇÃO DE PÁGINA */}
       <div className="bg-white p-4 rounded-lg border border-gray-200 space-y-4 shadow-sm">
          <label className="flex items-center text-sm font-bold text-gray-700 uppercase border-b pb-1 mb-2">
             <Frame size={16} className="mr-2"/> Decoração de Página
@@ -528,7 +517,6 @@ export default function App() {
              />
         </div>
 
-        {/* --- ESTILO DOS MARCADORES (ATUALIZADO COM SELETOR DE COR) --- */}
         <div className="space-y-1 border-t border-blue-100 pt-3">
              <div className="flex justify-between text-xs text-blue-800 font-semibold mb-1"><span>Estilo dos Marcadores</span></div>
              <div className="flex gap-2">
@@ -542,7 +530,6 @@ export default function App() {
                     ))}
                  </select>
                  
-                 {/* Botão de Negrito */}
                  <button 
                     onClick={() => setSettings({...settings, listMarkerBold: !settings.listMarkerBold})}
                     className={`px-3 border rounded transition-colors ${settings.listMarkerBold ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-400 border-gray-300 hover:bg-gray-50'}`}
@@ -551,7 +538,6 @@ export default function App() {
                     <Bold size={16} />
                  </button>
 
-                 {/* Botão de Cor (Tema vs Texto) */}
                  <button 
                     onClick={() => setSettings({...settings, listMarkerUseThemeColor: !settings.listMarkerUseThemeColor})}
                     className={`px-3 border rounded transition-colors ${settings.listMarkerUseThemeColor ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-400 border-gray-300 hover:bg-gray-50'}`}
@@ -562,7 +548,6 @@ export default function App() {
              </div>
         </div>
 
-        {/* --- CONTROLE DE ESPAÇAMENTO ENTRE ITENS (GLOBAL & GRANULAR) --- */}
         <div className="space-y-1 border-t border-blue-100 pt-3">
              <div className="flex justify-between text-xs text-blue-800 font-semibold mb-2">
                 <span>Espaçamento entre Itens (Global)</span>
@@ -575,7 +560,6 @@ export default function App() {
                 className="w-full h-2 bg-blue-200 rounded-lg appearance-none cursor-pointer mb-2"
              />
 
-             {/* Acordeão para Ajuste Fino */}
              <div className="bg-white bg-opacity-60 rounded border border-blue-200 overflow-hidden">
                  <button 
                     onClick={() => setIsSpacingAdvancedOpen(!isSpacingAdvancedOpen)}
@@ -589,7 +573,7 @@ export default function App() {
                      <div className="p-3 space-y-3 border-t border-blue-100 animate-in fade-in slide-in-from-top-1 duration-200">
                          <p className="text-[10px] text-gray-500 italic mb-2">Defina valores específicos para sobrescrever o global. Arraste para a esquerda (0) para usar o padrão.</p>
                          {data.sectionOrder.map(sectionId => {
-                             if (sectionId === 'summary') return null; // Resumo é texto corrido
+                             if (sectionId === 'summary') return null; 
                              const isCustom = sectionId.startsWith('custom-');
                              const config = isCustom ? data.customSections.find(s => s.id === sectionId) : data.structure[sectionId];
                              if (!config || !config.visible) return null;
@@ -607,7 +591,6 @@ export default function App() {
                                      <div className="flex items-center gap-2">
                                         <input 
                                             type="range" min="-1" max="15" step="0.5" 
-                                            // -1 representa "usar global"
                                             value={currentVal !== undefined ? currentVal : -1} 
                                             onChange={e => {
                                                 const val = parseFloat(e.target.value);
@@ -717,13 +700,11 @@ export default function App() {
         </div>
       </div>
       
-      {/* BLOCO: TIPOGRAFIA & CORES */}
       <div className="bg-white p-4 rounded-lg border border-gray-200 space-y-4 shadow-sm">
         <label className="flex items-center text-sm font-bold text-gray-700 uppercase border-b pb-1 mb-2">
           <Type size={16} className="mr-2"/> Tipografia & Paleta
         </label>
 
-        {/* 1. SELEÇÃO DE FONTE */}
         <div className="space-y-1">
              <div className="flex justify-between text-xs text-gray-600 font-semibold mb-1"><span>Família da Fonte</span></div>
              <select 
@@ -737,7 +718,28 @@ export default function App() {
              </select>
         </div>
 
-        {/* CHECKBOX PARA TEXTO DIREITA NEGRITO */}
+        {/* --- CONTROLES DE COR ATUALIZADOS --- */}
+        <div className="space-y-2 pt-2 border-t border-gray-100 mt-2">
+            <span className="text-xs font-bold text-gray-600 block">Opções de Cor do Tema</span>
+            <div className="grid grid-cols-2 gap-2">
+                <button
+                    onClick={() => setSettings({...settings, roleUseThemeColor: !settings.roleUseThemeColor})}
+                    className={`px-3 py-2 border rounded transition-colors flex items-center justify-center gap-2 text-xs font-medium ${settings.roleUseThemeColor ? 'bg-blue-50 text-blue-700 border-blue-200 ring-1 ring-blue-200' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'}`}
+                    title="Aplicar cor em Cargos e Instituições"
+                >
+                    <Palette size={14} /> Cargos & Instituições
+                </button>
+                <button
+                    onClick={() => setSettings({...settings, rightTextUseThemeColor: !settings.rightTextUseThemeColor})}
+                    className={`px-3 py-2 border rounded transition-colors flex items-center justify-center gap-2 text-xs font-medium ${settings.rightTextUseThemeColor ? 'bg-blue-50 text-blue-700 border-blue-200 ring-1 ring-blue-200' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'}`}
+                    title="Aplicar cor nas Datas, Locais e Tech"
+                >
+                    <Palette size={14} /> Datas, Locais & Tech
+                </button>
+            </div>
+        </div>
+        {/* ------------------------------------------- */}
+
         <div className="flex items-center justify-between pt-2 border-t border-gray-100 mt-2">
             <span className="text-xs font-bold text-gray-600">Negrito em Datas e Locais (Direita)</span>
             <input 
@@ -749,7 +751,6 @@ export default function App() {
         </div>
 
         <div className="grid grid-cols-2 gap-4 pt-2">
-            {/* 2. COR DO TEMA */}
             <div className="space-y-1">
                 <span className="text-xs font-bold text-gray-500 block mb-1">Cor de Destaque</span>
                 <p className="text-[10px] text-gray-400 mb-1 leading-tight">Títulos, ícones e bordas</p>
@@ -759,7 +760,6 @@ export default function App() {
                 </div>
             </div>
 
-            {/* 3. COR DO TEXTO */}
             <div className="space-y-1">
                 <span className="text-xs font-bold text-gray-500 block mb-1">Cor do Texto</span>
                 <p className="text-[10px] text-gray-400 mb-1 leading-tight">Corpo, listas e resumos</p>
@@ -821,7 +821,7 @@ export default function App() {
   const renderCustomTabForm = (sectionId) => { 
     const section = data.customSections.find(s => s.id === sectionId); 
     if (!section) return <div>Seção não encontrada</div>; 
-    
+
     return (
       <div className="space-y-4">
         <div className="flex justify-between border-b pb-2">
@@ -841,9 +841,23 @@ export default function App() {
         )}
         
         {section.type === 'list' && (
-          <div className="space-y-2">
+          <div className="space-y-1 relative group">
             <p className="text-xs text-gray-500">Adicione itens (um por linha):</p>
-            <textarea className="w-full h-48 p-3 border rounded text-sm outline-none focus:ring-2 focus:ring-blue-500" value={Array.isArray(section.content) ? section.content.join('\n') : section.content} onChange={(e) => {setData(prev => ({...prev, customSections: prev.customSections.map(s => s.id === section.id ? { ...s, content: e.target.value.split('\n') } : s)}))}}/>
+            <textarea 
+                ref={listTextRef}
+                className="w-full h-48 p-3 border rounded text-sm outline-none focus:ring-2 focus:ring-blue-500" 
+                value={Array.isArray(section.content) ? section.content.join('\n') : section.content} 
+                onChange={(e) => {setData(prev => ({...prev, customSections: prev.customSections.map(s => s.id === section.id ? { ...s, content: e.target.value.split('\n') } : s)}))}}
+            />
+            <RichTextToolbar 
+                onFormat={(type) => {
+                        const currentVal = Array.isArray(section.content) ? section.content.join('\n') : section.content;
+                        handleFormatList(listTextRef, type, currentVal, (newVal) => {
+                            setData(prev => ({...prev, customSections: prev.customSections.map(s => s.id === section.id ? { ...s, content: newVal.split('\n') } : s)}));
+                        });
+                }}
+                onExpand={() => handleOpenExpand(section.title, Array.isArray(section.content) ? section.content.join('\n') : section.content, (val) => setData(prev => ({...prev, customSections: prev.customSections.map(s => s.id === section.id ? { ...s, content: val.split('\n') } : s)})) )}
+            />
           </div>
         )}
         
@@ -885,7 +899,6 @@ export default function App() {
     <div className="space-y-4">
       <h2 className="text-xl font-bold border-b pb-2">Pessoal</h2>
       
-      {/* SEÇÃO DE FOTO DO PERFIL COM ESTÚDIO */}
       <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 mb-4">
         <label className="flex items-center text-sm font-bold text-gray-800 mb-2">
             <ImageIcon size={16} className="mr-2"/> Foto do Perfil & Ajustes
@@ -908,7 +921,6 @@ export default function App() {
                         <input type="file" className="hidden" accept="image/*" onChange={handlePhotoUpload} />
                      </label>
                 </div>
-                {/* PREVIEW MINIATURA */}
                 {data.personal.photo && (
                     <div className="w-20 h-20 rounded border border-gray-300 overflow-hidden bg-white shadow-sm flex-shrink-0 flex items-center justify-center">
                         <img src={data.personal.photo} alt="Preview" className="max-w-full max-h-full object-contain" />
@@ -916,10 +928,8 @@ export default function App() {
                 )}
             </div>
 
-            {/* CONTROLES DO ESTÚDIO (SÓ APARECEM SE TIVER FOTO E ESTIVER ATIVADA) */}
             {data.personal.showPhoto && (
                 <div className="border-t border-gray-200 pt-3 space-y-3">
-                    {/* 1. ALINHAMENTO DO BLOCO DA FOTO */}
                     <div className="flex items-center justify-between">
                         <span className="text-xs font-bold text-gray-500 uppercase flex items-center"><Layout size={12} className="mr-1"/> Posição da Foto</span>
                         <div className="flex gap-1">
@@ -929,7 +939,6 @@ export default function App() {
                         </div>
                     </div>
 
-                    {/* 2. FORMATO DA MOLDURA */}
                     <div className="flex items-center justify-between">
                         <span className="text-xs font-bold text-gray-500 uppercase flex items-center"><Crop size={12} className="mr-1"/> Formato</span>
                         <div className="flex gap-1">
@@ -939,7 +948,6 @@ export default function App() {
                         </div>
                     </div>
 
-                    {/* 3. ZOOM (SCALE) */}
                     <div className="space-y-1">
                         <div className="flex justify-between text-xs text-gray-600">
                             <span className="flex items-center"><ZoomIn size={12} className="mr-1"/> Zoom</span>
@@ -953,7 +961,6 @@ export default function App() {
                         />
                     </div>
 
-                    {/* 4. POSIÇÃO X/Y (MOVE) */}
                     <div className="grid grid-cols-2 gap-3">
                         <div className="space-y-1">
                             <div className="flex justify-between text-xs text-gray-600">
@@ -979,31 +986,25 @@ export default function App() {
                         </div>
                     </div>
 
-                    {/* 5. EFEITOS ESPECIAIS (Borda, Sombra, Flip, PB, Cover) */}
                     <div className="grid grid-cols-2 gap-3 pt-2">
-                        {/* Sombra */}
                         <div className="flex items-center justify-between">
                             <span className="text-xs font-bold text-gray-500 uppercase flex items-center"><Layers size={12} className="mr-1"/> Sombra</span>
                             <input type="checkbox" checked={data.personal.photoShadow || false} onChange={(e) => updateField('personal', 'photoShadow', e.target.checked)} className="w-4 h-4 text-blue-600 rounded cursor-pointer"/>
                         </div>
-                        {/* Preto e Branco */}
                         <div className="flex items-center justify-between">
                             <span className="text-xs font-bold text-gray-500 uppercase flex items-center"><Circle size={12} className="mr-1"/> P/B</span>
                             <input type="checkbox" checked={data.personal.photoGrayscale || false} onChange={(e) => updateField('personal', 'photoGrayscale', e.target.checked)} className="w-4 h-4 text-blue-600 rounded cursor-pointer"/>
                         </div>
-                         {/* Espelhar */}
                         <div className="flex items-center justify-between">
                             <span className="text-xs font-bold text-gray-500 uppercase flex items-center"><FlipHorizontal size={12} className="mr-1"/> Espelhar</span>
                             <input type="checkbox" checked={data.personal.photoFlip || false} onChange={(e) => updateField('personal', 'photoFlip', e.target.checked)} className="w-4 h-4 text-blue-600 rounded cursor-pointer"/>
                         </div>
-                        {/* Preencher (Cover) */}
                         <div className="flex items-center justify-between">
                             <span className="text-xs font-bold text-gray-500 uppercase flex items-center"><Maximize size={12} className="mr-1"/> Preencher</span>
                             <input type="checkbox" checked={data.personal.photoCover || false} onChange={(e) => updateField('personal', 'photoCover', e.target.checked)} className="w-4 h-4 text-blue-600 rounded cursor-pointer"/>
                         </div>
                     </div>
 
-                    {/* 6. BORDA (Espessura) */}
                     <div className="space-y-1 pt-2">
                         <div className="flex justify-between text-xs text-gray-600">
                             <span className="flex items-center"><Frame size={12} className="mr-1"/> Borda Colorida</span>
@@ -1017,7 +1018,6 @@ export default function App() {
                         />
                     </div>
 
-                    {/* 7. ROTAÇÃO */}
                     <div className="flex items-center justify-between pt-2">
                         <span className="text-xs font-bold text-gray-500 uppercase flex items-center"><RotateCw size={12} className="mr-1"/> Rotação</span>
                         <div className="flex gap-1">
@@ -1026,7 +1026,6 @@ export default function App() {
                         </div>
                     </div>
 
-                    {/* 8. BRILHO, CONTRASTE & SATURAÇÃO */}
                     <div className="grid grid-cols-3 gap-2 pt-2">
                         <div className="space-y-1">
                             <div className="flex justify-center text-xs text-gray-600" title="Brilho"><Sun size={12}/></div>
@@ -1089,7 +1088,7 @@ export default function App() {
     <DraggableSection sectionId="skills" title={data.structure.skills.title} items={data.skills} onAdd={() => addItem('skills', {category:'', items:''})} onRemove={(idx) => removeItem('skills', idx)} 
       renderItem={(s, i) => (
         <>
-          <Input label="Categoria" value={s.category} onChange={v=>updateItem('skills', i, 'category', v)} enableRich={true} onExpandRequest={handleOpenExpand}/>
+          <Input label="Categoria" value={s.category} onChange={v=>updateItem('skills', i, 'category', v)} onExpandRequest={handleOpenExpand}/>
           <div className="mt-2">
             <Input label="Itens (Lista)" value={s.items} onChange={v=>updateItem('skills', i, 'items', v)} enableRich={true} onExpandRequest={handleOpenExpand}/>
           </div>
@@ -1106,6 +1105,8 @@ export default function App() {
             <>
                 <div className="grid gap-2 mb-2">
                     <Input label="Título" value={p.title} onChange={v=>updateItem('projects', i, 'title', v)} onExpandRequest={handleOpenExpand}/>
+                    {/* NOVO CAMPO DE LINK */}
+                    <Input label="Link (URL)" value={p.link || ''} onChange={v=>updateItem('projects', i, 'link', v)} onExpandRequest={handleOpenExpand}/>
                     <Input label="Tech" value={p.tech} onChange={v=>updateItem('projects', i, 'tech', v)} onExpandRequest={handleOpenExpand}/>
                 </div>
                 <DraggableDescriptionList items={p.description} sectionId="projects" itemIndex={i} onUpdate={updateArrayItem} onRemove={removeArrayItemFromItem} onAdd={addArrayItemToItem} onExpandRequest={handleOpenExpand} />
@@ -1144,7 +1145,7 @@ export default function App() {
                     <Input label="Período" value={ed.period} onChange={v=>updateItem('education', i, 'period', v)} onExpandRequest={handleOpenExpand}/>
                     <Input label="Local" value={ed.location} onChange={v=>updateItem('education', i, 'location', v)} onExpandRequest={handleOpenExpand}/>
                 </div>
-                <Input label="Detalhes" value={ed.details} onChange={v=>updateItem('education', i, 'details', v)} onExpandRequest={handleOpenExpand}/>
+                <Input label="Detalhes" value={ed.details} onChange={v=>updateItem('education', i, 'details', v)} enableRich={true} onExpandRequest={handleOpenExpand}/>
             </>
         )}
     />
@@ -1214,7 +1215,6 @@ export default function App() {
         <nav className={`bg-slate-900 text-slate-300 flex-shrink-0 h-auto md:h-screen sticky top-0 overflow-y-auto transition-all duration-300 ${isSidebarOpen ? 'w-full md:w-64' : 'w-0 md:w-0 overflow-hidden'}`}>
           <div className="p-6 border-b border-slate-700 flex justify-between items-center"><div><h1 className="text-white font-bold text-xl whitespace-nowrap">Resume Builder</h1><p className="text-xs text-slate-500 mt-1 whitespace-nowrap">V7.3 - Stable</p></div></div>
           <div className="p-4 space-y-1">
-            {/* TABS FIXAS */}
             {tabs.map(tab => (
                 <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors whitespace-nowrap ${activeTab === tab.id ? 'bg-blue-600 text-white shadow-lg' : 'hover:bg-slate-800'} ${tab.id === 'settings' ? 'mb-4 ring-1 ring-slate-600' : ''}`}>
                     <tab.icon size={18} />
@@ -1223,7 +1223,6 @@ export default function App() {
                 </button>
             ))}
 
-            {/* SEÇÕES DINÂMICAS */}
             <div className="pt-2 border-t border-slate-700 mt-2">
                 <p className="px-4 text-xs font-semibold text-slate-500 uppercase mb-2 tracking-wider">Seções do Currículo</p>
                 {data.sectionOrder.map(sectionId => {
@@ -1251,7 +1250,6 @@ export default function App() {
           <div className="p-6 mt-auto border-t border-slate-700"><button onClick={handlePrint} className="w-full flex justify-center items-center bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-bold transition-all shadow-md active:scale-95 whitespace-nowrap"><Download size={20} className="mr-2" /> Baixar PDF</button></div>
         </nav>
 
-        {/* SIDEBAR DE EDIÇÃO */}
         <aside 
             className="flex-shrink-0 bg-white border-r border-gray-200 overflow-y-auto relative"
             style={{ width: isSidebarOpen ? (window.innerWidth < 768 ? '100%' : `${sidebarWidth}px`) : '0px', transition: isResizing ? 'none' : 'width 0.3s' }}
@@ -1261,7 +1259,6 @@ export default function App() {
              </div>
         </aside>
 
-        {/* DIVISOR ARRASTÁVEL */}
         {isSidebarOpen && (
             <div 
                 className="hidden md:flex w-4 bg-gray-200 hover:bg-blue-500 cursor-col-resize items-center justify-center transition-colors z-20 shadow-sm border-l border-r border-gray-300 flex-shrink-0"
@@ -1271,7 +1268,6 @@ export default function App() {
             </div>
         )}
 
-        {/* PREVIEW */}
         <div className="flex-1 bg-gray-200 p-8 overflow-y-auto flex flex-col items-center justify-start relative">
             <div className="absolute top-4 left-4 z-50 md:hidden"><button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="p-2 bg-slate-800 text-white rounded-md shadow hover:bg-slate-700 transition-colors">{isSidebarOpen ? <X size={20}/> : <Menu size={20}/>}</button></div>
 
