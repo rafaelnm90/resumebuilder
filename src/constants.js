@@ -33,14 +33,15 @@ export const INITIAL_SETTINGS = {
   
   // CONFIGURAÇÕES DE MARCADORES E CORES
   listMarkerBold: false,         
-  listMarkerUseThemeColor: false, // Padrão FALSE (Preto)
+  listMarkerUseThemeColor: false, // PADRÃO AGORA É FALSE (PRETO)
   
-  // NOVAS OPÇÕES DE COR
+  // OPÇÕES DE COR
   roleUseThemeColor: false,      // Controla: Cargos, Instituições e a URL do Projeto
   rightTextUseThemeColor: false, // Controla: Datas, Locais e Tech
   
   rightTextBold: false, 
   
+  // CONTROLES GRANULARES
   lineHeight: 1.2,       
   headerSpacing: 5,      
   itemSpacing: 1,        
@@ -105,7 +106,7 @@ export const INITIAL_DATA = {
   projects: [
     {
       title: "AgroStatPro - Solução SaaS para Pesquisa Agrícola",
-      link: "agrostat.streamlit.app",
+      link: "agrostat.streamlit.app", // Link adicionado
       tech: "Python, Streamlit, Pandas",
       description: [
         "Desenvolvimento **Fullstack** para automação de cálculos estatísticos.",
@@ -115,7 +116,7 @@ export const INITIAL_DATA = {
     },
     {
       title: "Suíte de Automação e Web Scraping",
-      link: "github.com/rafael/automacao",
+      link: "github.com/rafael/automacao", // Link adicionado
       tech: "Google Apps Script, Sheets",
       description: [
         "Desenvolvimento de robôs de coleta (**Web Scraping**) integrados ao Google Sheets.",
