@@ -4,35 +4,62 @@ export const FONTS = {
   'Merriweather': { name: 'Merriweather (Serif)', url: 'https://fonts.googleapis.com/css2?family=Merriweather:wght@300;400;700&display=swap' },
   'Lato': { name: 'Lato (Moderno)', url: 'https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap' },
   'Open Sans': { name: 'Open Sans (Neutro)', url: 'https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700&display=swap' },
-  'Lora': { name: 'Lora (Elegante)', url: 'https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,700;1,400&display=swap' }
+  'Lora': { name: 'Lora (Elegante)', url: 'https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,700;1,400&display=swap' },
+  'Arial': { name: 'Arial (Sistema)', url: '' },
+  'Times New Roman': { name: 'Times New Roman (Sistema)', url: '' }
+};
+
+export const LIST_STYLES = {
+  'disc': { label: 'Bolinha Padrão (●)', cssMain: 'list-disc', cssSub: 'list-[circle]' },
+  'circle': { label: 'Círculo Vazado (○)', cssMain: 'list-[circle]', cssSub: 'list-[square]' },
+  'square': { label: 'Quadrado (■)', cssMain: 'list-[square]', cssSub: 'list-[circle]' },
+  'decimal': { label: 'Numérico (1, 2, 3)', cssMain: 'list-decimal', cssSub: 'list-[lower-alpha]' },
+  'arrow': { label: 'Seta (➢)', cssMain: "list-['➢']", cssSub: "list-['↳']" }, 
+  'check': { label: 'Check (✓)', cssMain: "list-['✓']", cssSub: "list-['◦']" },
+  'dash': { label: 'Traço (–)', cssMain: "list-['–']", cssSub: "list-[circle]" }
 };
 
 export const INITIAL_SETTINGS = {
   font: 'Roboto',
-  themeColor: '#111827',
+  themeColor: '#000000', 
+  bodyColor: '#000000', 
   sectionTitleBold: true,
-  
-  // Configurações de página removidas permanentemente
-  
   showGuides: true,
-  density: 'compact',
-  fontSizeBase: 10,
-  textAlign: 'justify',
+  showPageLines: false, 
   
-  // Margens de Coluna
-  experienceColumnWidth: 25, 
-  educationColumnWidth: 25,  
-  projectsColumnWidth: 30,   
-  leftColumnWidth: 45        
-};
-
-export const DENSITY = {
-  compact: { mbSection: 'mb-3', mbItem: 'mb-2', leading: 'leading-snug', headerPad: 'mb-4 pb-2', listSpace: 'space-y-0.5' },
-  comfortable: { mbSection: 'mb-6', mbItem: 'mb-4', leading: 'leading-relaxed', headerPad: 'mb-6 pb-4', listSpace: 'space-y-1.5' }
+  fontSizeBase: 10,      
+  textAlign: 'justify',
+  listStyle: 'disc',
+  
+  // CONFIGURAÇÕES DE MARCADORES E CORES
+  listMarkerBold: false,         
+  listMarkerUseThemeColor: false, // PADRÃO: FALSE (Preto)
+  
+  // OPÇÕES DE COR
+  roleUseThemeColor: false,      // Controla: Cargos, Instituições e URLs
+  rightTextUseThemeColor: false, // Controla: Datas, Locais e Tech
+  
+  rightTextBold: false, 
+  
+  // NOVA OPÇÃO:
+  showLinkIcon: true, // Padrão: Mostrar o ícone de corrente
+  
+  // CONTROLES GRANULARES
+  lineHeight: 1.2,       
+  headerSpacing: 5,      
+  itemSpacing: 1.5,        
+  sectionSpacing: 3,     
+  pageBreakAuto: false,
+  
+  sectionItemSpacings: {}, 
+  
+  experienceColumnWidth: 40, 
+  educationColumnWidth: 40,  
+  projectsColumnWidth: 32,   
+  leftColumnWidth: 46        
 };
 
 export const INITIAL_DATA = {
-  // Ordem inicial de renderização
   sectionOrder: ['summary', 'skills', 'projects', 'experience', 'education', 'others'],
 
   structure: {
@@ -51,8 +78,25 @@ export const INITIAL_DATA = {
     location: "Lavras, MG",
     linkedin: "linkedin.com/in/rafael-miranda",
     github: "github.com/rafael-miranda",
+    youtube: "youtube.com/@rafael-miranda", 
     lattes: "lattes.cnpq.br/123456789", 
-    website: ""
+    website: "",
+    photo: "", 
+    showPhoto: false,
+    photoAlignment: 'center', 
+    photoShape: 'circle', 
+    photoScale: 100,      
+    photoX: 0,            
+    photoY: 0,
+    photoRotate: 0,        
+    photoBrightness: 100,  
+    photoContrast: 100,    
+    photoSaturation: 100,
+    photoGrayscale: false,
+    photoFlip: false,     
+    photoCover: false,    
+    photoBorder: 0,       
+    photoShadow: false    
   },
   summary: "Doutor em Genética e Melhoramento com perfil híbrido e estratégico, integrando a expertise agronômica à engenharia de software (Ciência da Computação em curso). Especialista em **Computational Breeding**, atuo na interface entre Biologia e Dados desenvolvendo ferramentas AgTech que automatizam pipelines complexos de Big Data Genômico e análises biométricas. Busco integrar o time de P&D da **Bayer** em Uberlândia para traduzir desafios biológicos em soluções computacionais escaláveis, acelerando a inovação genética e a tomada de decisão no campo.",
   skills: [
@@ -65,6 +109,7 @@ export const INITIAL_DATA = {
   projects: [
     {
       title: "AgroStatPro - Solução SaaS para Pesquisa Agrícola",
+      link: "agrostat.streamlit.app", // NOVO CAMPO LINK
       tech: "Python, Streamlit, Pandas",
       description: [
         "Desenvolvimento **Fullstack** para automação de cálculos estatísticos.",
@@ -74,6 +119,7 @@ export const INITIAL_DATA = {
     },
     {
       title: "Suíte de Automação e Web Scraping",
+      link: "github.com/rafael/automacao", // NOVO CAMPO LINK
       tech: "Google Apps Script, Sheets",
       description: [
         "Desenvolvimento de robôs de coleta (**Web Scraping**) integrados ao Google Sheets.",
@@ -139,7 +185,6 @@ export const INITIAL_DATA = {
       details: "Pesquisa avançada em mapeamento genético (GWAS)."
     }
   ],
-  // REESTRUTURADO: Agora "Others" suporta Título e Lista de Itens (igual a Projetos)
   others: [
     {
       title: "Idiomas",
