@@ -45,13 +45,15 @@ export const INITIAL_SETTINGS = {
   showLinkIcon: true, // Padrão: Mostrar o ícone de corrente
   
   // CONTROLES GRANULARES
-  lineHeight: 1.2,       
+  lineHeight: 1.1,       
   headerSpacing: 5,      
-  itemSpacing: 1.5,        
+  itemSpacing: 3,        
   sectionSpacing: 3,     
   pageBreakAuto: false,
   
-  sectionItemSpacings: {}, 
+  sectionItemSpacings: {
+    education: 0
+  }, 
   
   experienceColumnWidth: 40, 
   educationColumnWidth: 40,  
