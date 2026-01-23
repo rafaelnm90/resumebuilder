@@ -3,6 +3,13 @@ import React from 'react';
 import { MapPin, Mail, Phone, Linkedin, Github, FileText, Youtube, Link } from 'lucide-react';
 import { LIST_STYLES } from './constants';
 
+const EXIBIR_LOGS = true;
+
+if (EXIBIR_LOGS) {
+    console.log("🚀 [ResumePreview.js] Renderizando componente...");
+    console.log("🔗 Links configurados para abrir em NOVA ABA (target='_blank').");
+}
+
 const formatText = (text) => {
   if (!text) return null;
   const parts = text.split(/(\*\*[^*]+\*\*|\*[^*]+\*)/g);
@@ -250,20 +257,51 @@ export default function ResumePreview({ data, settings }) {
                     {data.personal.phone && <span className="flex items-center gap-1 border-l pl-2 border-gray-400"><Phone size={'1em'}/> {data.personal.phone}</span>}
                     {data.personal.location && <span className="flex items-center gap-1 border-l pl-2 border-gray-400"><MapPin size={'1em'}/> {data.personal.location}</span>}
                 </div>
+                
+                {/* ÁREA DE LINKS DE CONTATO - Com target="_blank" para abrir em nova aba */}
                 <div className={`flex flex-wrap gap-3 text-[0.9em] font-medium leading-tight ${contactJustify}`} style={{ color: settings.themeColor }}>
-                    {data.personal.linkedin && <a href={`https://${data.personal.linkedin}`} className="flex items-center gap-1 hover:underline"><Linkedin size={'1em'}/> {data.personal.linkedin}</a>}
-                    {data.personal.github && <a href={`https://${data.personal.github}`} className="flex items-center gap-1 hover:underline"><Github size={'1em'}/> {data.personal.github}</a>}
+                    {data.personal.linkedin && (
+                        <a 
+                            href={data.personal.linkedin.startsWith('http') ? data.personal.linkedin : `https://${data.personal.linkedin}`} 
+                            className="flex items-center gap-1 hover:underline"
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                        >
+                            <Linkedin size={'1em'}/> {data.personal.linkedin.replace(/^https?:\/\/(www\.)?/, '')}
+                        </a>
+                    )}
                     
-                    {/* LATTES COM URL EXPLÍCITA */}
+                    {data.personal.github && (
+                        <a 
+                            href={data.personal.github.startsWith('http') ? data.personal.github : `https://${data.personal.github}`} 
+                            className="flex items-center gap-1 hover:underline"
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                        >
+                            <Github size={'1em'}/> {data.personal.github.replace(/^https?:\/\/(www\.)?/, '')}
+                        </a>
+                    )}
+                    
+                    {/* LATTES */}
                     {data.personal.lattes && (
-                        <a href={`https://${data.personal.lattes}`} className="flex items-center gap-1 hover:underline">
+                        <a 
+                            href={data.personal.lattes.startsWith('http') ? data.personal.lattes : `https://${data.personal.lattes}`}
+                            className="flex items-center gap-1 hover:underline"
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                        >
                             <FileText size={'1em'}/> {data.personal.lattes.replace(/^https?:\/\/(www\.)?/, '')}
                         </a>
                     )}
 
-                    {/* YOUTUBE COM URL EXPLÍCITA */}
+                    {/* YOUTUBE */}
                     {data.personal.youtube && (
-                        <a href={`https://${data.personal.youtube}`} className="flex items-center gap-1 hover:underline">
+                        <a 
+                            href={data.personal.youtube.startsWith('http') ? data.personal.youtube : `https://${data.personal.youtube}`}
+                            className="flex items-center gap-1 hover:underline"
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                        >
                             <Youtube size={'1em'}/> {data.personal.youtube.replace(/^https?:\/\/(www\.)?/, '')}
                         </a>
                     )}
@@ -386,6 +424,7 @@ export default function ResumePreview({ data, settings }) {
                         <div key={i} className={`${pageBreakClass} flex flex-row items-start gap-8 flex-row-print`}>
                         <div className="flex-1">
                             <h4 className="font-bold text-[1.05em] break-words mb-0.5" style={{ color: settings.bodyColor }}>{proj.title}</h4>
+                            {/* LINK DO PROJETO - Com target="_blank" */}
                             {proj.link && (
                                 <a href={proj.link.startsWith('http') ? proj.link : `https://${proj.link}`} target="_blank" rel="noopener noreferrer"
                                    className="flex items-center gap-1 italic font-medium text-[0.9em] mb-1 hover:underline" style={{ color: roleColor || 'inherit' }}>
