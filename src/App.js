@@ -7,20 +7,35 @@ import {
   Menu, X, Layers, List, Grid, PenTool, GripVertical, Bold, Italic, Maximize,
   Image as ImageIcon, Upload, AlignLeft, AlignCenter, AlignRight,
   Circle, Square, Move, Crop, Info, 
-  RotateCw, RotateCcw, Sun, FlipHorizontal, Droplet, Frame, Sliders, Link as LinkIcon
+  RotateCw, RotateCcw, Sun, FlipHorizontal, Droplet, Frame, Sliders, Link as LinkIcon,
+  UserPlus, AlertTriangle 
 } from 'lucide-react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import ResumePreview from './ResumePreview';
-import { INITIAL_DATA, INITIAL_SETTINGS, FONTS, LIST_STYLES } from './constants';
+import { INITIAL_DATA, INITIAL_SETTINGS, FONTS, LIST_STYLES, TRANSLATIONS } from './constants';
 
 const SECTION_ICONS = {
+  objective: FileText,
   summary: FileText,
   skills: Code,
   projects: Briefcase,
   experience: Briefcase,
   education: GraduationCap,
-  others: Globe
+  others: Globe,
+  references: UserPlus,
+  keywords: EyeOff 
 };
+
+// --- Componente Auxiliar de Toggle (Botão Deslizante) ---
+const ToggleSwitch = ({ checked, onChange, title }) => (
+    <button 
+        onClick={onChange}
+        className={`w-10 h-5 rounded-full relative transition-colors flex-shrink-0 ${checked ? 'bg-green-500' : 'bg-gray-300'}`}
+        title={title}
+    >
+        <div className={`absolute top-1 w-3 h-3 bg-white rounded-full shadow transition-transform ${checked ? 'left-6' : 'left-1'}`}></div>
+    </button>
+);
 
 const insertFormatting = (ref, type) => {
   const input = ref.current;
@@ -153,7 +168,7 @@ const DraggableListItemInput = ({ value, onChange, onRemove, dragHandleProps, on
   );
 };
 
-const DraggableDescriptionList = ({ items, sectionId, itemIndex, onUpdate, onRemove, onAdd, onExpandRequest }) => {
+const DraggableDescriptionList = ({ items, sectionId, itemIndex, onUpdate, onRemove, onAdd, onExpandRequest, t }) => {
   const droppableId = `desc-${sectionId}-${itemIndex}`;
   return (
     <Droppable droppableId={droppableId} type="DESCRIPTION_ITEM">
@@ -176,7 +191,7 @@ const DraggableDescriptionList = ({ items, sectionId, itemIndex, onUpdate, onRem
             </Draggable>
           ))}
           {provided.placeholder}
-          <button onClick={() => onAdd(sectionId, itemIndex, 'description')} className="text-xs text-blue-600 flex items-center mt-1 ml-6"><Plus size={12} className="mr-1"/> Add Item</button>
+          <button onClick={() => onAdd(sectionId, itemIndex, 'description')} className="text-xs text-blue-600 flex items-center mt-1 ml-6"><Plus size={12} className="mr-1"/> {t.addItem}</button>
         </div>
       )}
     </Droppable>
@@ -263,6 +278,9 @@ export default function App() {
   const [activeTab, setActiveTab] = useState('personal');
   const [zoom, setZoom] = useState(0.7); 
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  
+  const [language, setLanguage] = useState('pt');
+  const t = TRANSLATIONS[language].ui;
 
   const [sidebarWidth, setSidebarWidth] = useState(380);
   const [isResizing, setIsResizing] = useState(false);
@@ -271,6 +289,22 @@ export default function App() {
 
   const listTextRef = useRef(null); 
   const summaryRef = useRef(null);
+  const objectiveRef = useRef(null);
+
+  const changeLanguage = (newLang) => {
+      setLanguage(newLang);
+      const newTitles = TRANSLATIONS[newLang].sections;
+      
+      setData(prevData => {
+          const newStructure = { ...prevData.structure };
+          Object.keys(newStructure).forEach(key => {
+              if (newTitles[key]) {
+                  newStructure[key] = { ...newStructure[key], title: newTitles[key] };
+              }
+          });
+          return { ...prevData, structure: newStructure };
+      });
+  };
 
   const handlePhotoUpload = (e) => {
     const file = e.target.files[0];
@@ -345,7 +379,6 @@ export default function App() {
               .flex-row-print { display: flex !important; flex-direction: row !important; }
               .dynamic-title { color: ${settings.themeColor} !important; }
               .content-container { width: 100% !important; margin: 0 !important; }
-              /* CORREÇÃO DO PDF: Removemos a regra que forçava a cor preta */
               a { text-decoration: none !important; }
               thead { display: table-header-group; }
               tfoot { display: table-footer-group; }
@@ -424,7 +457,7 @@ export default function App() {
 
   const addCustomSection = (type) => {
     const id = `custom-${Date.now()}`;
-    const newSection = { id: id, title: "Nova Seção", type: type, content: type === 'text' ? '' : [], visible: true };
+    const newSection = { id: id, title: t.addSection, type: type, content: type === 'text' ? '' : [], visible: true };
     setData(prev => ({ ...prev, customSections: [...prev.customSections, newSection], sectionOrder: [...prev.sectionOrder, id] }));
     setActiveTab(id);
   };
@@ -471,43 +504,38 @@ export default function App() {
 
   const renderSettingsForm = () => (
     <div className="space-y-6">
-      <h2 className="text-xl font-bold text-gray-800 border-b pb-2 flex items-center"><Layout className="mr-2" size={20}/> Layout & Otimização</h2>
+      <h2 className="text-xl font-bold text-gray-800 border-b pb-2 flex items-center"><Layout className="mr-2" size={20}/> {t.layoutTab}</h2>
       
       <div className="bg-white p-4 rounded-lg border border-gray-200 space-y-4 shadow-sm">
          <label className="flex items-center text-sm font-bold text-gray-700 uppercase border-b pb-1 mb-2">
-            <Frame size={16} className="mr-2"/> Decoração de Página
+            <Frame size={16} className="mr-2"/> {t.pageDecoration}
          </label>
          
          <div className="space-y-1">
              <div className="flex justify-between items-center text-xs text-gray-800 font-semibold">
-                <span>Linhas de Limite (Todas as Páginas)</span>
-                <button 
-                    onClick={() => setSettings({...settings, showPageLines: !settings.showPageLines})} 
-                    className={`w-10 h-5 rounded-full relative transition-colors flex-shrink-0 ${settings.showPageLines ? 'bg-green-500' : 'bg-gray-300'}`}
-                >
-                    <div className={`absolute top-1 w-3 h-3 bg-white rounded-full shadow transition-transform ${settings.showPageLines ? 'left-6' : 'left-1'}`}></div>
-                </button>
+                <span>{t.pageLines}</span>
+                <ToggleSwitch checked={settings.showPageLines} onChange={() => setSettings({...settings, showPageLines: !settings.showPageLines})} />
              </div>
-             <p className="text-[10px] text-gray-500 leading-tight pr-4">Adiciona linhas finas coloridas no topo e base da área de texto. (A estrutura do documento permanece idêntica)</p>
+             <p className="text-[10px] text-gray-500 leading-tight pr-4">{t.pageLinesDesc}</p>
          </div>
       </div>
 
       <div className="bg-blue-50 p-4 rounded-lg border border-blue-200 space-y-4">
-        <label className="flex items-center text-sm font-bold text-blue-800"><Maximize2 size={16} className="mr-2"/> Geometria e Espaçamento</label>
+        <label className="flex items-center text-sm font-bold text-blue-800"><Maximize2 size={16} className="mr-2"/> {t.geometry}</label>
         
         <div className="space-y-1">
-          <div className="flex justify-between text-xs text-blue-800 font-semibold"><span>Tamanho da Fonte Base</span><span>{settings.fontSizeBase}pt</span></div>
+          <div className="flex justify-between text-xs text-blue-800 font-semibold"><span>{t.fontSize}</span><span>{settings.fontSizeBase}pt</span></div>
           <input type="range" min="9" max="12" step="0.5" value={settings.fontSizeBase} onChange={e => setSettings({...settings, fontSizeBase: parseFloat(e.target.value)})} className="w-full h-2 bg-blue-200 rounded-lg appearance-none cursor-pointer" />
         </div>
 
         <div className="space-y-1">
-          <div className="flex justify-between text-xs text-blue-800 font-semibold"><span>Altura da Linha (Entrelinha)</span><span>{settings.lineHeight}</span></div>
+          <div className="flex justify-between text-xs text-blue-800 font-semibold"><span>{t.lineHeight}</span><span>{settings.lineHeight}</span></div>
           <input type="range" min="1.0" max="2.0" step="0.05" value={settings.lineHeight} onChange={e => setSettings({...settings, lineHeight: parseFloat(e.target.value)})} className="w-full h-2 bg-blue-200 rounded-lg appearance-none cursor-pointer" />
         </div>
         
         <div className="space-y-1">
              <div className="flex justify-between text-xs text-blue-800 font-semibold">
-                <span>Margem do Cabeçalho</span>
+                <span>{t.headerMargin}</span>
                 <span>{settings.headerSpacing}mm</span>
              </div>
              <input 
@@ -519,7 +547,7 @@ export default function App() {
         </div>
 
         <div className="space-y-1 border-t border-blue-100 pt-3">
-             <div className="flex justify-between text-xs text-blue-800 font-semibold mb-1"><span>Estilo dos Marcadores</span></div>
+             <div className="flex justify-between text-xs text-blue-800 font-semibold mb-1"><span>{t.markerStyle}</span></div>
              <div className="flex gap-2">
                  <select 
                     value={settings.listStyle || 'disc'} 
@@ -534,7 +562,7 @@ export default function App() {
                  <button 
                     onClick={() => setSettings({...settings, listMarkerBold: !settings.listMarkerBold})}
                     className={`px-3 border rounded transition-colors ${settings.listMarkerBold ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-400 border-gray-300 hover:bg-gray-50'}`}
-                    title="Alternar Marcador em Negrito"
+                    title={t.boldMarker}
                  >
                     <Bold size={16} />
                  </button>
@@ -542,7 +570,7 @@ export default function App() {
                  <button 
                     onClick={() => setSettings({...settings, listMarkerUseThemeColor: !settings.listMarkerUseThemeColor})}
                     className={`px-3 border rounded transition-colors ${settings.listMarkerUseThemeColor ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-400 border-gray-300 hover:bg-gray-50'}`}
-                    title={settings.listMarkerUseThemeColor ? "Cor do Marcador: Usar Tema" : "Cor do Marcador: Usar Cor do Texto"}
+                    title={t.colorMarker}
                  >
                     <Palette size={16} />
                  </button>
@@ -551,7 +579,7 @@ export default function App() {
 
         <div className="space-y-1 border-t border-blue-100 pt-3">
              <div className="flex justify-between text-xs text-blue-800 font-semibold mb-2">
-                <span>Espaçamento entre Itens (Global)</span>
+                <span>{t.itemSpacing}</span>
                 <span>{settings.itemSpacing}mm</span>
              </div>
              <input 
@@ -566,13 +594,12 @@ export default function App() {
                     onClick={() => setIsSpacingAdvancedOpen(!isSpacingAdvancedOpen)}
                     className="w-full px-3 py-2 flex items-center justify-between text-xs text-blue-700 font-bold hover:bg-blue-100 transition-colors"
                  >
-                     <span className="flex items-center"><Sliders size={12} className="mr-2"/> Ajuste Fino por Seção</span>
+                     <span className="flex items-center"><Sliders size={12} className="mr-2"/> {t.fineTune}</span>
                      <ChevronRight size={14} className={`transform transition-transform ${isSpacingAdvancedOpen ? 'rotate-90' : ''}`}/>
                  </button>
                  
                  {isSpacingAdvancedOpen && (
                      <div className="p-3 space-y-3 border-t border-blue-100 animate-in fade-in slide-in-from-top-1 duration-200">
-                         <p className="text-[10px] text-gray-500 italic mb-2">Defina valores específicos para sobrescrever o global. Arraste para a esquerda (0) para usar o padrão.</p>
                          {data.sectionOrder.map(sectionId => {
                              if (sectionId === 'summary') return null; 
                              const isCustom = sectionId.startsWith('custom-');
@@ -629,7 +656,7 @@ export default function App() {
 
         <div className="space-y-1 border-t border-blue-100 pt-3">
              <div className="flex justify-between text-xs text-blue-800 font-semibold mb-2">
-                <span>Espaçamento entre Seções</span>
+                <span>{t.sectionSpacing}</span>
                 <span>{settings.sectionSpacing}mm</span>
              </div>
              <input 
@@ -641,51 +668,46 @@ export default function App() {
         </div>
 
         <div className="flex items-center justify-between border-t border-blue-100 pt-3">
-          <span className="text-sm text-blue-800">Justificar Texto</span>
+          <span className="text-sm text-blue-800">{t.justifyText}</span>
           <button onClick={() => setSettings({...settings, textAlign: settings.textAlign === 'justify' ? 'left' : 'justify'})} className={`p-1 rounded ${settings.textAlign === 'justify' ? 'bg-blue-200 text-blue-800' : 'bg-gray-100 text-gray-400'}`}><AlignJustify size={18}/></button>
         </div>
 
         <div className="flex items-center justify-between border-t border-blue-100 pt-3">
           <div className="flex items-center gap-4 group relative">
-            <span className="text-sm text-blue-800 cursor-help">Manter Itens Juntos (Evitar Quebra)</span>
+            <span className="text-sm text-blue-800 cursor-help">{t.keepTogether}</span>
             <Info size={20} className="text-blue-600 cursor-help"/>
             <div className="absolute bottom-full left-0 mb-2 w-64 p-3 bg-gray-800 text-white text-xs rounded shadow-lg hidden group-hover:block z-[9999] pointer-events-none">
               Quando ativado, força um item inteiro (ex: uma experiência) a ir para a próxima página caso não caiba na atual, evitando que ele seja cortado ao meio.
               <div className="absolute top-full left-4 -mt-1 border-4 border-transparent border-t-gray-800"></div>
             </div>
           </div>
-          <button 
-            onClick={() => setSettings({...settings, pageBreakAuto: !settings.pageBreakAuto})} 
-            className={`w-10 h-5 rounded-full relative transition-colors flex-shrink-0 ${!settings.pageBreakAuto ? 'bg-green-500' : 'bg-gray-300'}`}
-          >
-            <div className={`absolute top-1 w-3 h-3 bg-white rounded-full shadow transition-transform ${!settings.pageBreakAuto ? 'left-6' : 'left-1'}`}></div>
-          </button>
+          <ToggleSwitch checked={settings.pageBreakAuto} onChange={() => setSettings({...settings, pageBreakAuto: !settings.pageBreakAuto})} />
         </div>
 
         <div className="space-y-4 mt-4 border-t border-blue-200 pt-3">
             <div className="space-y-2">
-                <div className="flex flex-col gap-1"><span className="flex items-center text-xs font-bold text-blue-800"><MoveHorizontal size={14} className="mr-1"/> Coluna Direita: Experiência</span></div>
+                <div className="flex flex-col gap-1"><span className="flex items-center text-xs font-bold text-blue-800"><MoveHorizontal size={14} className="mr-1"/> {t.expColumn}</span></div>
                 <div className="flex items-center gap-2">
                     <input type="range" min="20" max="60" step="1" value={settings.experienceColumnWidth} onChange={e => setSettings({...settings, experienceColumnWidth: parseInt(e.target.value)})} className="flex-1 h-2 bg-blue-200 rounded-lg appearance-none cursor-pointer"/>
                     <span className="text-xs font-mono text-blue-800 w-8 text-right">{settings.experienceColumnWidth}mm</span>
                 </div>
             </div>
             <div className="space-y-2">
-                <div className="flex flex-col gap-1"><span className="flex items-center text-xs font-bold text-blue-800"><MoveHorizontal size={14} className="mr-1"/> Coluna Direita: Formação</span></div>
+                <div className="flex flex-col gap-1"><span className="flex items-center text-xs font-bold text-blue-800"><MoveHorizontal size={14} className="mr-1"/> {t.eduColumn}</span></div>
                 <div className="flex items-center gap-2">
                     <input type="range" min="20" max="60" step="1" value={settings.educationColumnWidth} onChange={e => setSettings({...settings, educationColumnWidth: parseInt(e.target.value)})} className="flex-1 h-2 bg-blue-200 rounded-lg appearance-none cursor-pointer"/>
                     <span className="text-xs font-mono text-blue-800 w-8 text-right">{settings.educationColumnWidth}mm</span>
                 </div>
             </div>
             <div className="space-y-2">
-                <div className="flex flex-col gap-1"><span className="flex items-center text-xs font-bold text-blue-800"><MoveHorizontal size={14} className="mr-1"/> Coluna Direita: Projetos</span></div>
+                <div className="flex flex-col gap-1"><span className="flex items-center text-xs font-bold text-blue-800"><MoveHorizontal size={14} className="mr-1"/> {t.projColumn}</span></div>
                 <div className="flex items-center gap-2">
                     <input type="range" min="20" max="60" step="1" value={settings.projectsColumnWidth} onChange={e => setSettings({...settings, projectsColumnWidth: parseInt(e.target.value)})} className="flex-1 h-2 bg-blue-200 rounded-lg appearance-none cursor-pointer"/>
                     <span className="text-xs font-mono text-blue-800 w-8 text-right">{settings.projectsColumnWidth}mm</span>
                 </div>
             </div>
             <div className="space-y-2 border-t border-blue-100 pt-2">
-                <div className="flex flex-col gap-1"><span className="flex items-center text-xs font-bold text-blue-800"><Columns size={14} className="mr-1"/> Ajuste de Competências (Esquerda)</span></div>
+                <div className="flex flex-col gap-1"><span className="flex items-center text-xs font-bold text-blue-800"><Columns size={14} className="mr-1"/> {t.leftColumn}</span></div>
                 <div className="flex items-center gap-2">
                 <input type="range" min="30" max="80" step="1" value={settings.leftColumnWidth} onChange={e => setSettings({...settings, leftColumnWidth: parseInt(e.target.value)})} className="flex-1 h-2 bg-blue-200 rounded-lg appearance-none cursor-pointer"/>
                 <span className="text-xs font-mono text-blue-800 w-8 text-right">{settings.leftColumnWidth}mm</span>
@@ -694,20 +716,24 @@ export default function App() {
         </div>
       </div>
       <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200 space-y-4">
-        <label className="flex items-center text-sm font-bold text-yellow-800">{settings.showGuides ? <Eye size={16} className="mr-2"/> : <EyeOff size={16} className="mr-2"/>} Guias e Margens</label>
+        <label className="flex items-center text-sm font-bold text-yellow-800">
+          {settings.showGuides ? <Eye size={16} className="mr-2"/> : <EyeOff size={16} className="mr-2"/>} 
+          {t.guides}
+        </label>
+        
         <div className="flex items-center justify-between">
-          <span className="text-sm text-yellow-800">Mostrar Linhas de Limite</span>
-          <input type="checkbox" checked={settings.showGuides} onChange={e => setSettings({...settings, showGuides: e.target.checked})} className="w-5 h-5 text-yellow-600 rounded cursor-pointer" />
+          <span className="text-sm text-yellow-800">{t.showGuides}</span>
+          <ToggleSwitch checked={settings.showGuides} onChange={() => setSettings({...settings, showGuides: !settings.showGuides})} />
         </div>
       </div>
       
       <div className="bg-white p-4 rounded-lg border border-gray-200 space-y-4 shadow-sm">
         <label className="flex items-center text-sm font-bold text-gray-700 uppercase border-b pb-1 mb-2">
-          <Type size={16} className="mr-2"/> Tipografia & Paleta
+          <Type size={16} className="mr-2"/> {t.typography}
         </label>
 
         <div className="space-y-1">
-             <div className="flex justify-between text-xs text-gray-600 font-semibold mb-1"><span>Família da Fonte</span></div>
+             <div className="flex justify-between text-xs text-gray-600 font-semibold mb-1"><span>{t.fontFamily}</span></div>
              <select 
                 value={settings.font} 
                 onChange={e => setSettings({...settings, font: e.target.value})}
@@ -719,53 +745,40 @@ export default function App() {
              </select>
         </div>
 
-        {/* --- CONTROLES DE COR ATUALIZADOS --- */}
         <div className="space-y-2 pt-2 border-t border-gray-100 mt-2">
-            <span className="text-xs font-bold text-gray-600 block">Opções de Cor do Tema</span>
+            <span className="text-xs font-bold text-gray-600 block">{t.themeOptions}</span>
             <div className="grid grid-cols-2 gap-2">
                 <button
                     onClick={() => setSettings({...settings, roleUseThemeColor: !settings.roleUseThemeColor})}
                     className={`px-3 py-2 border rounded transition-colors flex items-center justify-center gap-2 text-xs font-medium ${settings.roleUseThemeColor ? 'bg-blue-50 text-blue-700 border-blue-200 ring-1 ring-blue-200' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'}`}
-                    title="Aplicar cor em Cargos, Instituições e URLs"
+                    title={t.colorRoles}
                 >
-                    {/* NOME ATUALIZADO AQUI: */}
-                    <Palette size={14} /> Cargos, Instituições & URLs
+                    <Palette size={14} /> {t.colorRoles}
                 </button>
                 <button
                     onClick={() => setSettings({...settings, rightTextUseThemeColor: !settings.rightTextUseThemeColor})}
                     className={`px-3 py-2 border rounded transition-colors flex items-center justify-center gap-2 text-xs font-medium ${settings.rightTextUseThemeColor ? 'bg-blue-50 text-blue-700 border-blue-200 ring-1 ring-blue-200' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'}`}
-                    title="Aplicar cor nas Datas, Locais e Tech"
+                    title={t.colorDates}
                 >
-                    <Palette size={14} /> Datas, Locais & Tech
+                    <Palette size={14} /> {t.colorDates}
                 </button>
             </div>
         </div>
 
+        {/* CORREÇÃO AQUI: Substituição dos inputs checkbox por ToggleSwitch */}
         <div className="flex items-center justify-between pt-2 border-t border-gray-100 mt-2">
-            <span className="text-xs font-bold text-gray-600">Negrito em Datas e Locais (Direita)</span>
-            <input 
-                type="checkbox" 
-                checked={settings.rightTextBold || false} 
-                onChange={e => setSettings({...settings, rightTextBold: e.target.checked})} 
-                className="w-4 h-4 text-blue-600 rounded cursor-pointer" 
-            />
+            <span className="text-xs font-bold text-gray-600">{t.boldDates}</span>
+            <ToggleSwitch checked={settings.rightTextBold} onChange={() => setSettings({...settings, rightTextBold: !settings.rightTextBold})} />
         </div>
 
-        {/* NOVA OPÇÃO ADICIONADA AQUI: */}
         <div className="flex items-center justify-between pt-2 border-t border-gray-100 mt-2">
-            <span className="text-xs font-bold text-gray-600">Mostrar Ícone de Link (🔗) em "Projetos Relevantes"</span>
-            <input 
-                type="checkbox" 
-                checked={settings.showLinkIcon !== false} // Padrão true se undefined
-                onChange={e => setSettings({...settings, showLinkIcon: e.target.checked})} 
-                className="w-4 h-4 text-blue-600 rounded cursor-pointer" 
-            />
+            <span className="text-xs font-bold text-gray-600">{t.linkIcon}</span>
+            <ToggleSwitch checked={settings.showLinkIcon} onChange={() => setSettings({...settings, showLinkIcon: !settings.showLinkIcon})} />
         </div>
 
         <div className="grid grid-cols-2 gap-4 pt-2">
             <div className="space-y-1">
-                <span className="text-xs font-bold text-gray-500 block mb-1">Cor de Destaque</span>
-                <p className="text-[10px] text-gray-400 mb-1 leading-tight">Títulos, ícones e bordas</p>
+                <span className="text-xs font-bold text-gray-500 block mb-1">{t.accentColor}</span>
                 <div className="flex items-center gap-2 border p-1 rounded bg-gray-50">
                     <input type="color" value={settings.themeColor} onChange={e => setSettings({...settings, themeColor: e.target.value})} className="h-8 w-10 cursor-pointer border-none bg-transparent" title="Escolher cor do tema"/>
                     <span className="text-xs font-mono text-gray-600">{settings.themeColor}</span>
@@ -773,8 +786,7 @@ export default function App() {
             </div>
 
             <div className="space-y-1">
-                <span className="text-xs font-bold text-gray-500 block mb-1">Cor do Texto</span>
-                <p className="text-[10px] text-gray-400 mb-1 leading-tight">Corpo, listas e resumos</p>
+                <span className="text-xs font-bold text-gray-500 block mb-1">{t.textColor}</span>
                 <div className="flex items-center gap-2 border p-1 rounded bg-gray-50">
                     <input type="color" value={settings.bodyColor || '#374151'} onChange={e => setSettings({...settings, bodyColor: e.target.value})} className="h-8 w-10 cursor-pointer border-none bg-transparent" title="Escolher cor do texto"/>
                     <span className="text-xs font-mono text-gray-600">{settings.bodyColor}</span>
@@ -787,11 +799,11 @@ export default function App() {
   
   const renderSectionManagementForm = () => (
     <div className="space-y-6">
-      <h2 className="text-xl font-bold text-gray-800 border-b pb-2 flex items-center"><Layers className="mr-2" size={20}/> Reordenar Seções</h2>
+      <h2 className="text-xl font-bold text-gray-800 border-b pb-2 flex items-center"><Layers className="mr-2" size={20}/> {t.sectionsTab}</h2>
       <div className="grid grid-cols-2 gap-2 mb-4">
-        <button onClick={() => addCustomSection('text')} className="flex items-center justify-center p-3 bg-blue-50 text-blue-700 rounded border border-blue-200 hover:bg-blue-100 transition-colors"><FileText size={16} className="mr-2"/> Texto</button>
-        <button onClick={() => addCustomSection('list')} className="flex items-center justify-center p-3 bg-blue-50 text-blue-700 rounded border border-blue-200 hover:bg-blue-100 transition-colors"><List size={16} className="mr-2"/> Lista</button>
-        <button onClick={() => addCustomSection('detailed')} className="flex items-center justify-center p-3 bg-blue-50 text-blue-700 rounded border border-blue-200 hover:bg-blue-100 transition-colors col-span-2"><Grid size={16} className="mr-2"/> Detalhada</button>
+        <button onClick={() => addCustomSection('text')} className="flex items-center justify-center p-3 bg-blue-50 text-blue-700 rounded border border-blue-200 hover:bg-blue-100 transition-colors"><FileText size={16} className="mr-2"/> {t.text}</button>
+        <button onClick={() => addCustomSection('list')} className="flex items-center justify-center p-3 bg-blue-50 text-blue-700 rounded border border-blue-200 hover:bg-blue-100 transition-colors"><List size={16} className="mr-2"/> {t.list}</button>
+        <button onClick={() => addCustomSection('detailed')} className="flex items-center justify-center p-3 bg-blue-50 text-blue-700 rounded border border-blue-200 hover:bg-blue-100 transition-colors col-span-2"><Grid size={16} className="mr-2"/> {t.detailed}</button>
       </div>
       <Droppable droppableId="section-ordering" type="MAIN_SECTION_ORDER">
         {(provided) => (
@@ -813,9 +825,7 @@ export default function App() {
                       ) : (
                         <div className="flex-1 flex justify-between items-center">
                           <input type="text" value={config.title} onChange={(e) => updateStructure(sectionId, 'title', e.target.value)} className="flex-1 p-1 text-sm border-b border-transparent hover:border-gray-300 focus:border-blue-500 outline-none"/>
-                          <button onClick={() => updateStructure(sectionId, 'visible', !config.visible)} className={`w-10 h-5 rounded-full relative transition-colors ${config.visible ? 'bg-green-500' : 'bg-gray-300'}`}>
-                            <div className={`absolute top-1 w-3 h-3 bg-white rounded-full shadow transition-transform ${config.visible ? 'left-6' : 'left-1'}`}></div>
-                          </button>
+                          <ToggleSwitch checked={config.visible} onChange={() => updateStructure(sectionId, 'visible', !config.visible)} />
                         </div>
                       )}
                     </div>
@@ -876,16 +886,16 @@ export default function App() {
         {section.type === 'detailed' && (
           <div className="space-y-4">
             <div className="flex justify-end">
-              <button onClick={() => addDetailedItem(section.id)} className="text-blue-600 text-sm flex items-center font-bold"><Plus size={16} className="mr-1"/> Adicionar Item</button>
+              <button onClick={() => addDetailedItem(section.id)} className="text-blue-600 text-sm flex items-center font-bold"><Plus size={16} className="mr-1"/> {t.addItem}</button>
             </div>
             {section.content.map((item, i) => (
               <div key={i} className="bg-gray-50 p-3 rounded relative border border-gray-200">
                 <button onClick={() => removeDetailedItem(section.id, i)} className="absolute top-2 right-2 text-red-400"><Trash2 size={16}/></button>
                 <div className="grid grid-cols-2 gap-2 mb-2">
-                  <Input label="Título / Empresa" value={item.title} onChange={v => updateDetailedItem(section.id, i, 'title', v)} onExpandRequest={handleOpenExpand} />
+                  <Input label={t.title + " / " + t.company} value={item.title} onChange={v => updateDetailedItem(section.id, i, 'title', v)} onExpandRequest={handleOpenExpand} />
                   <Input label="Subtítulo / Cargo" value={item.subtitle} onChange={v => updateDetailedItem(section.id, i, 'subtitle', v)} onExpandRequest={handleOpenExpand} />
-                  <Input label="Data / Período" value={item.date} onChange={v => updateDetailedItem(section.id, i, 'date', v)} onExpandRequest={handleOpenExpand} />
-                  <Input label="Local" value={item.location} onChange={v => updateDetailedItem(section.id, i, 'location', v)} onExpandRequest={handleOpenExpand} />
+                  <Input label={t.period} value={item.date} onChange={v => updateDetailedItem(section.id, i, 'date', v)} onExpandRequest={handleOpenExpand} />
+                  <Input label={t.location} value={item.location} onChange={v => updateDetailedItem(section.id, i, 'location', v)} onExpandRequest={handleOpenExpand} />
                 </div>
                 <div className="space-y-1">
                   <label className="text-xs font-semibold text-gray-500 uppercase">Descrição (Tópicos)</label>
@@ -897,6 +907,7 @@ export default function App() {
                     onRemove={removeDetailedItemDescLine} 
                     onAdd={addDetailedItemDescLine} 
                     onExpandRequest={handleOpenExpand}
+                    t={t}
                   />
                 </div>
               </div>
@@ -909,27 +920,22 @@ export default function App() {
 
   const renderPersonalForm = () => (
     <div className="space-y-4">
-      <h2 className="text-xl font-bold border-b pb-2">Pessoal</h2>
+      <h2 className="text-xl font-bold border-b pb-2">{t.personalTab}</h2>
       
       <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 mb-4">
         <label className="flex items-center text-sm font-bold text-gray-800 mb-2">
-            <ImageIcon size={16} className="mr-2"/> Foto do Perfil & Ajustes
+            <ImageIcon size={16} className="mr-2"/> {t.photoSettings}
         </label>
         <div className="flex flex-col gap-4">
             <div className="flex items-start gap-4">
                 <div className="flex-1 space-y-3">
                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-600">Exibir Foto?</span>
-                        <button 
-                            onClick={() => updateField('personal', 'showPhoto', !data.personal.showPhoto)} 
-                            className={`w-10 h-5 rounded-full relative transition-colors ${data.personal.showPhoto ? 'bg-blue-600' : 'bg-gray-300'}`}
-                        >
-                            <div className={`absolute top-1 w-3 h-3 bg-white rounded-full shadow transition-transform ${data.personal.showPhoto ? 'left-6' : 'left-1'}`}></div>
-                        </button>
+                        <span className="text-sm text-gray-600">{t.showPhoto}</span>
+                        <ToggleSwitch checked={data.personal.showPhoto} onChange={() => updateField('personal', 'showPhoto', !data.personal.showPhoto)} />
                      </div>
                      <label className="cursor-pointer flex items-center justify-center w-full p-2 bg-white border border-dashed border-gray-400 rounded hover:bg-gray-50 text-sm text-gray-600 transition-colors">
                         <Upload size={16} className="mr-2"/>
-                        <span>Carregar Foto</span>
+                        <span>{t.uploadPhoto}</span>
                         <input type="file" className="hidden" accept="image/*" onChange={handlePhotoUpload} />
                      </label>
                 </div>
@@ -943,7 +949,7 @@ export default function App() {
             {data.personal.showPhoto && (
                 <div className="border-t border-gray-200 pt-3 space-y-3">
                     <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-gray-500 uppercase flex items-center"><Layout size={12} className="mr-1"/> Posição da Foto</span>
+                        <span className="text-xs font-bold text-gray-500 uppercase flex items-center"><Layout size={12} className="mr-1"/> {t.photoPos}</span>
                         <div className="flex gap-1">
                             <button onClick={() => updateField('personal', 'photoAlignment', 'left')} className={`p-1.5 rounded ${data.personal.photoAlignment === 'left' ? 'bg-blue-100 text-blue-600' : 'hover:bg-gray-200 text-gray-500'}`} title="Esquerda"><AlignLeft size={16}/></button>
                             <button onClick={() => updateField('personal', 'photoAlignment', 'center')} className={`p-1.5 rounded ${data.personal.photoAlignment === 'center' ? 'bg-blue-100 text-blue-600' : 'hover:bg-gray-200 text-gray-500'}`} title="Centro"><AlignCenter size={16}/></button>
@@ -952,7 +958,7 @@ export default function App() {
                     </div>
 
                     <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-gray-500 uppercase flex items-center"><Crop size={12} className="mr-1"/> Formato</span>
+                        <span className="text-xs font-bold text-gray-500 uppercase flex items-center"><Crop size={12} className="mr-1"/> {t.photoShape}</span>
                         <div className="flex gap-1">
                             <button onClick={() => updateField('personal', 'photoShape', 'circle')} className={`p-1.5 rounded ${data.personal.photoShape === 'circle' ? 'bg-blue-100 text-blue-600' : 'hover:bg-gray-200 text-gray-500'}`} title="Círculo"><Circle size={16}/></button>
                             <button onClick={() => updateField('personal', 'photoShape', 'rounded')} className={`p-1.5 rounded ${data.personal.photoShape === 'rounded' ? 'bg-blue-100 text-blue-600' : 'hover:bg-gray-200 text-gray-500'}`} title="Arredondado"><Square size={16} className="rounded-sm"/></button>
@@ -962,7 +968,7 @@ export default function App() {
 
                     <div className="space-y-1">
                         <div className="flex justify-between text-xs text-gray-600">
-                            <span className="flex items-center"><ZoomIn size={12} className="mr-1"/> Zoom</span>
+                            <span className="flex items-center"><ZoomIn size={12} className="mr-1"/> {t.photoZoom}</span>
                             <span>{data.personal.photoScale}%</span>
                         </div>
                         <input 
@@ -976,7 +982,7 @@ export default function App() {
                     <div className="grid grid-cols-2 gap-3">
                         <div className="space-y-1">
                             <div className="flex justify-between text-xs text-gray-600">
-                                <span className="flex items-center"><MoveHorizontal size={12} className="mr-1"/> Horizontal</span>
+                                <span className="flex items-center"><MoveHorizontal size={12} className="mr-1"/> {t.photoH}</span>
                             </div>
                             <input 
                                 type="range" min="-100" max="100" step="1" 
@@ -987,7 +993,7 @@ export default function App() {
                         </div>
                         <div className="space-y-1">
                             <div className="flex justify-between text-xs text-gray-600">
-                                <span className="flex items-center"><Move size={12} className="mr-1"/> Vertical</span>
+                                <span className="flex items-center"><Move size={12} className="mr-1"/> {t.photoV}</span>
                             </div>
                             <input 
                                 type="range" min="-100" max="100" step="1" 
@@ -1000,26 +1006,26 @@ export default function App() {
 
                     <div className="grid grid-cols-2 gap-3 pt-2">
                         <div className="flex items-center justify-between">
-                            <span className="text-xs font-bold text-gray-500 uppercase flex items-center"><Layers size={12} className="mr-1"/> Sombra</span>
-                            <input type="checkbox" checked={data.personal.photoShadow || false} onChange={(e) => updateField('personal', 'photoShadow', e.target.checked)} className="w-4 h-4 text-blue-600 rounded cursor-pointer"/>
+                            <span className="text-xs font-bold text-gray-500 uppercase flex items-center"><Layers size={12} className="mr-1"/> {t.photoShadow}</span>
+                            <ToggleSwitch checked={data.personal.photoShadow} onChange={() => updateField('personal', 'photoShadow', !data.personal.photoShadow)} />
                         </div>
                         <div className="flex items-center justify-between">
-                            <span className="text-xs font-bold text-gray-500 uppercase flex items-center"><Circle size={12} className="mr-1"/> P/B</span>
-                            <input type="checkbox" checked={data.personal.photoGrayscale || false} onChange={(e) => updateField('personal', 'photoGrayscale', e.target.checked)} className="w-4 h-4 text-blue-600 rounded cursor-pointer"/>
+                            <span className="text-xs font-bold text-gray-500 uppercase flex items-center"><Circle size={12} className="mr-1"/> {t.photoBW}</span>
+                            <ToggleSwitch checked={data.personal.photoGrayscale} onChange={() => updateField('personal', 'photoGrayscale', !data.personal.photoGrayscale)} />
                         </div>
                         <div className="flex items-center justify-between">
-                            <span className="text-xs font-bold text-gray-500 uppercase flex items-center"><FlipHorizontal size={12} className="mr-1"/> Espelhar</span>
-                            <input type="checkbox" checked={data.personal.photoFlip || false} onChange={(e) => updateField('personal', 'photoFlip', e.target.checked)} className="w-4 h-4 text-blue-600 rounded cursor-pointer"/>
+                            <span className="text-xs font-bold text-gray-500 uppercase flex items-center"><FlipHorizontal size={12} className="mr-1"/> {t.photoFlip}</span>
+                            <ToggleSwitch checked={data.personal.photoFlip} onChange={() => updateField('personal', 'photoFlip', !data.personal.photoFlip)} />
                         </div>
                         <div className="flex items-center justify-between">
-                            <span className="text-xs font-bold text-gray-500 uppercase flex items-center"><Maximize size={12} className="mr-1"/> Preencher</span>
-                            <input type="checkbox" checked={data.personal.photoCover || false} onChange={(e) => updateField('personal', 'photoCover', e.target.checked)} className="w-4 h-4 text-blue-600 rounded cursor-pointer"/>
+                            <span className="text-xs font-bold text-gray-500 uppercase flex items-center"><Maximize size={12} className="mr-1"/> {t.photoFill}</span>
+                            <ToggleSwitch checked={data.personal.photoCover} onChange={() => updateField('personal', 'photoCover', !data.personal.photoCover)} />
                         </div>
                     </div>
 
                     <div className="space-y-1 pt-2">
                         <div className="flex justify-between text-xs text-gray-600">
-                            <span className="flex items-center"><Frame size={12} className="mr-1"/> Borda Colorida</span>
+                            <span className="flex items-center"><Frame size={12} className="mr-1"/> {t.photoBorder}</span>
                             <span>{data.personal.photoBorder || 0}px</span>
                         </div>
                         <input 
@@ -1031,7 +1037,7 @@ export default function App() {
                     </div>
 
                     <div className="flex items-center justify-between pt-2">
-                        <span className="text-xs font-bold text-gray-500 uppercase flex items-center"><RotateCw size={12} className="mr-1"/> Rotação</span>
+                        <span className="text-xs font-bold text-gray-500 uppercase flex items-center"><RotateCw size={12} className="mr-1"/> {t.photoRotate}</span>
                         <div className="flex gap-1">
                             <button onClick={() => updateField('personal', 'photoRotate', (data.personal.photoRotate || 0) - 90)} className="p-1.5 hover:bg-gray-200 rounded text-gray-600" title="-90º"><RotateCcw size={16}/></button>
                             <button onClick={() => updateField('personal', 'photoRotate', (data.personal.photoRotate || 0) + 90)} className="p-1.5 hover:bg-gray-200 rounded text-gray-600" title="+90º"><RotateCw size={16}/></button>
@@ -1040,15 +1046,15 @@ export default function App() {
 
                     <div className="grid grid-cols-3 gap-2 pt-2">
                         <div className="space-y-1">
-                            <div className="flex justify-center text-xs text-gray-600" title="Brilho"><Sun size={12}/></div>
+                            <div className="flex justify-center text-xs text-gray-600" title={t.brightness}><Sun size={12}/></div>
                             <input type="range" min="50" max="150" value={data.personal.photoBrightness || 100} onChange={(e) => updateField('personal', 'photoBrightness', parseInt(e.target.value))} className="w-full h-1.5 bg-gray-200 rounded-lg cursor-pointer accent-blue-600"/>
                         </div>
                         <div className="space-y-1">
-                            <div className="flex justify-center text-xs text-gray-600" title="Contraste"><Circle size={12}/></div>
+                            <div className="flex justify-center text-xs text-gray-600" title={t.contrast}><Circle size={12}/></div>
                             <input type="range" min="50" max="150" value={data.personal.photoContrast || 100} onChange={(e) => updateField('personal', 'photoContrast', parseInt(e.target.value))} className="w-full h-1.5 bg-gray-200 rounded-lg cursor-pointer accent-blue-600"/>
                         </div>
                          <div className="space-y-1">
-                            <div className="flex justify-center text-xs text-gray-600" title="Saturação"><Droplet size={12}/></div>
+                            <div className="flex justify-center text-xs text-gray-600" title={t.saturation}><Droplet size={12}/></div>
                             <input type="range" min="0" max="200" value={data.personal.photoSaturation || 100} onChange={(e) => updateField('personal', 'photoSaturation', parseInt(e.target.value))} className="w-full h-1.5 bg-gray-200 rounded-lg cursor-pointer accent-blue-600"/>
                         </div>
                     </div>
@@ -1058,14 +1064,14 @@ export default function App() {
       </div>
 
       <div className="grid md:grid-cols-2 gap-4">
-        <Input label="Nome" value={data.personal.name} onChange={v=>updateField('personal','name',v)} onExpandRequest={handleOpenExpand}/>
-        <Input label="Email" value={data.personal.email} onChange={v=>updateField('personal','email',v)} onExpandRequest={handleOpenExpand}/>
-        <Input label="Tel" value={data.personal.phone} onChange={v=>updateField('personal','phone',v)} onExpandRequest={handleOpenExpand}/>
-        <Input label="Local" value={data.personal.location} onChange={v=>updateField('personal','location',v)} onExpandRequest={handleOpenExpand}/>
-        <Input label="LinkedIn" value={data.personal.linkedin} onChange={v=>updateField('personal','linkedin',v)} onExpandRequest={handleOpenExpand}/>
-        <Input label="GitHub" value={data.personal.github} onChange={v=>updateField('personal','github',v)} onExpandRequest={handleOpenExpand}/>
-        <Input label="Currículo Lattes (Link/ID)" value={data.personal.lattes || ''} onChange={v=>updateField('personal','lattes',v)} onExpandRequest={handleOpenExpand}/>
-        <Input label="YouTube (Canal/Link)" value={data.personal.youtube || ''} onChange={v=>updateField('personal','youtube',v)} onExpandRequest={handleOpenExpand}/>
+        <Input label={t.name} value={data.personal.name} onChange={v=>updateField('personal','name',v)} onExpandRequest={handleOpenExpand}/>
+        <Input label={t.email} value={data.personal.email} onChange={v=>updateField('personal','email',v)} onExpandRequest={handleOpenExpand}/>
+        <Input label={t.phone} value={data.personal.phone} onChange={v=>updateField('personal','phone',v)} onExpandRequest={handleOpenExpand}/>
+        <Input label={t.location} value={data.personal.location} onChange={v=>updateField('personal','location',v)} onExpandRequest={handleOpenExpand}/>
+        <Input label={t.linkedin} value={data.personal.linkedin} onChange={v=>updateField('personal','linkedin',v)} onExpandRequest={handleOpenExpand}/>
+        <Input label={t.github} value={data.personal.github} onChange={v=>updateField('personal','github',v)} onExpandRequest={handleOpenExpand}/>
+        <Input label={t.lattes} value={data.personal.lattes || ''} onChange={v=>updateField('personal','lattes',v)} onExpandRequest={handleOpenExpand}/>
+        <Input label={t.youtube} value={data.personal.youtube || ''} onChange={v=>updateField('personal','youtube',v)} onExpandRequest={handleOpenExpand}/>
       </div>
     </div>
   );
@@ -1078,7 +1084,7 @@ export default function App() {
 
     return (
       <div className="space-y-4 relative group">
-        <h2 className="text-xl font-bold border-b pb-2">Resumo</h2>
+        <h2 className="text-xl font-bold border-b pb-2">{t.sections?.summary || "Resumo"}</h2>
         <p className="text-xs text-gray-500 mb-1">Dica: Selecione o texto e use os botões que aparecem no canto.</p>
         <div className="relative">
           <textarea 
@@ -1089,7 +1095,33 @@ export default function App() {
           />
           <RichTextToolbar 
             onFormat={handleFormatSummary} 
-            onExpand={() => handleOpenExpand("Resumo Profissional", data.summary, (val) => updateSimpleField('summary', val))}
+            onExpand={() => handleOpenExpand(t.sections?.summary || "Resumo", data.summary, (val) => updateSimpleField('summary', val))}
+          />
+        </div>
+      </div>
+    );
+  };
+
+  const renderObjectiveForm = () => {
+    const handleFormatObjective = (type) => {
+      const newVal = insertFormatting(objectiveRef, type);
+      if(newVal !== undefined) updateSimpleField('objective', newVal);
+    };
+
+    return (
+      <div className="space-y-4 relative group">
+        <h2 className="text-xl font-bold border-b pb-2">{t.sections?.objective || "Objetivo"}</h2>
+        <p className="text-xs text-gray-500 mb-1">Dica: Selecione o texto e use os botões que aparecem no canto.</p>
+        <div className="relative">
+          <textarea 
+            ref={objectiveRef}
+            className="w-full h-32 p-3 border rounded text-sm focus:ring-2 focus:ring-blue-500 outline-none" 
+            value={data.objective} 
+            onChange={e => updateSimpleField('objective', e.target.value)} 
+          />
+          <RichTextToolbar 
+            onFormat={handleFormatObjective} 
+            onExpand={() => handleOpenExpand(t.sections?.objective || "Objetivo", data.objective, (val) => updateSimpleField('objective', val))}
           />
         </div>
       </div>
@@ -1097,12 +1129,12 @@ export default function App() {
   };
   
   const renderSkillsForm = () => (
-    <DraggableSection sectionId="skills" title={data.structure.skills.title} items={data.skills} onAdd={() => addItem('skills', {category:'', items:''})} onRemove={(idx) => removeItem('skills', idx)} 
+    <DraggableSection sectionId="skills" title={t.sections?.skills || "Competências"} items={data.skills} onAdd={() => addItem('skills', {category:'', items:''})} onRemove={(idx) => removeItem('skills', idx)} 
       renderItem={(s, i) => (
         <>
-          <Input label="Categoria" value={s.category} onChange={v=>updateItem('skills', i, 'category', v)} onExpandRequest={handleOpenExpand}/>
+          <Input label={t.category} value={s.category} onChange={v=>updateItem('skills', i, 'category', v)} onExpandRequest={handleOpenExpand}/>
           <div className="mt-2">
-            <Input label="Itens (Lista)" value={s.items} onChange={v=>updateItem('skills', i, 'items', v)} enableRich={true} onExpandRequest={handleOpenExpand}/>
+            <Input label={t.itemsList} value={s.items} onChange={v=>updateItem('skills', i, 'items', v)} enableRich={true} onExpandRequest={handleOpenExpand}/>
           </div>
         </>
       )}
@@ -1110,54 +1142,53 @@ export default function App() {
   );
   
   const renderProjectsForm = () => (
-    <DraggableSection sectionId="projects" title={data.structure.projects.title} items={data.projects} 
+    <DraggableSection sectionId="projects" title={t.sections?.projects || "Projetos"} items={data.projects} 
         onAdd={() => addItem('projects', {title:'', tech:'', description:['']})} 
         onRemove={(idx) => removeItem('projects', idx)} 
         renderItem={(p, i) => (
             <>
                 <div className="grid gap-2 mb-2">
-                    <Input label="Título" value={p.title} onChange={v=>updateItem('projects', i, 'title', v)} onExpandRequest={handleOpenExpand}/>
-                    {/* NOVO CAMPO DE LINK */}
-                    <Input label="Link (URL)" value={p.link || ''} onChange={v=>updateItem('projects', i, 'link', v)} onExpandRequest={handleOpenExpand}/>
-                    <Input label="Tech" value={p.tech} onChange={v=>updateItem('projects', i, 'tech', v)} onExpandRequest={handleOpenExpand}/>
+                    <Input label={t.title} value={p.title} onChange={v=>updateItem('projects', i, 'title', v)} onExpandRequest={handleOpenExpand}/>
+                    <Input label={t.link} value={p.link || ''} onChange={v=>updateItem('projects', i, 'link', v)} onExpandRequest={handleOpenExpand}/>
+                    <Input label={t.tech} value={p.tech} onChange={v=>updateItem('projects', i, 'tech', v)} onExpandRequest={handleOpenExpand}/>
                 </div>
-                <DraggableDescriptionList items={p.description} sectionId="projects" itemIndex={i} onUpdate={updateArrayItem} onRemove={removeArrayItemFromItem} onAdd={addArrayItemToItem} onExpandRequest={handleOpenExpand} />
+                <DraggableDescriptionList items={p.description} sectionId="projects" itemIndex={i} onUpdate={updateArrayItem} onRemove={removeArrayItemFromItem} onAdd={addArrayItemToItem} onExpandRequest={handleOpenExpand} t={t} />
             </>
         )}
     />
   );
 
   const renderExperienceForm = () => (
-    <DraggableSection sectionId="experience" title={data.structure.experience.title} items={data.experience} 
+    <DraggableSection sectionId="experience" title={t.sections?.experience || "Experiência"} items={data.experience} 
         onAdd={() => addItem('experience', {company:'', role:'', period:'', location:'', description:['']})} 
         onRemove={(idx) => removeItem('experience', idx)} 
         renderItem={(ex, i) => (
             <>
                 <div className="grid grid-cols-2 gap-2 mb-2">
-                    <Input label="Empresa" value={ex.company} onChange={v=>updateItem('experience', i, 'company', v)} onExpandRequest={handleOpenExpand}/>
-                    <Input label="Cargo" value={ex.role} onChange={v=>updateItem('experience', i, 'role', v)} onExpandRequest={handleOpenExpand}/>
-                    <Input label="Período" value={ex.period} onChange={v=>updateItem('experience', i, 'period', v)} onExpandRequest={handleOpenExpand}/>
-                    <Input label="Local" value={ex.location} onChange={v=>updateItem('experience', i, 'location', v)} onExpandRequest={handleOpenExpand}/>
+                    <Input label={t.company} value={ex.company} onChange={v=>updateItem('experience', i, 'company', v)} onExpandRequest={handleOpenExpand}/>
+                    <Input label={t.role} value={ex.role} onChange={v=>updateItem('experience', i, 'role', v)} onExpandRequest={handleOpenExpand}/>
+                    <Input label={t.period} value={ex.period} onChange={v=>updateItem('experience', i, 'period', v)} onExpandRequest={handleOpenExpand}/>
+                    <Input label={t.location} value={ex.location} onChange={v=>updateItem('experience', i, 'location', v)} onExpandRequest={handleOpenExpand}/>
                 </div>
-                <DraggableDescriptionList items={ex.description} sectionId="experience" itemIndex={i} onUpdate={updateArrayItem} onRemove={removeArrayItemFromItem} onAdd={addArrayItemToItem} onExpandRequest={handleOpenExpand} />
+                <DraggableDescriptionList items={ex.description} sectionId="experience" itemIndex={i} onUpdate={updateArrayItem} onRemove={removeArrayItemFromItem} onAdd={addArrayItemToItem} onExpandRequest={handleOpenExpand} t={t} />
             </>
         )}
     />
   );
 
   const renderEducationForm = () => (
-    <DraggableSection sectionId="education" title={data.structure.education.title} items={data.education} 
+    <DraggableSection sectionId="education" title={t.sections?.education || "Formação"} items={data.education} 
         onAdd={() => addItem('education', {institution:'', degree:'', period:'', location:'', details:''})} 
         onRemove={(idx) => removeItem('education', idx)} 
         renderItem={(ed, i) => (
             <>
-                <Input label="Instituição" value={ed.institution} onChange={v=>updateItem('education', i, 'institution', v)} onExpandRequest={handleOpenExpand}/>
-                <Input label="Grau" value={ed.degree} onChange={v=>updateItem('education', i, 'degree', v)} onExpandRequest={handleOpenExpand}/>
+                <Input label={t.institution} value={ed.institution} onChange={v=>updateItem('education', i, 'institution', v)} onExpandRequest={handleOpenExpand}/>
+                <Input label={t.degree} value={ed.degree} onChange={v=>updateItem('education', i, 'degree', v)} onExpandRequest={handleOpenExpand}/>
                 <div className="grid grid-cols-2 gap-2">
-                    <Input label="Período" value={ed.period} onChange={v=>updateItem('education', i, 'period', v)} onExpandRequest={handleOpenExpand}/>
-                    <Input label="Local" value={ed.location} onChange={v=>updateItem('education', i, 'location', v)} onExpandRequest={handleOpenExpand}/>
+                    <Input label={t.period} value={ed.period} onChange={v=>updateItem('education', i, 'period', v)} onExpandRequest={handleOpenExpand}/>
+                    <Input label={t.location} value={ed.location} onChange={v=>updateItem('education', i, 'location', v)} onExpandRequest={handleOpenExpand}/>
                 </div>
-                <Input label="Detalhes" value={ed.details} onChange={v=>updateItem('education', i, 'details', v)} enableRich={true} onExpandRequest={handleOpenExpand}/>
+                <Input label={t.details} value={ed.details} onChange={v=>updateItem('education', i, 'details', v)} enableRich={true} onExpandRequest={handleOpenExpand}/>
             </>
         )}
     />
@@ -1166,14 +1197,14 @@ export default function App() {
   const renderOthersForm = () => (
     <DraggableSection 
       sectionId="others" 
-      title={data.structure.others.title}
+      title={t.sections?.others || "Outros"}
       items={data.others} 
       onAdd={() => addItem('others', {title: 'Nova Categoria', description: ['']})}
       onRemove={(idx) => removeItem('others', idx)}
       renderItem={(item, i) => (
         <>
           <div className="mb-2">
-            <Input label="Título da Categoria" value={item.title} onChange={v=>updateItem('others', i, 'title', v)} onExpandRequest={handleOpenExpand}/>
+            <Input label={t.catTitle} value={item.title} onChange={v=>updateItem('others', i, 'title', v)} onExpandRequest={handleOpenExpand}/>
           </div>
           <DraggableDescriptionList 
             items={item.description}
@@ -1183,11 +1214,92 @@ export default function App() {
             onRemove={removeArrayItemFromItem}
             onAdd={addArrayItemToItem}
             onExpandRequest={handleOpenExpand}
+            t={t}
           />
         </>
       )}
     />
   );
+
+  const renderReferencesForm = () => (
+    <DraggableSection 
+      sectionId="references" 
+      title={t.sections?.references || "Referências"} 
+      items={data.references} 
+      onAdd={() => addItem('references', { name: '', company: '', role: '', email: '', phone: '' })} 
+      onRemove={(idx) => removeItem('references', idx)} 
+      renderItem={(item, i) => (
+        <div className="space-y-2">
+            <div className="grid grid-cols-2 gap-2">
+                <Input label={t.refName} value={item.name} onChange={v=>updateItem('references', i, 'name', v)} onExpandRequest={handleOpenExpand}/>
+                <Input label={t.refCompany} value={item.company} onChange={v=>updateItem('references', i, 'company', v)} onExpandRequest={handleOpenExpand}/>
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+                <Input label={t.refRole} value={item.role} onChange={v=>updateItem('references', i, 'role', v)} onExpandRequest={handleOpenExpand}/>
+                <Input label={t.refEmail} value={item.email} onChange={v=>updateItem('references', i, 'email', v)} onExpandRequest={handleOpenExpand}/>
+                <Input label={t.refPhone} value={item.phone} onChange={v=>updateItem('references', i, 'phone', v)} onExpandRequest={handleOpenExpand}/>
+            </div>
+        </div>
+      )}
+    />
+  );
+
+  const renderKeywordsForm = () => {
+    const isKeywordsVisible = data.structure.keywords.visible;
+
+    return (
+        <div className="space-y-4">
+            <div className="flex justify-between items-center border-b pb-2">
+                <h2 className="text-xl font-bold flex items-center text-gray-800">
+                    <EyeOff size={20} className="mr-2"/> {t.atsTitle}
+                </h2>
+                <div className="flex items-center gap-3">
+                     {/* Badge de Status */}
+                     <span className={`text-[10px] font-bold px-2 py-1 rounded border transition-colors ${isKeywordsVisible ? 'bg-green-100 text-green-700 border-green-200' : 'bg-red-100 text-red-700 border-red-200'}`}>
+                        {isKeywordsVisible ? t.atsStatusOn : t.atsStatusOff}
+                     </span>
+                     {/* Toggle Switch */}
+                     <ToggleSwitch 
+                        checked={isKeywordsVisible} 
+                        onChange={() => updateStructure('keywords', 'visible', !isKeywordsVisible)} 
+                        title={isKeywordsVisible ? t.deactivate : t.activate}
+                     />
+                </div>
+            </div>
+            
+            <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-r shadow-sm">
+                <div className="flex items-center">
+                    <AlertTriangle className="text-red-500 mr-2 flex-shrink-0" size={24} />
+                    <p className="text-red-700 font-bold text-sm uppercase">{t.atsWarningTitle}</p>
+                </div>
+                <div className="mt-2 text-xs text-red-600 space-y-1">
+                    <p>{t.atsWarningText}</p>
+                </div>
+            </div>
+
+            <div className={`space-y-2 relative group transition-opacity duration-300 ${isKeywordsVisible ? 'opacity-100' : 'opacity-50 grayscale'}`}>
+                <label className="text-xs font-semibold text-gray-500 uppercase mb-1 block">{t.atsLabel}</label>
+                <textarea 
+                    className={`w-full h-64 p-3 border rounded text-sm outline-none font-mono text-gray-600 resize-y focus:ring-2 ${isKeywordsVisible ? 'focus:ring-green-500 border-green-300' : 'focus:ring-gray-400 border-gray-300'}`}
+                    value={data.keywords || ''} 
+                    onChange={e => updateSimpleField('keywords', e.target.value)} 
+                    placeholder="Ex: Python Java AWS Leadership Sales..."
+                    disabled={!isKeywordsVisible} 
+                />
+                
+                <button 
+                    onClick={() => handleOpenExpand(t.atsTitle, data.keywords, (val) => updateSimpleField('keywords', val))}
+                    className="w-full py-2 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded flex items-center justify-center text-xs font-bold transition-colors border border-gray-300 shadow-sm active:scale-[0.98]"
+                    disabled={!isKeywordsVisible}
+                >
+                    <Maximize size={14} className="mr-2"/> {t.expandEditor}
+                </button>
+
+                <p className="text-[10px] text-gray-400 text-center">{t.atsFooter}</p>
+            </div>
+        </div>
+    );
+  };
 
   const renderActiveSection = () => {
     if (activeTab.startsWith('custom-')) { return renderCustomTabForm(activeTab); }
@@ -1195,20 +1307,23 @@ export default function App() {
       case 'settings': return renderSettingsForm();
       case 'sections': return renderSectionManagementForm();
       case 'personal': return renderPersonalForm();
+      case 'objective': return renderObjectiveForm(); 
       case 'summary': return renderSummaryForm();
       case 'skills': return renderSkillsForm();
       case 'projects': return renderProjectsForm();
       case 'experience': return renderExperienceForm();
       case 'education': return renderEducationForm();
       case 'others': return renderOthersForm();
+      case 'references': return renderReferencesForm();
+      case 'keywords': return renderKeywordsForm();
       default: return renderSettingsForm();
     }
   };
 
   const tabs = [
-    { id: 'settings', label: 'Layout & Otimização', icon: Settings },
-    { id: 'sections', label: 'Gerenciar Seções', icon: Layers },
-    { id: 'personal', label: 'Pessoal', icon: User },
+    { id: 'settings', label: t.layoutTab, icon: Settings },
+    { id: 'sections', label: t.sectionsTab, icon: Layers },
+    { id: 'personal', label: t.personalTab, icon: User },
   ];
 
   return (
@@ -1225,7 +1340,16 @@ export default function App() {
         <link href={FONTS[settings.font].url} rel="stylesheet" />
         
         <nav className={`bg-slate-900 text-slate-300 flex-shrink-0 h-auto md:h-screen sticky top-0 overflow-y-auto transition-all duration-300 ${isSidebarOpen ? 'w-full md:w-64' : 'w-0 md:w-0 overflow-hidden'}`}>
-          <div className="p-6 border-b border-slate-700 flex justify-between items-center"><div><h1 className="text-white font-bold text-xl whitespace-nowrap">Resume Builder</h1><p className="text-xs text-slate-500 mt-1 whitespace-nowrap">V7.3 - Stable</p></div></div>
+          <div className="p-6 border-b border-slate-700 flex justify-between items-center">
+              <div>
+                  <h1 className="text-white font-bold text-xl whitespace-nowrap">{t.appName}</h1>
+                  <p className="text-xs text-slate-500 mt-1 whitespace-nowrap">{t.version}</p>
+              </div>
+              <div className="flex gap-2">
+                  <button onClick={() => changeLanguage('pt')} className={`text-xl hover:scale-110 transition-transform ${language === 'pt' ? 'opacity-100 scale-110' : 'opacity-50'}`} title="Português">🇧🇷</button>
+                  <button onClick={() => changeLanguage('en')} className={`text-xl hover:scale-110 transition-transform ${language === 'en' ? 'opacity-100 scale-110' : 'opacity-50'}`} title="English">🇺🇸</button>
+              </div>
+          </div>
           <div className="p-4 space-y-1">
             {tabs.map(tab => (
                 <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors whitespace-nowrap ${activeTab === tab.id ? 'bg-blue-600 text-white shadow-lg' : 'hover:bg-slate-800'} ${tab.id === 'settings' ? 'mb-4 ring-1 ring-slate-600' : ''}`}>
@@ -1236,7 +1360,7 @@ export default function App() {
             ))}
 
             <div className="pt-2 border-t border-slate-700 mt-2">
-                <p className="px-4 text-xs font-semibold text-slate-500 uppercase mb-2 tracking-wider">Seções do Currículo</p>
+                <p className="px-4 text-xs font-semibold text-slate-500 uppercase mb-2 tracking-wider">SEÇÕES</p>
                 {data.sectionOrder.map(sectionId => {
                     const isCustom = sectionId.startsWith('custom-');
                     const sectionConfig = isCustom 
@@ -1259,7 +1383,7 @@ export default function App() {
                 })}
             </div>
           </div>
-          <div className="p-6 mt-auto border-t border-slate-700"><button onClick={handlePrint} className="w-full flex justify-center items-center bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-bold transition-all shadow-md active:scale-95 whitespace-nowrap"><Download size={20} className="mr-2" /> Baixar PDF</button></div>
+          <div className="p-6 mt-auto border-t border-slate-700"><button onClick={handlePrint} className="w-full flex justify-center items-center bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-bold transition-all shadow-md active:scale-95 whitespace-nowrap"><Download size={20} className="mr-2" /> {t.downloadPdf}</button></div>
         </nav>
 
         <aside 
@@ -1284,7 +1408,7 @@ export default function App() {
             <div className="absolute top-4 left-4 z-50 md:hidden"><button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="p-2 bg-slate-800 text-white rounded-md shadow hover:bg-slate-700 transition-colors">{isSidebarOpen ? <X size={20}/> : <Menu size={20}/>}</button></div>
 
             <div className="mb-4 bg-white p-2 rounded shadow-md flex items-center gap-4 sticky top-0 z-10">
-                <span className="text-xs font-bold text-gray-500 uppercase">Zoom</span>
+                <span className="text-xs font-bold text-gray-500 uppercase">{t.zoom}</span>
                 <button onClick={() => setZoom(Math.max(0.3, zoom - 0.1))} className="p-1 hover:bg-gray-100 rounded"><ZoomOut size={16} /></button>
                 <span className="text-sm font-mono w-12 text-center">{Math.round(zoom * 100)}%</span>
                 <button onClick={() => setZoom(Math.min(1.5, zoom + 0.1))} className="p-1 hover:bg-gray-100 rounded"><ZoomIn size={16} /></button>
