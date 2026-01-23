@@ -1,4 +1,15 @@
 // src/constants.js
+const EXIBIR_LOGS = true;
+
+if (EXIBIR_LOGS) {
+    console.log("🚀 [constants.js] Carregando configurações...");
+    console.log("🎨 Tema definido para Preto (#000000).");
+    console.log("📏 Altura de linha ajustada para 1.1 (Multiplicador).");
+    console.log("📐 Espaçamento global entre itens mantido em 3mm.");
+    console.log("🔧 Exceção de 'Formação' (0mm) mantida.");
+    console.log("✅ Constantes carregadas.");
+}
+
 export const FONTS = {
   'Roboto': { name: 'Roboto (Padrão)', url: 'https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap' },
   'Merriweather': { name: 'Merriweather (Serif)', url: 'https://fonts.googleapis.com/css2?family=Merriweather:wght@300;400;700&display=swap' },
@@ -21,7 +32,7 @@ export const LIST_STYLES = {
 
 export const INITIAL_SETTINGS = {
   font: 'Roboto',
-  themeColor: '#000000', 
+  themeColor: '#000000', // Revertido para PRETO
   bodyColor: '#000000', 
   sectionTitleBold: true,
   showGuides: true,
@@ -45,14 +56,14 @@ export const INITIAL_SETTINGS = {
   showLinkIcon: true, // Padrão: Mostrar o ícone de corrente
   
   // CONTROLES GRANULARES
-  lineHeight: 1.1,       
+  lineHeight: 1.1,        // Ajustado para 1.1
   headerSpacing: 5,      
-  itemSpacing: 3,        
+  itemSpacing: 3,         // Mantido em 3mm global
   sectionSpacing: 3,     
   pageBreakAuto: false,
   
   sectionItemSpacings: {
-    education: 0
+      education: 0        // Mantido: Formação com 0mm
   }, 
   
   experienceColumnWidth: 40, 
@@ -111,7 +122,7 @@ export const INITIAL_DATA = {
   projects: [
     {
       title: "AgroStatPro - Solução SaaS para Pesquisa Agrícola",
-      link: "agrostat.streamlit.app", // NOVO CAMPO LINK
+      link: "agrostat.streamlit.app", 
       tech: "Python, Streamlit, Pandas",
       description: [
         "Desenvolvimento **Fullstack** para automação de cálculos estatísticos.",
@@ -121,7 +132,7 @@ export const INITIAL_DATA = {
     },
     {
       title: "Suíte de Automação e Web Scraping",
-      link: "github.com/rafael/automacao", // NOVO CAMPO LINK
+      link: "github.com/rafael/automacao", 
       tech: "Google Apps Script, Sheets",
       description: [
         "Desenvolvimento de robôs de coleta (**Web Scraping**) integrados ao Google Sheets.",
