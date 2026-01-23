@@ -3,11 +3,8 @@ const EXIBIR_LOGS = true;
 
 if (EXIBIR_LOGS) {
     console.log("🚀 [constants.js] Carregando configurações...");
-    console.log("🎨 Tema definido para Preto (#000000).");
-    console.log("📏 Altura de linha ajustada para 1.1 (Multiplicador).");
-    console.log("📐 Espaçamento global entre itens mantido em 3mm.");
-    console.log("🔧 Exceção de 'Formação' (0mm) mantida.");
-    console.log("✅ Constantes carregadas.");
+    console.log("🌐 Dicionário de Tradução (PT/EN) carregado.");
+    console.log("🔒 Seção 'SEO Oculto' inicia DESATIVADA por padrão.");
 }
 
 export const FONTS = {
@@ -30,9 +27,230 @@ export const LIST_STYLES = {
   'dash': { label: 'Traço (–)', cssMain: "list-['–']", cssSub: "list-[circle]" }
 };
 
+export const TRANSLATIONS = {
+  pt: {
+    ui: {
+      appName: "Resume Builder",
+      version: "V7.5 - Stable",
+      downloadPdf: "Baixar PDF",
+      layoutTab: "Layout & Otimização",
+      sectionsTab: "Gerenciar Seções",
+      personalTab: "Pessoal",
+      zoom: "ZOOM",
+      addSection: "Nova Seção",
+      text: "Texto",
+      list: "Lista",
+      detailed: "Detalhada",
+      pageDecoration: "Decoração de Página",
+      pageLines: "Linhas de Limite (Todas as Páginas)",
+      pageLinesDesc: "Adiciona linhas finas coloridas no topo e base da área de texto.",
+      geometry: "Geometria e Espaçamento",
+      fontSize: "Tamanho da Fonte Base",
+      lineHeight: "Altura da Linha (Entrelinha)",
+      headerMargin: "Margem do Cabeçalho",
+      markerStyle: "Estilo dos Marcadores",
+      boldMarker: "Alternar Marcador em Negrito",
+      colorMarker: "Cor do Marcador: Usar Tema",
+      itemSpacing: "Espaçamento entre Itens (Global)",
+      fineTune: "Ajuste Fino por Seção",
+      sectionSpacing: "Espaçamento entre Seções",
+      justifyText: "Justificar Texto",
+      keepTogether: "Manter Itens Juntos (Evitar Quebra)",
+      expColumn: "Coluna Direita: Experiência",
+      eduColumn: "Coluna Direita: Formação",
+      projColumn: "Coluna Direita: Projetos",
+      leftColumn: "Ajuste de Competências (Esquerda)",
+      guides: "Guias e Margens",
+      showGuides: "Mostrar Linhas de Limites, Guias e Margens",
+      typography: "Tipografia & Paleta",
+      fontFamily: "Família da Fonte",
+      themeOptions: "Opções de Cor do Tema",
+      colorRoles: "Cargos, Instituições & URLs",
+      colorDates: "Datas, Locais & Tech",
+      boldDates: "Negrito em Datas e Locais (Direita)",
+      linkIcon: "Mostrar Ícone de Link (🔗) em 'Projetos Relevantes'",
+      accentColor: "Cor de Destaque",
+      textColor: "Cor do Texto",
+      photoSettings: "Foto do Perfil & Ajustes",
+      showPhoto: "Exibir Foto?",
+      uploadPhoto: "Carregar Foto",
+      photoPos: "Posição da Foto",
+      photoShape: "Formato",
+      photoZoom: "Zoom",
+      photoH: "Horizontal",
+      photoV: "Vertical",
+      photoShadow: "Sombra",
+      photoBW: "P/B",
+      photoFlip: "Espelhar",
+      photoFill: "Preencher",
+      photoBorder: "Borda Colorida",
+      photoRotate: "Rotação",
+      brightness: "Brilho",
+      contrast: "Contraste",
+      saturation: "Saturação",
+      name: "Nome",
+      email: "Email",
+      phone: "Tel",
+      location: "Local",
+      linkedin: "LinkedIn",
+      github: "GitHub",
+      lattes: "Currículo Lattes (Link/ID)",
+      youtube: "YouTube (Canal/Link)",
+      expandEditor: "Expandir Editor em Tela Cheia",
+      atsTitle: "Camuflagem ATS (SEO)",
+      atsStatusOn: "🟢 ATIVADO (Texto será incluído no PDF)",
+      atsStatusOff: "🔴 DESATIVADO (Texto NÃO será incluído)",
+      atsWarningTitle: "Atenção: Técnica de Alto Risco",
+      atsWarningText: "Esta seção utiliza uma técnica conhecida como 'White Fonting'. O texto ficará invisível (branco no branco), mas ocupará espaço físico. Sistemas ATS modernos podem penalizar isso.",
+      atsLabel: "Palavras-chave para Injeção (Texto Puro)",
+      atsFooter: "Este texto será renderizado na cor branca no rodapé do documento.",
+      refName: "Nome Completo",
+      refCompany: "Empresa",
+      refRole: "Cargo",
+      refEmail: "Email Corporativo",
+      refPhone: "Telefone",
+      addItem: "Adicionar Item",
+      category: "Categoria",
+      itemsList: "Itens (Lista)",
+      title: "Título",
+      link: "Link (URL)",
+      tech: "Tech",
+      company: "Empresa",
+      role: "Cargo",
+      period: "Período",
+      institution: "Instituição",
+      degree: "Grau",
+      details: "Detalhes",
+      catTitle: "Título da Categoria",
+      activate: "ATIVAR",
+      deactivate: "DESATIVAR"
+    },
+    sections: {
+      objective: "Objetivo",
+      summary: "Resumo",
+      skills: "Competências",
+      projects: "Projetos Relevantes",
+      experience: "Experiência Profissional",
+      education: "Formação",
+      others: "Idiomas e Certificações",
+      references: "Referências Profissionais",
+      keywords: "Camuflagem ATS (SEO)"
+    }
+  },
+  en: {
+    ui: {
+      appName: "Resume Builder",
+      version: "V7.5 - Stable",
+      downloadPdf: "Download PDF",
+      layoutTab: "Layout & Optimization",
+      sectionsTab: "Manage Sections",
+      personalTab: "Personal Info",
+      zoom: "ZOOM",
+      addSection: "New Section",
+      text: "Text",
+      list: "List",
+      detailed: "Detailed",
+      pageDecoration: "Page Decoration",
+      pageLines: "Boundary Lines (All Pages)",
+      pageLinesDesc: "Adds thin colored lines at the top and bottom of the text area.",
+      geometry: "Geometry & Spacing",
+      fontSize: "Base Font Size",
+      lineHeight: "Line Height",
+      headerMargin: "Header Margin",
+      markerStyle: "Bullet Style",
+      boldMarker: "Toggle Bold Marker",
+      colorMarker: "Marker Color: Use Theme",
+      itemSpacing: "Item Spacing (Global)",
+      fineTune: "Fine Tune per Section",
+      sectionSpacing: "Section Spacing",
+      justifyText: "Justify Text",
+      keepTogether: "Keep Items Together (Avoid Break)",
+      expColumn: "Right Column: Experience",
+      eduColumn: "Right Column: Education",
+      projColumn: "Right Column: Projects",
+      leftColumn: "Skills Adjustment (Left)",
+      guides: "Guides & Margins",
+      showGuides: "Show Boundary Lines, Guides & Margins",
+      typography: "Typography & Palette",
+      fontFamily: "Font Family",
+      themeOptions: "Theme Color Options",
+      colorRoles: "Roles, Institutions & URLs",
+      colorDates: "Dates, Locations & Tech",
+      boldDates: "Bold Dates & Locations (Right)",
+      linkIcon: "Show Link Icon (🔗) in 'Relevant Projects'",
+      accentColor: "Accent Color",
+      textColor: "Text Color",
+      photoSettings: "Profile Photo & Adjustments",
+      showPhoto: "Show Photo?",
+      uploadPhoto: "Upload Photo",
+      photoPos: "Photo Position",
+      photoShape: "Shape",
+      photoZoom: "Zoom",
+      photoH: "Horizontal",
+      photoV: "Vertical",
+      photoShadow: "Shadow",
+      photoBW: "B/W",
+      photoFlip: "Flip",
+      photoFill: "Fill",
+      photoBorder: "Colored Border",
+      photoRotate: "Rotation",
+      brightness: "Brightness",
+      contrast: "Contrast",
+      saturation: "Saturation",
+      name: "Name",
+      email: "Email",
+      phone: "Phone",
+      location: "Location",
+      linkedin: "LinkedIn",
+      github: "GitHub",
+      lattes: "Lattes CV (Link/ID)",
+      youtube: "YouTube (Channel/Link)",
+      expandEditor: "Expand Editor Fullscreen",
+      atsTitle: "ATS Camouflage (SEO)",
+      atsStatusOn: "🟢 ENABLED (Text will be included in PDF)",
+      atsStatusOff: "🔴 DISABLED (Text will NOT be included)",
+      atsWarningTitle: "Warning: High Risk Technique",
+      atsWarningText: "This section uses 'White Fonting'. Text will be invisible (white on white) but takes up physical space. Modern ATS systems may penalize this.",
+      atsLabel: "Injection Keywords (Plain Text)",
+      atsFooter: "This text will be rendered in white at the document footer.",
+      refName: "Full Name",
+      refCompany: "Company",
+      refRole: "Role/Position",
+      refEmail: "Corporate Email",
+      refPhone: "Phone",
+      addItem: "Add Item",
+      category: "Category",
+      itemsList: "Items (List)",
+      title: "Title",
+      link: "Link (URL)",
+      tech: "Tech",
+      company: "Company",
+      role: "Role",
+      period: "Period",
+      institution: "Institution",
+      degree: "Degree",
+      details: "Details",
+      catTitle: "Category Title",
+      activate: "ENABLE",
+      deactivate: "DISABLE"
+    },
+    sections: {
+      objective: "Objective",
+      summary: "Summary",
+      skills: "Skills",
+      projects: "Relevant Projects",
+      experience: "Professional Experience",
+      education: "Education",
+      others: "Languages & Certifications",
+      references: "Professional References",
+      keywords: "ATS Camouflage (SEO)"
+    }
+  }
+};
+
 export const INITIAL_SETTINGS = {
   font: 'Roboto',
-  themeColor: '#000000', // Revertido para PRETO
+  themeColor: '#000000', 
   bodyColor: '#000000', 
   sectionTitleBold: true,
   showGuides: true,
@@ -42,28 +260,24 @@ export const INITIAL_SETTINGS = {
   textAlign: 'justify',
   listStyle: 'disc',
   
-  // CONFIGURAÇÕES DE MARCADORES E CORES
   listMarkerBold: false,         
-  listMarkerUseThemeColor: false, // PADRÃO: FALSE (Preto)
+  listMarkerUseThemeColor: false, 
   
-  // OPÇÕES DE COR
-  roleUseThemeColor: false,      // Controla: Cargos, Instituições e URLs
-  rightTextUseThemeColor: false, // Controla: Datas, Locais e Tech
+  roleUseThemeColor: false,      
+  rightTextUseThemeColor: false, 
   
   rightTextBold: false, 
   
-  // NOVA OPÇÃO:
-  showLinkIcon: true, // Padrão: Mostrar o ícone de corrente
+  showLinkIcon: true, 
   
-  // CONTROLES GRANULARES
-  lineHeight: 1.1,        // Ajustado para 1.1
+  lineHeight: 1.1,        
   headerSpacing: 5,      
-  itemSpacing: 3,         // Mantido em 3mm global
+  itemSpacing: 3,         
   sectionSpacing: 3,     
-  pageBreakAuto: false,
+  pageBreakAuto: true,
   
   sectionItemSpacings: {
-      education: 0        // Mantido: Formação com 0mm
+      education: 0        
   }, 
   
   experienceColumnWidth: 40, 
@@ -73,15 +287,20 @@ export const INITIAL_SETTINGS = {
 };
 
 export const INITIAL_DATA = {
-  sectionOrder: ['summary', 'skills', 'projects', 'experience', 'education', 'others'],
+  // ATENÇÃO: 'keywords' DEVE ser sempre o último
+  sectionOrder: ['objective', 'summary', 'skills', 'projects', 'experience', 'education', 'others', 'references', 'keywords'],
 
   structure: {
+    objective: { title: "Objetivo", visible: true, id: 'objective' },
     summary: { title: "Resumo", visible: true, id: 'summary' },
     skills: { title: "Competências", visible: true, id: 'skills' },
     projects: { title: "Projetos Relevantes", visible: true, id: 'projects' },
     experience: { title: "Experiência Profissional", visible: true, id: 'experience' },
     education: { title: "Formação", visible: true, id: 'education' },
-    others: { title: "Idiomas e Certificações", visible: true, id: 'others' } 
+    others: { title: "Idiomas e Certificações", visible: true, id: 'others' },
+    references: { title: "Referências Profissionais", visible: true, id: 'references' },
+    // ATENÇÃO: visible: false por padrão (Segurança)
+    keywords: { title: "Camuflagem ATS (SEO)", visible: false, id: 'keywords' }
   },
   customSections: [], 
   personal: {
@@ -111,6 +330,7 @@ export const INITIAL_DATA = {
     photoBorder: 0,       
     photoShadow: false    
   },
+  objective: "Atuar como Desenvolvedor de Software Full Stack, aplicando conhecimentos em Python e React para criar soluções escaláveis e eficientes.",
   summary: "Doutor em Genética e Melhoramento com perfil híbrido e estratégico, integrando a expertise agronômica à engenharia de software (Ciência da Computação em curso). Especialista em **Computational Breeding**, atuo na interface entre Biologia e Dados desenvolvendo ferramentas AgTech que automatizam pipelines complexos de Big Data Genômico e análises biométricas. Busco integrar o time de P&D da **Bayer** em Uberlândia para traduzir desafios biológicos em soluções computacionais escaláveis, acelerando a inovação genética e a tomada de decisão no campo.",
   skills: [
     { category: "Computational Breeding", items: "R (Avançado para Biometria), Python (Pandas/NumPy), Automação de Pipelines, Linux HPC." },
@@ -210,5 +430,15 @@ export const INITIAL_DATA = {
         "Linux para Bioinformática (EMAS, 2022)"
       ]
     }
-  ]
+  ],
+  references: [
+    {
+      name: "Nome do Indicador",
+      company: "Empresa Parceira / Anterior",
+      role: "Cargo (ex: Gerente de Projetos)",
+      email: "email.corporativo@empresa.com",
+      phone: "(XX) 99999-9999"
+    }
+  ],
+  keywords: "Python Java React SQL AWS Docker Kubernetes Leadership Management Agile Scrum Data Analysis Machine Learning AI Project Management Communication Teamwork Problem Solving Critical Thinking Creativity Time Management Adaptability Flexibility Sales Marketing Customer Service Finance Accounting HR Operations Strategy Innovation Growth Efficiency ROI KPIs Metrics Analytics Reporting"
 };
