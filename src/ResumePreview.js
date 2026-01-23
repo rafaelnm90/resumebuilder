@@ -6,8 +6,8 @@ import { LIST_STYLES } from './constants';
 const EXIBIR_LOGS = true;
 
 if (EXIBIR_LOGS) {
-    console.log("🚀 [ResumePreview.js] Renderizando componente...");
-    console.log("🔗 Links configurados para abrir em NOVA ABA (target='_blank').");
+    console.log("🚀 [ResumePreview.js] Renderizando...");
+    console.log("🔧 Correção Lógica: 'Manter Juntos' agora respeita estado do Switch (Ativado = Protege Quebra).");
 }
 
 const formatText = (text) => {
@@ -31,7 +31,10 @@ export default function ResumePreview({ data, settings }) {
   const eduColWidthCSS = `${settings.educationColumnWidth}mm`;
   const projectsColWidthCSS = `${settings.projectsColumnWidth}mm`;
 
-  const pageBreakClass = settings.pageBreakAuto ? '' : 'keep-together';
+  // CORREÇÃO CRÍTICA: Lógica ajustada para o Switch.
+  // Se settings.pageBreakAuto for TRUE (Ativado/Verde) -> Aplica 'keep-together' (Evita quebra).
+  // Se for FALSE (Desativado) -> String vazia (Comportamento padrão).
+  const pageBreakClass = settings.pageBreakAuto ? 'keep-together' : '';
 
   const { 
     photo, showPhoto, photoAlignment,
@@ -81,7 +84,7 @@ export default function ResumePreview({ data, settings }) {
       ...(isSimple ? { backgroundColor: 'transparent' } : {})
   });
 
-  // --- 1. WRAPPER SIMPLES (Sem Máscara, Sem Tabela) ---
+  // --- 1. WRAPPER SIMPLES ---
   const SimpleSectionWrapper = ({ title, children, sectionId }) => (
       <div style={{ marginBottom: `${settings.sectionSpacing}mm`, width: '100%' }}>
           <div style={getHeaderStyle(true)}>
@@ -93,7 +96,7 @@ export default function ResumePreview({ data, settings }) {
       </div>
   );
 
-  // --- 2. WRAPPER PAGINADO (Com Máscara e Tabela) ---
+  // --- 2. WRAPPER PAGINADO ---
   const PaginatedSectionWrapper = ({ title, children }) => {
     return (
         <div style={{ position: 'relative', marginBottom: `${settings.sectionSpacing}mm`, width: '100%' }}>
@@ -185,6 +188,18 @@ export default function ResumePreview({ data, settings }) {
     const isPhotoVisible = showPhoto && photo;
     const align = photoAlignment || 'center'; 
 
+    let dynamicPhotoSize = "w-28 h-28";     
+    let dynamicGap = "gap-6";               
+    let dynamicTitleSize = "1.8em";         
+    let dynamicTextSize = "text-[0.9em]";   
+
+    if (isPhotoVisible && (align === 'left' || align === 'right')) {
+        dynamicPhotoSize = "w-24 h-24";     
+        dynamicGap = "gap-4";               
+        dynamicTitleSize = "2em";           
+        dynamicTextSize = "text-[0.95em]";  
+    }
+
     let containerClasses = `border-b-2 flex `;
     let textContainerClasses = "flex-1 ";
     let photoContainerClasses = "flex-shrink-0 ";
@@ -198,11 +213,11 @@ export default function ResumePreview({ data, settings }) {
 
     if (isPhotoVisible) {
         if (align === 'left') {
-            containerClasses += "flex-row items-center gap-6 text-left";
+            containerClasses += `flex-row items-center ${dynamicGap} text-left`;
             textContainerClasses += "text-left";
             contactJustify = "justify-start";
         } else if (align === 'right') {
-            containerClasses += "flex-row-reverse items-center gap-6 text-right";
+            containerClasses += `flex-row-reverse items-center ${dynamicGap} text-right`;
             textContainerClasses += "text-right";
             contactJustify = "justify-end";
         } else {
@@ -237,7 +252,7 @@ export default function ResumePreview({ data, settings }) {
             {isPhotoVisible && (
                 <div className={photoContainerClasses}>
                     <div 
-                        className="w-28 h-28 overflow-hidden bg-gray-100"
+                        className={`${dynamicPhotoSize} overflow-hidden bg-gray-100`}
                         style={{ 
                             borderRadius: frameRadius,
                             borderWidth: `${photoBorder || 0}px`,
@@ -251,15 +266,13 @@ export default function ResumePreview({ data, settings }) {
                 </div>
             )}
             <div className={textContainerClasses}>
-                <h1 className="font-extrabold tracking-wide uppercase leading-none mb-2 break-words" style={{ color: settings.themeColor, fontSize: '1.8em' }}>{data.personal.name}</h1>
-                <div className={`flex flex-wrap gap-x-3 gap-y-1 text-[0.9em] font-medium leading-tight mb-2 ${contactJustify}`}>
+                <h1 className="font-extrabold tracking-wide uppercase leading-none mb-2 break-words" style={{ color: settings.themeColor, fontSize: dynamicTitleSize }}>{data.personal.name}</h1>
+                <div className={`flex flex-wrap gap-x-3 gap-y-1 ${dynamicTextSize} font-medium leading-tight mb-2 ${contactJustify}`}>
                     {data.personal.email && <span className="flex items-center gap-1"><Mail size={'1em'}/> {data.personal.email}</span>}
                     {data.personal.phone && <span className="flex items-center gap-1 border-l pl-2 border-gray-400"><Phone size={'1em'}/> {data.personal.phone}</span>}
                     {data.personal.location && <span className="flex items-center gap-1 border-l pl-2 border-gray-400"><MapPin size={'1em'}/> {data.personal.location}</span>}
                 </div>
-                
-                {/* ÁREA DE LINKS DE CONTATO - Com target="_blank" para abrir em nova aba */}
-                <div className={`flex flex-wrap gap-3 text-[0.9em] font-medium leading-tight ${contactJustify}`} style={{ color: settings.themeColor }}>
+                <div className={`flex flex-wrap gap-3 ${dynamicTextSize} font-medium leading-tight ${contactJustify}`} style={{ color: settings.themeColor }}>
                     {data.personal.linkedin && (
                         <a 
                             href={data.personal.linkedin.startsWith('http') ? data.personal.linkedin : `https://${data.personal.linkedin}`} 
@@ -282,7 +295,6 @@ export default function ResumePreview({ data, settings }) {
                         </a>
                     )}
                     
-                    {/* LATTES */}
                     {data.personal.lattes && (
                         <a 
                             href={data.personal.lattes.startsWith('http') ? data.personal.lattes : `https://${data.personal.lattes}`}
@@ -294,7 +306,6 @@ export default function ResumePreview({ data, settings }) {
                         </a>
                     )}
 
-                    {/* YOUTUBE */}
                     {data.personal.youtube && (
                         <a 
                             href={data.personal.youtube.startsWith('http') ? data.personal.youtube : `https://${data.personal.youtube}`}
@@ -312,20 +323,16 @@ export default function ResumePreview({ data, settings }) {
   };
 
   const renderSection = (sectionId) => {
-    // 1. ESTILO DO CONTAINER (Respeita o Slider do Painel)
-    // Controla a distância entre Experiência A e Experiência B
     const containerStyle = {
         display: 'flex',
         flexDirection: 'column',
         gap: getSectionSpacing(sectionId)
     };
     
-    // 2. ESTILO DA LISTA INTERNA (Fixo e Compacto)
-    // Controla a distância entre bullet points DENTRO de uma Experiência
     const innerListStyle = {
         display: 'flex',
         flexDirection: 'column',
-        gap: '0.5mm' // Valor fixo compacto
+        gap: '0.5mm' 
     };
     
     let displayTitle = '';
@@ -350,53 +357,18 @@ export default function ResumePreview({ data, settings }) {
     if (sectionId.startsWith('custom-')) {
         const sec = customSections.find(s => s.id === sectionId);
         if (!sec || !sec.visible) return null;
-        
-        if (sec.type === 'text') {
-             return (
-                 <SimpleSectionWrapper title={displayTitle} sectionId={sectionId}>
-                    <p className="break-words" style={{ textAlign: settings.textAlign, textJustify: 'inter-word' }}>{formatText(sec.content)}</p>
-                 </SimpleSectionWrapper>
-             );
-        }
-
-        if (sec.type === 'list') {
-            return (
-                <SimpleSectionWrapper title={displayTitle} sectionId={sectionId}>
-                    <ul className="list-outside ml-4" style={containerStyle}>
-                        {renderListItems(sec.content, sectionId)}
-                    </ul>
-                </SimpleSectionWrapper>
-            );
-        }
-
-        if (sec.type === 'detailed') {
-            return (
-                <PaginatedSectionWrapper title={displayTitle}>
-                  <div style={containerStyle}>
-                  {(Array.isArray(sec.content) ? sec.content : []).map((item, i) => (
-                    <div key={i} className={pageBreakClass}>
-                      <div className="flex flex-row items-baseline justify-between flex-row-print">
-                        <div className="font-bold text-[1.05em] leading-tight break-words flex-1 pr-3">{formatText(item.title)}</div>
-                        <div className={`text-[0.9em] text-right leading-tight flex-shrink-0 ${rightTextStyle}`} style={{ width: expColWidthCSS, color: rightTextColor }}>{item.location}</div>
-                      </div>
-                      <div className="flex flex-row items-baseline justify-between flex-row-print">
-                        <div className="italic font-medium leading-tight break-words flex-1 pr-3" style={{ color: roleColor }}>{formatText(item.subtitle)}</div>
-                        <div className={`text-[0.9em] text-right leading-tight flex-shrink-0 ${rightTextStyle}`} style={{ width: expColWidthCSS, color: rightTextColor }}>{item.date}</div>
-                      </div>
-                      <div className="mt-1" style={{ paddingRight: expColWidthCSS }}>
-                        <ul className="list-outside ml-4" style={innerListStyle}>
-                          {renderListItems(item.description, sectionId)}
-                        </ul>
-                      </div>
-                    </div>
-                  ))}
-                  </div>
-                </PaginatedSectionWrapper>
-            );
-        }
+        if (sec.type === 'text') { return (<SimpleSectionWrapper title={displayTitle} sectionId={sectionId}><p className="break-words" style={{ textAlign: settings.textAlign, textJustify: 'inter-word' }}>{formatText(sec.content)}</p></SimpleSectionWrapper>); }
+        if (sec.type === 'list') { return (<SimpleSectionWrapper title={displayTitle} sectionId={sectionId}><ul className="list-outside ml-4" style={containerStyle}>{renderListItems(sec.content, sectionId)}</ul></SimpleSectionWrapper>); }
+        if (sec.type === 'detailed') { return (<PaginatedSectionWrapper title={displayTitle}><div style={containerStyle}>{(Array.isArray(sec.content) ? sec.content : []).map((item, i) => (<div key={i} className={pageBreakClass}><div className="flex flex-row items-baseline justify-between flex-row-print"><div className="font-bold text-[1.05em] leading-tight break-words flex-1 pr-3">{formatText(item.title)}</div><div className={`text-[0.9em] text-right leading-tight flex-shrink-0 ${rightTextStyle}`} style={{ width: expColWidthCSS, color: rightTextColor }}>{item.location}</div></div><div className="flex flex-row items-baseline justify-between flex-row-print"><div className="italic font-medium leading-tight break-words flex-1 pr-3" style={{ color: roleColor }}>{formatText(item.subtitle)}</div><div className={`text-[0.9em] text-right leading-tight flex-shrink-0 ${rightTextStyle}`} style={{ width: expColWidthCSS, color: rightTextColor }}>{item.date}</div></div><div className="mt-1" style={{ paddingRight: expColWidthCSS }}><ul className="list-outside ml-4" style={innerListStyle}>{renderListItems(item.description, sectionId)}</ul></div></div>))}</div></PaginatedSectionWrapper>); }
     }
 
     switch(sectionId) {
+        case 'objective':
+            return structure.objective.visible && data.objective && (
+                <SimpleSectionWrapper title={displayTitle} sectionId={sectionId}>
+                    <p className="break-words" style={{ textAlign: settings.textAlign, textJustify: 'inter-word' }}>{formatText(data.objective)}</p>
+                </SimpleSectionWrapper>
+            );
         case 'summary':
             return structure.summary.visible && data.summary && (
                 <SimpleSectionWrapper title={displayTitle} sectionId={sectionId}>
@@ -424,7 +396,6 @@ export default function ResumePreview({ data, settings }) {
                         <div key={i} className={`${pageBreakClass} flex flex-row items-start gap-8 flex-row-print`}>
                         <div className="flex-1">
                             <h4 className="font-bold text-[1.05em] break-words mb-0.5" style={{ color: settings.bodyColor }}>{proj.title}</h4>
-                            {/* LINK DO PROJETO - Com target="_blank" */}
                             {proj.link && (
                                 <a href={proj.link.startsWith('http') ? proj.link : `https://${proj.link}`} target="_blank" rel="noopener noreferrer"
                                    className="flex items-center gap-1 italic font-medium text-[0.9em] mb-1 hover:underline" style={{ color: roleColor || 'inherit' }}>
@@ -516,6 +487,56 @@ export default function ResumePreview({ data, settings }) {
                     </div>
                 </SimpleSectionWrapper>
             );
+        case 'references':
+            return structure.references.visible && data.references && data.references.length > 0 && (
+                <SimpleSectionWrapper title={displayTitle} sectionId={sectionId}>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4" style={{ gap: `${settings.itemSpacing}mm` }}>
+                        {data.references.map((ref, i) => (
+                            <div key={i} className="break-inside-avoid">
+                                <div className="font-bold text-[0.95em]" style={{ color: settings.bodyColor }}>{ref.name}</div>
+                                {(ref.role || ref.company) && (
+                                    <div className="text-[0.9em] italic mb-0.5" style={{ color: roleColor }}>
+                                        {ref.role}{ref.role && ref.company ? ' | ' : ''}{ref.company}
+                                    </div>
+                                )}
+                                <div className="text-[0.85em] space-y-0.5 text-gray-600">
+                                    {ref.email && (
+                                        <div className="flex items-center gap-1.5">
+                                            <Mail size={10} />
+                                            <span>{ref.email}</span>
+                                        </div>
+                                    )}
+                                    {ref.phone && (
+                                        <div className="flex items-center gap-1.5">
+                                            <Phone size={10} />
+                                            <span>{ref.phone}</span>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </SimpleSectionWrapper>
+            );
+
+        case 'keywords':
+            return structure.keywords.visible && data.keywords && (
+                <div 
+                    style={{ 
+                        color: '#FFFFFF',      
+                        fontSize: '6pt',       
+                        lineHeight: '1em',
+                        marginTop: '5mm',      
+                        userSelect: 'none',    
+                        zIndex: -1,
+                        position: 'relative'   
+                    }}
+                    className="ats-camouflage"
+                >
+                    {data.keywords}
+                </div>
+            );
+
         default: return null;
     }
   };
