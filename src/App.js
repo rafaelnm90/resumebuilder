@@ -1,4 +1,3 @@
-// src/App.js
 import React, { useState, useEffect, useRef } from 'react';
 import { 
   Briefcase, GraduationCap, User, Code, FileText, Download, Plus, Trash2, 
@@ -8,7 +7,7 @@ import {
   Image as ImageIcon, Upload, AlignLeft, AlignCenter, AlignRight,
   Circle, Square, Move, Crop, Info, 
   RotateCw, RotateCcw, Sun, FlipHorizontal, Droplet, Frame, Sliders, Link as LinkIcon,
-  UserPlus, AlertTriangle 
+  UserPlus, AlertTriangle
 } from 'lucide-react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import ResumePreview from './ResumePreview';
@@ -26,7 +25,6 @@ const SECTION_ICONS = {
   keywords: EyeOff 
 };
 
-// --- Componente Auxiliar de Toggle (Botão Deslizante) ---
 const ToggleSwitch = ({ checked, onChange, title }) => (
     <button 
         onClick={onChange}
@@ -198,34 +196,50 @@ const DraggableDescriptionList = ({ items, sectionId, itemIndex, onUpdate, onRem
   );
 };
 
-const DraggableSection = ({ sectionId, title, items, onAdd, onRemove, renderItem }) => (
+const DraggableSection = ({ sectionId, title, items, onAdd, onRemove, renderItem, isVisible, onToggle, t }) => (
   <div className="space-y-4">
-    <div className="flex justify-between border-b pb-2">
-      <h2 className="text-xl font-bold capitalize">{title}</h2>
-      <button onClick={onAdd} className="text-blue-600 text-sm"><Plus size={16}/></button>
-    </div>
-    <Droppable droppableId={sectionId} type="SECTION_ITEM">
-      {(provided) => (
-        <div {...provided.droppableProps} ref={provided.innerRef} className="space-y-3">
-          {items.map((item, index) => (
-            <Draggable key={`${sectionId}-${index}`} draggableId={`${sectionId}-${index}`} index={index}>
-              {(provided, snapshot) => (
-                <div ref={provided.innerRef} {...provided.draggableProps} className={`bg-gray-50 p-3 rounded relative border ${snapshot.isDragging ? 'border-blue-500 shadow-lg z-50' : 'border-gray-200'}`}>
-                  <div className="flex gap-2">
-                    <div {...provided.dragHandleProps} className="flex-shrink-0 mt-2 text-gray-400 cursor-grab hover:text-gray-700"><GripVertical size={20} /></div>
-                    <div className="flex-1">
-                      <button onClick={() => onRemove(index)} className="absolute top-2 right-2 text-red-400 z-10 hover:text-red-600"><Trash2 size={16}/></button>
-                      {renderItem(item, index)}
-                    </div>
-                  </div>
-                </div>
-              )}
-            </Draggable>
-          ))}
-          {provided.placeholder}
+    <div className="flex justify-between items-center border-b pb-2">
+        <h2 className="text-xl font-bold capitalize">{title}</h2>
+        <div className="flex items-center gap-3">
+             <span className={`text-[10px] font-bold px-2 py-1 rounded border transition-colors ${isVisible ? 'bg-green-100 text-green-700 border-green-200' : 'bg-red-100 text-red-700 border-red-200'}`}>
+                {isVisible ? t.atsStatusOn : t.atsStatusOff}
+             </span>
+             <ToggleSwitch 
+                checked={isVisible} 
+                onChange={onToggle} 
+                title={isVisible ? t.deactivate : t.activate}
+             />
+             <div className="h-4 w-px bg-gray-300 mx-1"></div>
+             <button onClick={onAdd} className="text-blue-600 text-sm flex items-center hover:text-blue-800" title={t.addItem}>
+                <Plus size={16} />
+             </button>
         </div>
-      )}
-    </Droppable>
+    </div>
+
+    <div className={`transition-opacity duration-300 ${isVisible ? 'opacity-100' : 'opacity-60 pointer-events-none grayscale'}`}>
+        <Droppable droppableId={sectionId} type="SECTION_ITEM">
+        {(provided) => (
+            <div {...provided.droppableProps} ref={provided.innerRef} className="space-y-3">
+            {items.map((item, index) => (
+                <Draggable key={`${sectionId}-${index}`} draggableId={`${sectionId}-${index}`} index={index}>
+                {(provided, snapshot) => (
+                    <div ref={provided.innerRef} {...provided.draggableProps} className={`bg-gray-50 p-3 rounded relative border ${snapshot.isDragging ? 'border-blue-500 shadow-lg z-50' : 'border-gray-200'}`}>
+                    <div className="flex gap-2">
+                        <div {...provided.dragHandleProps} className="flex-shrink-0 mt-2 text-gray-400 cursor-grab hover:text-gray-700"><GripVertical size={20} /></div>
+                        <div className="flex-1">
+                        <button onClick={() => onRemove(index)} className="absolute top-2 right-2 text-red-400 z-10 hover:text-red-600"><Trash2 size={16}/></button>
+                        {renderItem(item, index)}
+                        </div>
+                    </div>
+                    </div>
+                )}
+                </Draggable>
+            ))}
+            {provided.placeholder}
+            </div>
+        )}
+        </Droppable>
+    </div>
   </div>
 );
 
@@ -502,6 +516,40 @@ export default function App() {
       }));
   };
 
+  const renderSectionHeader = (sectionId, title) => {
+    const isCustom = sectionId.startsWith('custom-');
+    const config = isCustom ? data.customSections.find(s => s.id === sectionId) : data.structure[sectionId];
+    
+    if (!config) return <h2 className="text-xl font-bold border-b pb-2 mb-4">{title}</h2>;
+
+    const isVisible = config.visible;
+    const Icon = SECTION_ICONS[sectionId] || (isCustom ? PenTool : FileText);
+
+    return (
+        <div className="flex justify-between items-center border-b pb-2 mb-4">
+            <h2 className="text-xl font-bold flex items-center text-gray-800">
+                <Icon size={20} className="mr-2"/> {title}
+            </h2>
+            <div className="flex items-center gap-3">
+                 <span className={`text-[10px] font-bold px-2 py-1 rounded border transition-colors ${isVisible ? 'bg-green-100 text-green-700 border-green-200' : 'bg-red-100 text-red-700 border-red-200'}`}>
+                    {isVisible ? t.atsStatusOn : t.atsStatusOff}
+                 </span>
+                 <ToggleSwitch 
+                    checked={isVisible} 
+                    onChange={() => {
+                        if (isCustom) {
+                             setData(prev => ({ ...prev, customSections: prev.customSections.map(s => s.id === sectionId ? { ...s, visible: !s.visible } : s) }));
+                        } else {
+                             updateStructure(sectionId, 'visible', !isVisible);
+                        }
+                    }} 
+                    title={isVisible ? t.deactivate : t.activate}
+                 />
+            </div>
+        </div>
+    );
+  };
+
   const renderSettingsForm = () => (
     <div className="space-y-6">
       <h2 className="text-xl font-bold text-gray-800 border-b pb-2 flex items-center"><Layout className="mr-2" size={20}/> {t.layoutTab}</h2>
@@ -765,7 +813,6 @@ export default function App() {
             </div>
         </div>
 
-        {/* CORREÇÃO AQUI: Substituição dos inputs checkbox por ToggleSwitch */}
         <div className="flex items-center justify-between pt-2 border-t border-gray-100 mt-2">
             <span className="text-xs font-bold text-gray-600">{t.boldDates}</span>
             <ToggleSwitch checked={settings.rightTextBold} onChange={() => setSettings({...settings, rightTextBold: !settings.rightTextBold})} />
@@ -846,74 +893,89 @@ export default function App() {
 
     return (
       <div className="space-y-4">
-        <div className="flex justify-between border-b pb-2">
-          <input value={section.title} onChange={(e) => updateCustomSectionTitle(section.id, e.target.value)} className="text-xl font-bold bg-transparent outline-none w-full" />
-          <button onClick={() => removeCustomSection(section.id)} className="text-red-400"><Trash2 size={16}/></button>
+        {/* CABEÇALHO PADRONIZADO COM TOGGLE */}
+        {renderSectionHeader(sectionId, section.title)}
+        
+        <div className="mb-4">
+             <Input label={t.catTitle} value={section.title} onChange={(e) => updateCustomSectionTitle(section.id, e.target.value)} onExpandRequest={handleOpenExpand}/>
+             <div className="flex justify-end mt-1">
+                <button onClick={() => removeCustomSection(section.id)} className="text-red-400 flex items-center text-xs hover:text-red-600"><Trash2 size={12} className="mr-1"/> Remover Seção</button>
+             </div>
         </div>
         
-        {section.type === 'text' && (
-          <div className="space-y-1 relative group">
-            <p className="text-xs text-gray-500">Dica: Use **palavra** para negrito.</p>
-            <textarea className="w-full h-48 p-3 border rounded text-sm outline-none focus:ring-2 focus:ring-blue-500" value={section.content} onChange={(e) => {setData(prev => ({...prev, customSections: prev.customSections.map(s => s.id === section.id ? { ...s, content: e.target.value } : s)}))}} placeholder="Digite o texto da seção aqui..."/>
-            <RichTextToolbar 
-              onFormat={(type) => {/* Simplificação */}} 
-              onExpand={() => handleOpenExpand(section.title, section.content, (val) => setData(prev => ({...prev, customSections: prev.customSections.map(s => s.id === section.id ? { ...s, content: val } : s)})) )}
-            />
-          </div>
-        )}
-        
-        {section.type === 'list' && (
-          <div className="space-y-1 relative group">
-            <p className="text-xs text-gray-500">Adicione itens (um por linha):</p>
-            <textarea 
-                ref={listTextRef}
-                className="w-full h-48 p-3 border rounded text-sm outline-none focus:ring-2 focus:ring-blue-500" 
-                value={Array.isArray(section.content) ? section.content.join('\n') : section.content} 
-                onChange={(e) => {setData(prev => ({...prev, customSections: prev.customSections.map(s => s.id === section.id ? { ...s, content: e.target.value.split('\n') } : s)}))}}
-            />
-            <RichTextToolbar 
-                onFormat={(type) => {
-                        const currentVal = Array.isArray(section.content) ? section.content.join('\n') : section.content;
-                        handleFormatList(listTextRef, type, currentVal, (newVal) => {
-                            setData(prev => ({...prev, customSections: prev.customSections.map(s => s.id === section.id ? { ...s, content: newVal.split('\n') } : s)}));
-                        });
-                }}
-                onExpand={() => handleOpenExpand(section.title, Array.isArray(section.content) ? section.content.join('\n') : section.content, (val) => setData(prev => ({...prev, customSections: prev.customSections.map(s => s.id === section.id ? { ...s, content: val.split('\n') } : s)})) )}
-            />
-          </div>
-        )}
-        
-        {section.type === 'detailed' && (
-          <div className="space-y-4">
-            <div className="flex justify-end">
-              <button onClick={() => addDetailedItem(section.id)} className="text-blue-600 text-sm flex items-center font-bold"><Plus size={16} className="mr-1"/> {t.addItem}</button>
+        {/* CORREÇÃO AQUI: Envolver conteúdo com div de opacidade */}
+        <div className={`transition-opacity duration-300 ${section.visible ? 'opacity-100' : 'opacity-50 pointer-events-none grayscale'}`}>
+            {section.type === 'text' && (
+            <div className="space-y-1 relative group">
+                <p className="text-xs text-gray-500">Dica: Use **palavra** para negrito.</p>
+                <textarea 
+                    className="w-full h-48 p-3 border rounded text-sm outline-none focus:ring-2 focus:ring-blue-500" 
+                    value={section.content} 
+                    onChange={(e) => {setData(prev => ({...prev, customSections: prev.customSections.map(s => s.id === section.id ? { ...s, content: e.target.value } : s)}))}} 
+                    placeholder="Digite o texto da seção aqui..."
+                    disabled={!section.visible} // Desabilita edição
+                />
+                <RichTextToolbar 
+                onFormat={(type) => {/* Simplificação */}} 
+                onExpand={() => handleOpenExpand(section.title, section.content, (val) => setData(prev => ({...prev, customSections: prev.customSections.map(s => s.id === section.id ? { ...s, content: val } : s)})) )}
+                />
             </div>
-            {section.content.map((item, i) => (
-              <div key={i} className="bg-gray-50 p-3 rounded relative border border-gray-200">
-                <button onClick={() => removeDetailedItem(section.id, i)} className="absolute top-2 right-2 text-red-400"><Trash2 size={16}/></button>
-                <div className="grid grid-cols-2 gap-2 mb-2">
-                  <Input label={t.title + " / " + t.company} value={item.title} onChange={v => updateDetailedItem(section.id, i, 'title', v)} onExpandRequest={handleOpenExpand} />
-                  <Input label="Subtítulo / Cargo" value={item.subtitle} onChange={v => updateDetailedItem(section.id, i, 'subtitle', v)} onExpandRequest={handleOpenExpand} />
-                  <Input label={t.period} value={item.date} onChange={v => updateDetailedItem(section.id, i, 'date', v)} onExpandRequest={handleOpenExpand} />
-                  <Input label={t.location} value={item.location} onChange={v => updateDetailedItem(section.id, i, 'location', v)} onExpandRequest={handleOpenExpand} />
+            )}
+            
+            {section.type === 'list' && (
+            <div className="space-y-1 relative group">
+                <p className="text-xs text-gray-500">Adicione itens (um por linha):</p>
+                <textarea 
+                    ref={listTextRef}
+                    className="w-full h-48 p-3 border rounded text-sm outline-none focus:ring-2 focus:ring-blue-500" 
+                    value={Array.isArray(section.content) ? section.content.join('\n') : section.content} 
+                    onChange={(e) => {setData(prev => ({...prev, customSections: prev.customSections.map(s => s.id === section.id ? { ...s, content: e.target.value.split('\n') } : s)}))}}
+                    disabled={!section.visible} // Desabilita edição
+                />
+                <RichTextToolbar 
+                    onFormat={(type) => {
+                            const currentVal = Array.isArray(section.content) ? section.content.join('\n') : section.content;
+                            handleFormatList(listTextRef, type, currentVal, (newVal) => {
+                                setData(prev => ({...prev, customSections: prev.customSections.map(s => s.id === section.id ? { ...s, content: newVal.split('\n') } : s)}));
+                            });
+                    }}
+                    onExpand={() => handleOpenExpand(section.title, Array.isArray(section.content) ? section.content.join('\n') : section.content, (val) => setData(prev => ({...prev, customSections: prev.customSections.map(s => s.id === section.id ? { ...s, content: val.split('\n') } : s)})) )}
+                />
+            </div>
+            )}
+            
+            {section.type === 'detailed' && (
+            <div className="space-y-4">
+                <div className="flex justify-end">
+                <button onClick={() => addDetailedItem(section.id)} className="text-blue-600 text-sm flex items-center font-bold"><Plus size={16} className="mr-1"/> {t.addItem}</button>
                 </div>
-                <div className="space-y-1">
-                  <label className="text-xs font-semibold text-gray-500 uppercase">Descrição (Tópicos)</label>
-                  <DraggableDescriptionList 
-                    items={item.description} 
-                    sectionId={section.id} 
-                    itemIndex={i} 
-                    onUpdate={updateDetailedItemDesc} 
-                    onRemove={removeDetailedItemDescLine} 
-                    onAdd={addDetailedItemDescLine} 
-                    onExpandRequest={handleOpenExpand}
-                    t={t}
-                  />
+                {section.content.map((item, i) => (
+                <div key={i} className="bg-gray-50 p-3 rounded relative border border-gray-200">
+                    <button onClick={() => removeDetailedItem(section.id, i)} className="absolute top-2 right-2 text-red-400"><Trash2 size={16}/></button>
+                    <div className="grid grid-cols-2 gap-2 mb-2">
+                    <Input label={t.title + " / " + t.company} value={item.title} onChange={v => updateDetailedItem(section.id, i, 'title', v)} onExpandRequest={handleOpenExpand} />
+                    <Input label="Subtítulo / Cargo" value={item.subtitle} onChange={v => updateDetailedItem(section.id, i, 'subtitle', v)} onExpandRequest={handleOpenExpand} />
+                    <Input label={t.period} value={item.date} onChange={v => updateDetailedItem(section.id, i, 'date', v)} onExpandRequest={handleOpenExpand} />
+                    <Input label={t.location} value={item.location} onChange={v => updateDetailedItem(section.id, i, 'location', v)} onExpandRequest={handleOpenExpand} />
+                    </div>
+                    <div className="space-y-1">
+                    <label className="text-xs font-semibold text-gray-500 uppercase">Descrição (Tópicos)</label>
+                    <DraggableDescriptionList 
+                        items={item.description} 
+                        sectionId={section.id} 
+                        itemIndex={i} 
+                        onUpdate={updateDetailedItemDesc} 
+                        onRemove={removeDetailedItemDescLine} 
+                        onAdd={addDetailedItemDescLine} 
+                        onExpandRequest={handleOpenExpand}
+                        t={t}
+                    />
+                    </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        )}
+                ))}
+            </div>
+            )}
+        </div>
       </div>
     );
   };
@@ -1077,6 +1139,7 @@ export default function App() {
   );
   
   const renderSummaryForm = () => {
+    const isVisible = data.structure.summary.visible; // VERIFICA VISIBILIDADE
     const handleFormatSummary = (type) => {
       const newVal = insertFormatting(summaryRef, type);
       if(newVal !== undefined) updateSimpleField('summary', newVal);
@@ -1084,25 +1147,31 @@ export default function App() {
 
     return (
       <div className="space-y-4 relative group">
-        <h2 className="text-xl font-bold border-b pb-2">{t.sections?.summary || "Resumo"}</h2>
-        <p className="text-xs text-gray-500 mb-1">Dica: Selecione o texto e use os botões que aparecem no canto.</p>
-        <div className="relative">
-          <textarea 
-            ref={summaryRef}
-            className="w-full h-48 p-3 border rounded text-sm focus:ring-2 focus:ring-blue-500 outline-none" 
-            value={data.summary} 
-            onChange={e => updateSimpleField('summary', e.target.value)} 
-          />
-          <RichTextToolbar 
-            onFormat={handleFormatSummary} 
-            onExpand={() => handleOpenExpand(t.sections?.summary || "Resumo", data.summary, (val) => updateSimpleField('summary', val))}
-          />
+        {renderSectionHeader('summary', t.sections?.summary || "Resumo")}
+        
+        {/* WRAPPER PARA ACINZENTAR E DESABILITAR */}
+        <div className={`transition-opacity duration-300 ${isVisible ? 'opacity-100' : 'opacity-50 pointer-events-none grayscale'}`}>
+            <p className="text-xs text-gray-500 mb-1">Dica: Selecione o texto e use os botões que aparecem no canto.</p>
+            <div className="relative">
+              <textarea 
+                ref={summaryRef}
+                className="w-full h-48 p-3 border rounded text-sm focus:ring-2 focus:ring-blue-500 outline-none" 
+                value={data.summary} 
+                onChange={e => updateSimpleField('summary', e.target.value)} 
+                disabled={!isVisible} // DESABILITA TEXTAREA
+              />
+              <RichTextToolbar 
+                onFormat={handleFormatSummary} 
+                onExpand={() => handleOpenExpand(t.sections?.summary || "Resumo", data.summary, (val) => updateSimpleField('summary', val))}
+              />
+            </div>
         </div>
       </div>
     );
   };
 
   const renderObjectiveForm = () => {
+    const isVisible = data.structure.objective.visible; // VERIFICA VISIBILIDADE
     const handleFormatObjective = (type) => {
       const newVal = insertFormatting(objectiveRef, type);
       if(newVal !== undefined) updateSimpleField('objective', newVal);
@@ -1110,26 +1179,40 @@ export default function App() {
 
     return (
       <div className="space-y-4 relative group">
-        <h2 className="text-xl font-bold border-b pb-2">{t.sections?.objective || "Objetivo"}</h2>
-        <p className="text-xs text-gray-500 mb-1">Dica: Selecione o texto e use os botões que aparecem no canto.</p>
-        <div className="relative">
-          <textarea 
-            ref={objectiveRef}
-            className="w-full h-32 p-3 border rounded text-sm focus:ring-2 focus:ring-blue-500 outline-none" 
-            value={data.objective} 
-            onChange={e => updateSimpleField('objective', e.target.value)} 
-          />
-          <RichTextToolbar 
-            onFormat={handleFormatObjective} 
-            onExpand={() => handleOpenExpand(t.sections?.objective || "Objetivo", data.objective, (val) => updateSimpleField('objective', val))}
-          />
+        {renderSectionHeader('objective', t.sections?.objective || "Objetivo")}
+        
+        {/* WRAPPER PARA ACINZENTAR E DESABILITAR */}
+        <div className={`transition-opacity duration-300 ${isVisible ? 'opacity-100' : 'opacity-50 pointer-events-none grayscale'}`}>
+            <p className="text-xs text-gray-500 mb-1">Dica: Selecione o texto e use os botões que aparecem no canto.</p>
+            <div className="relative">
+              <textarea 
+                ref={objectiveRef}
+                className="w-full h-32 p-3 border rounded text-sm focus:ring-2 focus:ring-blue-500 outline-none" 
+                value={data.objective} 
+                onChange={e => updateSimpleField('objective', e.target.value)} 
+                disabled={!isVisible} // DESABILITA TEXTAREA
+              />
+              <RichTextToolbar 
+                onFormat={handleFormatObjective} 
+                onExpand={() => handleOpenExpand(t.sections?.objective || "Objetivo", data.objective, (val) => updateSimpleField('objective', val))}
+              />
+            </div>
         </div>
       </div>
     );
   };
   
   const renderSkillsForm = () => (
-    <DraggableSection sectionId="skills" title={t.sections?.skills || "Competências"} items={data.skills} onAdd={() => addItem('skills', {category:'', items:''})} onRemove={(idx) => removeItem('skills', idx)} 
+    <DraggableSection 
+      sectionId="skills" 
+      title={t.sections?.skills || "Competências"} 
+      items={data.skills} 
+      onAdd={() => addItem('skills', {category:'', items:''})} 
+      onRemove={(idx) => removeItem('skills', idx)} 
+      renderHeader={renderSectionHeader}
+      isVisible={data.structure.skills.visible}
+      onToggle={() => updateStructure('skills', 'visible', !data.structure.skills.visible)}
+      t={t}
       renderItem={(s, i) => (
         <>
           <Input label={t.category} value={s.category} onChange={v=>updateItem('skills', i, 'category', v)} onExpandRequest={handleOpenExpand}/>
@@ -1142,55 +1225,76 @@ export default function App() {
   );
   
   const renderProjectsForm = () => (
-    <DraggableSection sectionId="projects" title={t.sections?.projects || "Projetos"} items={data.projects} 
-        onAdd={() => addItem('projects', {title:'', tech:'', description:['']})} 
-        onRemove={(idx) => removeItem('projects', idx)} 
-        renderItem={(p, i) => (
-            <>
-                <div className="grid gap-2 mb-2">
-                    <Input label={t.title} value={p.title} onChange={v=>updateItem('projects', i, 'title', v)} onExpandRequest={handleOpenExpand}/>
-                    <Input label={t.link} value={p.link || ''} onChange={v=>updateItem('projects', i, 'link', v)} onExpandRequest={handleOpenExpand}/>
-                    <Input label={t.tech} value={p.tech} onChange={v=>updateItem('projects', i, 'tech', v)} onExpandRequest={handleOpenExpand}/>
-                </div>
-                <DraggableDescriptionList items={p.description} sectionId="projects" itemIndex={i} onUpdate={updateArrayItem} onRemove={removeArrayItemFromItem} onAdd={addArrayItemToItem} onExpandRequest={handleOpenExpand} t={t} />
-            </>
-        )}
+    <DraggableSection 
+      sectionId="projects" 
+      title={t.sections?.projects || "Projetos"} 
+      items={data.projects} 
+      onAdd={() => addItem('projects', {title:'', tech:'', description:['']})} 
+      onRemove={(idx) => removeItem('projects', idx)} 
+      renderHeader={renderSectionHeader}
+      isVisible={data.structure.projects.visible}
+      onToggle={() => updateStructure('projects', 'visible', !data.structure.projects.visible)}
+      t={t}
+      renderItem={(p, i) => (
+        <>
+            <div className="grid gap-2 mb-2">
+                <Input label={t.title} value={p.title} onChange={v=>updateItem('projects', i, 'title', v)} onExpandRequest={handleOpenExpand}/>
+                <Input label={t.link} value={p.link || ''} onChange={v=>updateItem('projects', i, 'link', v)} onExpandRequest={handleOpenExpand}/>
+                <Input label={t.tech} value={p.tech} onChange={v=>updateItem('projects', i, 'tech', v)} onExpandRequest={handleOpenExpand}/>
+            </div>
+            <DraggableDescriptionList items={p.description} sectionId="projects" itemIndex={i} onUpdate={updateArrayItem} onRemove={removeArrayItemFromItem} onAdd={addArrayItemToItem} onExpandRequest={handleOpenExpand} t={t} />
+        </>
+      )}
     />
   );
 
   const renderExperienceForm = () => (
-    <DraggableSection sectionId="experience" title={t.sections?.experience || "Experiência"} items={data.experience} 
-        onAdd={() => addItem('experience', {company:'', role:'', period:'', location:'', description:['']})} 
-        onRemove={(idx) => removeItem('experience', idx)} 
-        renderItem={(ex, i) => (
-            <>
-                <div className="grid grid-cols-2 gap-2 mb-2">
-                    <Input label={t.company} value={ex.company} onChange={v=>updateItem('experience', i, 'company', v)} onExpandRequest={handleOpenExpand}/>
-                    <Input label={t.role} value={ex.role} onChange={v=>updateItem('experience', i, 'role', v)} onExpandRequest={handleOpenExpand}/>
-                    <Input label={t.period} value={ex.period} onChange={v=>updateItem('experience', i, 'period', v)} onExpandRequest={handleOpenExpand}/>
-                    <Input label={t.location} value={ex.location} onChange={v=>updateItem('experience', i, 'location', v)} onExpandRequest={handleOpenExpand}/>
-                </div>
-                <DraggableDescriptionList items={ex.description} sectionId="experience" itemIndex={i} onUpdate={updateArrayItem} onRemove={removeArrayItemFromItem} onAdd={addArrayItemToItem} onExpandRequest={handleOpenExpand} t={t} />
-            </>
-        )}
+    <DraggableSection 
+      sectionId="experience" 
+      title={t.sections?.experience || "Experiência"} 
+      items={data.experience} 
+      onAdd={() => addItem('experience', {company:'', role:'', period:'', location:'', description:['']})} 
+      onRemove={(idx) => removeItem('experience', idx)} 
+      renderHeader={renderSectionHeader}
+      isVisible={data.structure.experience.visible}
+      onToggle={() => updateStructure('experience', 'visible', !data.structure.experience.visible)}
+      t={t}
+      renderItem={(ex, i) => (
+        <>
+            <div className="grid grid-cols-2 gap-2 mb-2">
+                <Input label={t.company} value={ex.company} onChange={v=>updateItem('experience', i, 'company', v)} onExpandRequest={handleOpenExpand}/>
+                <Input label={t.role} value={ex.role} onChange={v=>updateItem('experience', i, 'role', v)} onExpandRequest={handleOpenExpand}/>
+                <Input label={t.period} value={ex.period} onChange={v=>updateItem('experience', i, 'period', v)} onExpandRequest={handleOpenExpand}/>
+                <Input label={t.location} value={ex.location} onChange={v=>updateItem('experience', i, 'location', v)} onExpandRequest={handleOpenExpand}/>
+            </div>
+            <DraggableDescriptionList items={ex.description} sectionId="experience" itemIndex={i} onUpdate={updateArrayItem} onRemove={removeArrayItemFromItem} onAdd={addArrayItemToItem} onExpandRequest={handleOpenExpand} t={t} />
+        </>
+      )}
     />
   );
 
   const renderEducationForm = () => (
-    <DraggableSection sectionId="education" title={t.sections?.education || "Formação"} items={data.education} 
-        onAdd={() => addItem('education', {institution:'', degree:'', period:'', location:'', details:''})} 
-        onRemove={(idx) => removeItem('education', idx)} 
-        renderItem={(ed, i) => (
-            <>
-                <Input label={t.institution} value={ed.institution} onChange={v=>updateItem('education', i, 'institution', v)} onExpandRequest={handleOpenExpand}/>
-                <Input label={t.degree} value={ed.degree} onChange={v=>updateItem('education', i, 'degree', v)} onExpandRequest={handleOpenExpand}/>
-                <div className="grid grid-cols-2 gap-2">
-                    <Input label={t.period} value={ed.period} onChange={v=>updateItem('education', i, 'period', v)} onExpandRequest={handleOpenExpand}/>
-                    <Input label={t.location} value={ed.location} onChange={v=>updateItem('education', i, 'location', v)} onExpandRequest={handleOpenExpand}/>
-                </div>
-                <Input label={t.details} value={ed.details} onChange={v=>updateItem('education', i, 'details', v)} enableRich={true} onExpandRequest={handleOpenExpand}/>
-            </>
-        )}
+    <DraggableSection 
+      sectionId="education" 
+      title={t.sections?.education || "Formação"} 
+      items={data.education} 
+      onAdd={() => addItem('education', {institution:'', degree:'', period:'', location:'', details:''})} 
+      onRemove={(idx) => removeItem('education', idx)} 
+      renderHeader={renderSectionHeader}
+      isVisible={data.structure.education.visible}
+      onToggle={() => updateStructure('education', 'visible', !data.structure.education.visible)}
+      t={t}
+      renderItem={(ed, i) => (
+        <>
+            <Input label={t.institution} value={ed.institution} onChange={v=>updateItem('education', i, 'institution', v)} onExpandRequest={handleOpenExpand}/>
+            <Input label={t.degree} value={ed.degree} onChange={v=>updateItem('education', i, 'degree', v)} onExpandRequest={handleOpenExpand}/>
+            <div className="grid grid-cols-2 gap-2">
+                <Input label={t.period} value={ed.period} onChange={v=>updateItem('education', i, 'period', v)} onExpandRequest={handleOpenExpand}/>
+                <Input label={t.location} value={ed.location} onChange={v=>updateItem('education', i, 'location', v)} onExpandRequest={handleOpenExpand}/>
+            </div>
+            <Input label={t.details} value={ed.details} onChange={v=>updateItem('education', i, 'details', v)} enableRich={true} onExpandRequest={handleOpenExpand}/>
+        </>
+      )}
     />
   );
   
@@ -1201,6 +1305,10 @@ export default function App() {
       items={data.others} 
       onAdd={() => addItem('others', {title: 'Nova Categoria', description: ['']})}
       onRemove={(idx) => removeItem('others', idx)}
+      renderHeader={renderSectionHeader}
+      isVisible={data.structure.others.visible}
+      onToggle={() => updateStructure('others', 'visible', !data.structure.others.visible)}
+      t={t}
       renderItem={(item, i) => (
         <>
           <div className="mb-2">
@@ -1228,6 +1336,10 @@ export default function App() {
       items={data.references} 
       onAdd={() => addItem('references', { name: '', company: '', role: '', email: '', phone: '' })} 
       onRemove={(idx) => removeItem('references', idx)} 
+      renderHeader={renderSectionHeader}
+      isVisible={data.structure.references.visible}
+      onToggle={() => updateStructure('references', 'visible', !data.structure.references.visible)}
+      t={t}
       renderItem={(item, i) => (
         <div className="space-y-2">
             <div className="grid grid-cols-2 gap-2">
@@ -1254,11 +1366,9 @@ export default function App() {
                     <EyeOff size={20} className="mr-2"/> {t.atsTitle}
                 </h2>
                 <div className="flex items-center gap-3">
-                     {/* Badge de Status */}
                      <span className={`text-[10px] font-bold px-2 py-1 rounded border transition-colors ${isKeywordsVisible ? 'bg-green-100 text-green-700 border-green-200' : 'bg-red-100 text-red-700 border-red-200'}`}>
                         {isKeywordsVisible ? t.atsStatusOn : t.atsStatusOff}
                      </span>
-                     {/* Toggle Switch */}
                      <ToggleSwitch 
                         checked={isKeywordsVisible} 
                         onChange={() => updateStructure('keywords', 'visible', !isKeywordsVisible)} 
@@ -1274,6 +1384,12 @@ export default function App() {
                 </div>
                 <div className="mt-2 text-xs text-red-600 space-y-1">
                     <p>{t.atsWarningText}</p>
+                    <ul className="list-disc pl-4 space-y-1 my-2">
+                        {(t.atsRisks || []).map((risk, index) => (
+                            <li key={index}>{risk}</li>
+                        ))}
+                    </ul>
+                    <p className="font-bold">{t.atsRecommendation}</p>
                 </div>
             </div>
 
@@ -1336,10 +1452,12 @@ export default function App() {
         onSave={expandedField?.onSave} 
       />
 
-      <div className="min-h-screen bg-gray-100 font-sans text-gray-900 flex flex-col md:flex-row overflow-hidden select-none" onMouseMove={isResizing ? resize : null} onMouseUp={stopResizing}>
+      {/* ALTERAÇÃO 1: Mudança de min-h-screen para h-screen (fixo) para resolver problema do fundo preto cortado */}
+      <div className="h-screen w-screen bg-gray-100 font-sans text-gray-900 flex flex-col md:flex-row overflow-hidden select-none" onMouseMove={isResizing ? resize : null} onMouseUp={stopResizing}>
         <link href={FONTS[settings.font].url} rel="stylesheet" />
         
-        <nav className={`bg-slate-900 text-slate-300 flex-shrink-0 h-auto md:h-screen sticky top-0 overflow-y-auto transition-all duration-300 ${isSidebarOpen ? 'w-full md:w-64' : 'w-0 md:w-0 overflow-hidden'}`}>
+        {/* ALTERAÇÃO 1 (Continuação): Remover 'sticky' e garantir h-full/h-screen dentro do contexto flex */}
+        <nav className={`bg-slate-900 text-slate-300 flex-shrink-0 h-full md:h-screen overflow-y-auto transition-all duration-300 ${isSidebarOpen ? 'w-full md:w-64' : 'w-0 md:w-0 overflow-hidden'}`}>
           <div className="p-6 border-b border-slate-700 flex justify-between items-center">
               <div>
                   <h1 className="text-white font-bold text-xl whitespace-nowrap">{t.appName}</h1>
@@ -1387,24 +1505,25 @@ export default function App() {
         </nav>
 
         <aside 
-            className="flex-shrink-0 bg-white border-r border-gray-200 overflow-y-auto relative"
+            className="flex-shrink-0 bg-white border-r border-gray-200 overflow-y-auto relative h-full flex flex-col"
             style={{ width: isSidebarOpen ? (window.innerWidth < 768 ? '100%' : `${sidebarWidth}px`) : '0px', transition: isResizing ? 'none' : 'width 0.3s' }}
         >
-             <div className="p-8 pb-20">
+             <div className="p-8 pb-20 flex-1">
                 {renderActiveSection()}
              </div>
         </aside>
 
         {isSidebarOpen && (
             <div 
-                className="hidden md:flex w-4 bg-gray-200 hover:bg-blue-500 cursor-col-resize items-center justify-center transition-colors z-20 shadow-sm border-l border-r border-gray-300 flex-shrink-0"
+                className="hidden md:flex w-4 bg-gray-200 hover:bg-blue-500 cursor-col-resize items-center justify-center transition-colors z-20 shadow-sm border-l border-r border-gray-300 flex-shrink-0 h-full"
                 onMouseDown={startResizing}
             >
                 <GripVertical size={16} className="text-gray-400"/>
             </div>
         )}
 
-        <div className="flex-1 bg-gray-200 p-8 overflow-y-auto flex flex-col items-center justify-start relative">
+        {/* ALTERAÇÃO 2 (Continuação): Adicionado ref={previewScrollRef} para permitir controle externo */}
+        <div className="flex-1 bg-gray-200 p-8 overflow-y-auto flex flex-col items-center justify-start relative h-full">
             <div className="absolute top-4 left-4 z-50 md:hidden"><button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="p-2 bg-slate-800 text-white rounded-md shadow hover:bg-slate-700 transition-colors">{isSidebarOpen ? <X size={20}/> : <Menu size={20}/>}</button></div>
 
             <div className="mb-4 bg-white p-2 rounded shadow-md flex items-center gap-4 sticky top-0 z-10">
