@@ -7,7 +7,7 @@ const EXIBIR_LOGS = true;
 
 if (EXIBIR_LOGS) {
     console.log("🚀 [ResumePreview.js] Renderizando...");
-    console.log("🔧 Correção Lógica: 'Manter Juntos' agora respeita estado do Switch (Ativado = Protege Quebra).");
+    console.log("📄 Verificando configurações de quebra de página e visibilidade.");
 }
 
 const formatText = (text) => {
@@ -31,9 +31,8 @@ export default function ResumePreview({ data, settings }) {
   const eduColWidthCSS = `${settings.educationColumnWidth}mm`;
   const projectsColWidthCSS = `${settings.projectsColumnWidth}mm`;
 
-  // CORREÇÃO CRÍTICA: Lógica ajustada para o Switch.
-  // Se settings.pageBreakAuto for TRUE (Ativado/Verde) -> Aplica 'keep-together' (Evita quebra).
-  // Se for FALSE (Desativado) -> String vazia (Comportamento padrão).
+  // Lógica: Se settings.pageBreakAuto for true (botão verde/ativado), 
+  // aplica 'keep-together' para evitar quebra dentro do item.
   const pageBreakClass = settings.pageBreakAuto ? 'keep-together' : '';
 
   const { 
