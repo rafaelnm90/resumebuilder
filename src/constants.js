@@ -3,8 +3,7 @@ const EXIBIR_LOGS = true;
 
 if (EXIBIR_LOGS) {
     console.log("🚀 [constants.js] Carregando configurações...");
-    console.log("🌐 Dicionário de Tradução (PT/EN) carregado.");
-    console.log("🔒 Seção 'SEO Oculto' inicia DESATIVADA por padrão.");
+    console.log("🌐 Dicionário de Tradução (PT/EN) atualizado com avisos de risco detalhados.");
 }
 
 export const FONTS = {
@@ -31,7 +30,7 @@ export const TRANSLATIONS = {
   pt: {
     ui: {
       appName: "Resume Builder",
-      version: "V7.5 - Stable",
+      version: "V8.0 - Security Update",
       downloadPdf: "Baixar PDF",
       layoutTab: "Layout & Otimização",
       sectionsTab: "Gerenciar Seções",
@@ -97,13 +96,23 @@ export const TRANSLATIONS = {
       lattes: "Currículo Lattes (Link/ID)",
       youtube: "YouTube (Canal/Link)",
       expandEditor: "Expandir Editor em Tela Cheia",
-      atsTitle: "Camuflagem ATS (SEO)",
-      atsStatusOn: "🟢 ATIVADO (Texto será incluído no PDF)",
-      atsStatusOff: "🔴 DESATIVADO (Texto NÃO será incluído)",
-      atsWarningTitle: "Atenção: Técnica de Alto Risco",
-      atsWarningText: "Esta seção utiliza uma técnica conhecida como 'White Fonting'. O texto ficará invisível (branco no branco), mas ocupará espaço físico. Sistemas ATS modernos podem penalizar isso.",
-      atsLabel: "Palavras-chave para Injeção (Texto Puro)",
-      atsFooter: "Este texto será renderizado na cor branca no rodapé do documento.",
+      
+      // NOVOS TEXTOS DE ALERTA (MAIS AGRESSIVOS)
+      atsTitle: "Camuflagem ATS (White Fonting)",
+      atsStatusOn: "✅ ATIVADO",
+      atsStatusOff: "❌ DESATIVADO",
+      atsWarningTitle: "⛔ ALERTA DE SEGURANÇA: TÉCNICA 'BLACK HAT'",
+      atsWarningText: "Você está utilizando 'White Fonting' (texto branco em fundo branco) para injetar palavras-chave. Entenda como o recrutador vai te pegar:",
+      atsRisks: [
+        "O ROBO NÃO VÊ COR: O ATS lê o código do arquivo. Ele ignora que a fonte é branca. Ele vai ler um bloco de texto sem sentido gramatical (ex: 'Java Python Vendas'). Isso é classificado como 'Keyword Stuffing' (SPAM).",
+        "VISÃO DO RECRUTADOR: A maioria dos softwares de RH converte seu PDF para 'Texto Puro' antes de mostrar ao humano. Nesse formato, sua camuflagem aparece como um parágrafo de lixo no final do arquivo.",
+        "DESCLASSIFICAÇÃO IMEDIATA: Se um humano der Ctrl+A (Selecionar Tudo) ou ler o Texto Puro, seu currículo será descartado por falta de transparência/ética.",
+        "PÁGINA EM BRANCO: Mesmo invisível, o texto ocupa espaço físico. Isso pode gerar uma página em branco extra no final do PDF."
+      ],
+      atsRecommendation: "RECOMENDAÇÃO TÉCNICA: Esta prática funcionava em 2015. Hoje, os algoritmos penalizam isso. Se não quiser correr o risco de 'Shadowban', clique em DESATIVAR acima.",
+      atsLabel: "Área de Injeção de Palavras-Chave (Cuidado)",
+      atsFooter: "Este texto será renderizado na cor branca (FFFFFF) no rodapé do documento.",
+      
       refName: "Nome Completo",
       refCompany: "Empresa",
       refRole: "Cargo",
@@ -122,8 +131,8 @@ export const TRANSLATIONS = {
       degree: "Grau",
       details: "Detalhes",
       catTitle: "Título da Categoria",
-      activate: "ATIVAR",
-      deactivate: "DESATIVAR"
+      activate: "ATIVAR (RISCO)",
+      deactivate: "DESATIVAR (SEGURO)"
     },
     sections: {
       objective: "Objetivo",
@@ -140,7 +149,7 @@ export const TRANSLATIONS = {
   en: {
     ui: {
       appName: "Resume Builder",
-      version: "V7.5 - Stable",
+      version: "V8.0 - Security Update",
       downloadPdf: "Download PDF",
       layoutTab: "Layout & Optimization",
       sectionsTab: "Manage Sections",
@@ -206,13 +215,23 @@ export const TRANSLATIONS = {
       lattes: "Lattes CV (Link/ID)",
       youtube: "YouTube (Channel/Link)",
       expandEditor: "Expand Editor Fullscreen",
-      atsTitle: "ATS Camouflage (SEO)",
-      atsStatusOn: "🟢 ENABLED (Text will be included in PDF)",
-      atsStatusOff: "🔴 DISABLED (Text will NOT be included)",
-      atsWarningTitle: "Warning: High Risk Technique",
-      atsWarningText: "This section uses 'White Fonting'. Text will be invisible (white on white) but takes up physical space. Modern ATS systems may penalize this.",
-      atsLabel: "Injection Keywords (Plain Text)",
-      atsFooter: "This text will be rendered in white at the document footer.",
+      
+      // NEW AGGRESSIVE WARNING TEXTS (ENGLISH)
+      atsTitle: "ATS Camouflage (White Fonting)",
+      atsStatusOn: "✅ ENABLED",
+      atsStatusOff: "❌ DISABLED",
+      atsWarningTitle: "⛔ SECURITY ALERT: 'BLACK HAT' TECHNIQUE",
+      atsWarningText: "You are using 'White Fonting' (white text on white background) to inject keywords. Here is how recruiters catch you:",
+      atsRisks: [
+        "ROBOTS DON'T SEE COLORS: The ATS reads the file's code. It ignores the font color and reads the text. It will see a block of nonsense (e.g., 'Java Python Sales'). This is flagged as 'Keyword Stuffing' (SPAM).",
+        "RECRUITER VIEW: Most HR software converts your PDF to 'Plain Text' before showing it to a human. In this format, your camouflage appears as a garbage paragraph at the end of the file.",
+        "INSTANT REJECTION: If a human uses Ctrl+A (Select All) or views the Plain Text, your resume will be discarded due to lack of transparency/ethics.",
+        "BLANK PAGE: Even if invisible, the text takes up physical space. This often creates an awkward blank page at the end of the PDF."
+      ],
+      atsRecommendation: "TECHNICAL ADVICE: This trick worked in 2015. Today, algorithms penalize it. If you don't want to risk a 'Shadowban', click DISABLE above.",
+      atsLabel: "Keyword Injection Area (Use with Caution)",
+      atsFooter: "This text will be rendered in white (FFFFFF) at the document footer.",
+      
       refName: "Full Name",
       refCompany: "Company",
       refRole: "Role/Position",
@@ -231,8 +250,8 @@ export const TRANSLATIONS = {
       degree: "Degree",
       details: "Details",
       catTitle: "Category Title",
-      activate: "ENABLE",
-      deactivate: "DISABLE"
+      activate: "ENABLE (RISK)",
+      deactivate: "DISABLE (SAFE)"
     },
     sections: {
       objective: "Objective",
@@ -287,7 +306,6 @@ export const INITIAL_SETTINGS = {
 };
 
 export const INITIAL_DATA = {
-  // ATENÇÃO: 'keywords' DEVE ser sempre o último
   sectionOrder: ['objective', 'summary', 'skills', 'projects', 'experience', 'education', 'others', 'references', 'keywords'],
 
   structure: {
@@ -298,8 +316,8 @@ export const INITIAL_DATA = {
     experience: { title: "Experiência Profissional", visible: true, id: 'experience' },
     education: { title: "Formação", visible: true, id: 'education' },
     others: { title: "Idiomas e Certificações", visible: true, id: 'others' },
-    references: { title: "Referências Profissionais", visible: true, id: 'references' },
-    // ATENÇÃO: visible: false por padrão (Segurança)
+    // ATENÇÃO: Referências Profissionais desativada por padrão
+    references: { title: "Referências Profissionais", visible: false, id: 'references' },
     keywords: { title: "Camuflagem ATS (SEO)", visible: false, id: 'keywords' }
   },
   customSections: [], 
