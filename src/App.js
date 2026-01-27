@@ -8,11 +8,12 @@ import {
   Image as ImageIcon, Upload, AlignLeft, AlignCenter, AlignRight,
   Circle, Square, Move, Crop, Info, 
   RotateCw, RotateCcw, Sun, FlipHorizontal, Droplet, Frame, Sliders, Link as LinkIcon,
-  UserPlus, AlertTriangle, List as ListIcon 
+  UserPlus, AlertTriangle, List as ListIcon, Mail, Phone, Save
 } from 'lucide-react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import ResumePreview from './ResumePreview';
-import { INITIAL_DATA, INITIAL_SETTINGS, FONTS, LIST_STYLES, TRANSLATIONS } from './constants';
+// CORREÇÃO NA IMPORTAÇÃO ABAIXO:
+import { INITIAL_DATA, INITIAL_SETTINGS, FONTS, LIST_STYLES, TRANSLATIONS, EXIBIR_LOGS } from './constants';
 
 const SECTION_ICONS = {
   objective: FileText,
@@ -418,6 +419,65 @@ export default function App() {
       </html>
     `);
     printWindow.document.close();
+  };
+
+  const handleExportJson = () => {
+    if (typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS) {
+        console.log("💾 [App.js] Iniciando exportação de backup JSON...");
+    }
+
+    const backupData = {
+        version: "1.0",
+        timestamp: new Date().toISOString(),
+        data: data,
+        settings: settings
+    };
+
+    const jsonString = JSON.stringify(backupData, null, 2);
+    const blob = new Blob([jsonString], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    
+    const link = document.createElement('a');
+    link.href = url;
+    const safeName = data.personal.name.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+    link.download = `backup_resume_${safeName}_${new Date().toISOString().slice(0,10)}.json`;
+    
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    if (typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS) console.log("✅ [App.js] Backup JSON gerado e baixado.");
+  };
+
+  const handleImportJson = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS) {
+        console.log("📂 [App.js] Arquivo selecionado para importação:", file.name);
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+        try {
+            const parsed = JSON.parse(event.target.result);
+            if (parsed.data && parsed.settings) {
+                if (window.confirm("Isso substituirá todos os dados atuais pelos dados do backup. Deseja continuar?")) {
+                    setData(parsed.data);
+                    setSettings(parsed.settings);
+                    if (typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS) console.log("✅ [App.js] Dados restaurados com sucesso.");
+                }
+            } else {
+                alert("Erro: O arquivo JSON não parece ser um backup válido deste aplicativo.");
+                if (typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS) console.error("❌ [App.js] JSON inválido: falta estrutura data/settings.");
+            }
+        } catch (err) {
+            alert("Erro ao ler o arquivo JSON.");
+            console.error(err);
+        }
+    };
+    reader.readAsText(file);
+    e.target.value = ''; 
   };
 
   const handleOpenExpand = (title, currentValue, saveCallback, disableFormatting = false) => {
@@ -1478,8 +1538,9 @@ export default function App() {
         
         {/* ALTERAÇÃO 1 (Continuação): Remover 'sticky' e garantir h-full/h-screen dentro do contexto flex */}
         <nav className={`bg-slate-900 text-slate-300 flex-shrink-0 h-full md:h-screen overflow-y-auto transition-all duration-300 ${isSidebarOpen ? 'w-full md:w-64' : 'w-0 md:w-0 overflow-hidden'}`}>
-          <div className="p-6 border-b border-slate-700 flex justify-between items-center">
-              <div>
+          <div className="p-6 border-b border-slate-700">
+              {/* MODIFICAÇÃO: Flags colocadas embaixo do título */}
+              <div className="mb-2">
                   <h1 className="text-white font-bold text-xl whitespace-nowrap">{t.appName}</h1>
                   <p className="text-xs text-slate-500 mt-1 whitespace-nowrap">{t.version}</p>
               </div>
@@ -1521,7 +1582,52 @@ export default function App() {
                 })}
             </div>
           </div>
-          <div className="p-6 mt-auto border-t border-slate-700"><button onClick={handlePrint} className="w-full flex justify-center items-center bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-bold transition-all shadow-md active:scale-95 whitespace-nowrap"><Download size={20} className="mr-2" /> {t.downloadPdf}</button></div>
+          
+          <div className="p-6 mt-auto border-t border-slate-700 space-y-3">
+            
+            {/* GRUPO DE BACKUP */}
+            <div className="grid grid-cols-2 gap-2">
+                <button 
+                    onClick={handleExportJson} 
+                    className="flex flex-col items-center justify-center text-center bg-slate-800 hover:bg-slate-700 text-slate-300 py-2 rounded-lg text-xs font-semibold transition-colors border border-slate-600"
+                    title={t.exportJson}
+                >
+                    <Save size={16} className="mb-1" /> 
+                    {t.exportJson || "Backup"}
+                </button>
+                
+                <label className="flex flex-col items-center justify-center text-center bg-slate-800 hover:bg-slate-700 text-slate-300 py-2 rounded-lg text-xs font-semibold transition-colors border border-slate-600 cursor-pointer">
+                    <Upload size={16} className="mb-1" />
+                    {t.importJson || "Restaurar"}
+                    <input type="file" className="hidden" accept=".json" onChange={handleImportJson} />
+                </label>
+            </div>
+
+            <button onClick={handlePrint} className="w-full flex justify-center items-center bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-bold transition-all shadow-md active:scale-95 whitespace-nowrap">
+                <Download size={20} className="mr-2" /> {t.downloadPdf}
+            </button>
+
+            {/* Créditos do Desenvolvedor */}
+            <div className="pt-4 border-t border-slate-700 text-center">
+                 <p className="text-[10px] text-slate-500 mb-1">Developed by</p>
+                 <p className="text-xs font-bold text-slate-300 mb-2">Rafael Novais de Miranda</p>
+                 
+                 <div className="flex flex-col gap-1 text-[10px] text-slate-400">
+                    <a 
+                        href="mailto:rafaelnovaismiranda@gmail.com" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="flex items-center justify-center gap-1 hover:text-white transition-colors cursor-pointer"
+                    >
+                        <Mail size={10} /> <span>rafaelnovaismiranda@gmail.com</span>
+                    </a>
+                    
+                    <a href="tel:+55349997779966" className="flex items-center justify-center gap-1 hover:text-white transition-colors cursor-pointer">
+                        <Phone size={10} /> <span>+55 (34) 9.99777-9966</span>
+                    </a>
+                 </div>
+            </div>
+          </div>
         </nav>
 
         <aside 
@@ -1542,7 +1648,6 @@ export default function App() {
             </div>
         )}
 
-        {/* ALTERAÇÃO 2 (Continuação): Adicionado ref={previewScrollRef} para permitir controle externo */}
         <div className="flex-1 bg-gray-200 p-8 overflow-y-auto flex flex-col items-center justify-start relative h-full">
             <div className="absolute top-4 left-4 z-50 md:hidden"><button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="p-2 bg-slate-800 text-white rounded-md shadow hover:bg-slate-700 transition-colors">{isSidebarOpen ? <X size={20}/> : <Menu size={20}/>}</button></div>
 
