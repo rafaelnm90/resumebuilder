@@ -1324,6 +1324,9 @@ export default function App() {
     );
   };
   
+  // --------------------------------------------------------
+  // ALTERAÇÃO PARA LISTA DE COMPETÊNCIAS - CORREÇÃO #3
+  // --------------------------------------------------------
   const renderSkillsForm = () => (
     <DraggableSection 
       sectionId="skills" 
@@ -1343,14 +1346,13 @@ export default function App() {
                 <label className="text-xs font-semibold text-gray-500 uppercase mb-1">{t.itemsList}</label>
                 <RichTextToolbar 
                     onFormat={(type) => {
-                        // Lógica simplificada para formatação no textarea
                         const newVal = s.items + (type === 'bold' ? '**texto**' : '*texto*');
                         updateItem('skills', i, 'items', newVal);
                     }} 
                     onExpand={() => handleOpenExpand(t.itemsList, s.items, (val) => updateItem('skills', i, 'items', val))} 
                 />
             </div>
-            {/* TEXTAREA QUE ACEITA QUEBRA DE LINHA */}
+            {/* USANDO TEXTAREA PARA PERMITIR QUEBRA DE LINHA */}
             <textarea 
                 className="w-full p-2 border rounded-md outline-none text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 h-24 rounded-tr-none"
                 value={s.items}
@@ -1443,7 +1445,7 @@ export default function App() {
       title={t.sections?.others || "Outros"}
       items={data.others} 
       onAdd={() => addItem('others', {title: 'Nova Categoria', description: ['']})}
-      onRemove={(idx) => removeItem('others', idx)}
+      onRemove={(idx) => removeItem('others', idx)} 
       renderHeader={renderSectionHeader}
       isVisible={data.structure.others.visible}
       onToggle={() => updateStructure('others', 'visible', !data.structure.others.visible)}
