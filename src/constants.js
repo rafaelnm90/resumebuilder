@@ -1,5 +1,5 @@
 // src/constants.js
-export const EXIBIR_LOGS = true;
+export const EXIBIR_LOGS = true; // CORREÇÃO: Adicionado 'export'
 
 if (EXIBIR_LOGS) {
     console.log("🚀 [constants.js] Carregando configurações...");
@@ -295,7 +295,7 @@ export const INITIAL_SETTINGS = {
   
   lineHeight: 1.1,        
   headerSpacing: 5,      
-  itemSpacing: 3,         
+  itemSpacing: 1.5,         
   sectionSpacing: 3,     
   pageBreakAuto: true,
   
