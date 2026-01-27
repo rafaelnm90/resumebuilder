@@ -109,7 +109,7 @@ export const TRANSLATIONS = {
         "DESCLASSIFICAÇÃO IMEDIATA: Se um humano der Ctrl+A (Selecionar Tudo) ou ler o Texto Puro, seu currículo será descartado por falta de transparência/ética.",
         "PÁGINA EM BRANCO: Mesmo invisível, o texto ocupa espaço físico. Isso pode gerar uma página em branco extra no final do PDF."
       ],
-      atsRecommendation: "RECOMENDAÇÃO TÉCNICA: Esta prática funcionava em 2015. Hoje, os algoritmos penalizam isso. Se não quiser correr o risco de 'Shadowban', clique em DESATIVAR acima.",
+      atsRecommendation: "RECOMENDAÇÃO TÉCNICA: Para reduzir riscos, sugerimos integrar as palavras-chave organicamente dentro das descrições de suas experiências e projetos.  Se não quiser correr o risco de 'Shadowban', clique em DESATIVAR acima.",
       atsLabel: "Área de Injeção de Palavras-Chave (Cuidado)",
       atsFooter: "Este texto será renderizado na cor branca (FFFFFF) no rodapé do documento.",
       
