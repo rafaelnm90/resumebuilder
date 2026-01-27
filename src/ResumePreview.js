@@ -31,8 +31,6 @@ export default function ResumePreview({ data, settings }) {
   const eduColWidthCSS = `${settings.educationColumnWidth}mm`;
   const projectsColWidthCSS = `${settings.projectsColumnWidth}mm`;
 
-  // Lógica: Se settings.pageBreakAuto for true (botão verde/ativado), 
-  // aplica 'keep-together' para evitar quebra dentro do item.
   const pageBreakClass = settings.pageBreakAuto ? 'keep-together' : '';
 
   const { 
@@ -62,7 +60,6 @@ export default function ResumePreview({ data, settings }) {
     ? "font-bold text-gray-900" 
     : "font-medium text-gray-700 opacity-75";
 
-  // --- ESTILO COMPARTILHADO DE TÍTULO ---
   const getHeaderStyle = (isSimple = false) => ({
       color: settings.themeColor, 
       fontWeight: settings.sectionTitleBold ? '700' : '400', 
@@ -83,7 +80,6 @@ export default function ResumePreview({ data, settings }) {
       ...(isSimple ? { backgroundColor: 'transparent' } : {})
   });
 
-  // --- 1. WRAPPER SIMPLES ---
   const SimpleSectionWrapper = ({ title, children, sectionId }) => (
       <div style={{ marginBottom: `${settings.sectionSpacing}mm`, width: '100%' }}>
           <div style={getHeaderStyle(true)}>
@@ -95,11 +91,9 @@ export default function ResumePreview({ data, settings }) {
       </div>
   );
 
-  // --- 2. WRAPPER PAGINADO ---
   const PaginatedSectionWrapper = ({ title, children }) => {
     return (
         <div style={{ position: 'relative', marginBottom: `${settings.sectionSpacing}mm`, width: '100%' }}>
-            {/* A MÁSCARA (Adesivo) */}
             <div style={{ 
                 position: 'absolute', top: 0, left: 0, width: '100%', 
                 zIndex: 20, pointerEvents: 'none', backgroundColor: 'white'
@@ -109,7 +103,6 @@ export default function ResumePreview({ data, settings }) {
                 </div>
             </div>
 
-            {/* A TABELA DE CONTINUAÇÃO */}
             <table style={{ width: '100%', borderCollapse: 'collapse', ...typographyStyles }}>
                 <thead style={{ display: 'table-header-group' }}>
                     <tr style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}>
@@ -356,7 +349,14 @@ export default function ResumePreview({ data, settings }) {
     if (sectionId.startsWith('custom-')) {
         const sec = customSections.find(s => s.id === sectionId);
         if (!sec || !sec.visible) return null;
-        if (sec.type === 'text') { return (<SimpleSectionWrapper title={displayTitle} sectionId={sectionId}><p className="break-words" style={{ textAlign: settings.textAlign, textJustify: 'inter-word' }}>{formatText(sec.content)}</p></SimpleSectionWrapper>); }
+        if (sec.type === 'text') { 
+            return (
+                <SimpleSectionWrapper title={displayTitle} sectionId={sectionId}>
+                    {/* ATENÇÃO AQUI: whiteSpace: 'pre-line' permite quebras de linha */}
+                    <p className="break-words" style={{ textAlign: settings.textAlign, textJustify: 'inter-word', whiteSpace: 'pre-line' }}>{formatText(sec.content)}</p>
+                </SimpleSectionWrapper>
+            ); 
+        }
         if (sec.type === 'list') { return (<SimpleSectionWrapper title={displayTitle} sectionId={sectionId}><ul className="list-outside ml-4" style={containerStyle}>{renderListItems(sec.content, sectionId)}</ul></SimpleSectionWrapper>); }
         if (sec.type === 'detailed') { return (<PaginatedSectionWrapper title={displayTitle}><div style={containerStyle}>{(Array.isArray(sec.content) ? sec.content : []).map((item, i) => (<div key={i} className={pageBreakClass}><div className="flex flex-row items-baseline justify-between flex-row-print"><div className="font-bold text-[1.05em] leading-tight break-words flex-1 pr-3">{formatText(item.title)}</div><div className={`text-[0.9em] text-right leading-tight flex-shrink-0 ${rightTextStyle}`} style={{ width: expColWidthCSS, color: rightTextColor }}>{item.location}</div></div><div className="flex flex-row items-baseline justify-between flex-row-print"><div className="italic font-medium leading-tight break-words flex-1 pr-3" style={{ color: roleColor }}>{formatText(item.subtitle)}</div><div className={`text-[0.9em] text-right leading-tight flex-shrink-0 ${rightTextStyle}`} style={{ width: expColWidthCSS, color: rightTextColor }}>{item.date}</div></div><div className="mt-1" style={{ paddingRight: expColWidthCSS }}><ul className="list-outside ml-4" style={innerListStyle}>{renderListItems(item.description, sectionId)}</ul></div></div>))}</div></PaginatedSectionWrapper>); }
     }
@@ -563,7 +563,6 @@ export default function ResumePreview({ data, settings }) {
     }}>
         {settings.showGuides && (
             <div className="absolute inset-0 z-50 pointer-events-none page-guide">
-                {/* Margem Geral (Verde) */}
                 <div
                     className="absolute border border-green-600 border-dashed opacity-100"
                     style={{
@@ -576,7 +575,6 @@ export default function ResumePreview({ data, settings }) {
                     <span className="absolute top-0 right-0 bg-green-600 text-white text-[9px] px-1 font-bold">Margem</span>
                 </div>
 
-                {/* Coluna da Esquerda / Skills (Azul) */}
                 <div
                     className="absolute border-r border-blue-600 border-dashed h-full opacity-100"
                     style={{
@@ -588,19 +586,16 @@ export default function ResumePreview({ data, settings }) {
                     <span className="absolute top-2 -right-1 translate-x-full bg-blue-100 text-blue-800 text-[9px] px-1 border border-blue-300 rounded font-bold whitespace-nowrap">Competências</span>
                 </div>
 
-                {/* Coluna da Direita / Experiência (Azul Pontilhado) */}
                 <div className="absolute border-l border-blue-600 border-dotted h-full opacity-100"
                     style={{ top: '20mm', bottom: '20mm', right: `calc(15mm + ${settings.experienceColumnWidth}mm)` }}>
                       <span className="absolute top-10 -left-1 -translate-x-full bg-blue-50 text-blue-600 text-[9px] px-1 border border-blue-200 rounded font-bold whitespace-nowrap">Experiências</span>
                 </div>
 
-                {/* Coluna da Direita / Formação (Vermelho Pontilhado) */}
                 <div className="absolute border-l border-red-500 border-dotted h-full opacity-100"
                     style={{ top: '20mm', bottom: '20mm', right: `calc(15mm + ${settings.educationColumnWidth}mm)` }}>
                       <span className="absolute top-16 -left-1 -translate-x-full bg-red-50 text-red-600 text-[9px] px-1 border border-red-200 rounded font-bold whitespace-nowrap">Formação</span>
                 </div>
 
-                {/* Coluna da Direita / Projetos (Roxo Pontilhado) */}
                 <div className="absolute border-l border-purple-500 border-dotted h-full opacity-100"
                     style={{ top: '20mm', bottom: '20mm', right: `calc(15mm + ${settings.projectsColumnWidth}mm)` }}>
                       <span className="absolute top-24 -left-1 -translate-x-full bg-purple-50 text-purple-600 text-[9px] px-1 border border-purple-200 rounded font-bold whitespace-nowrap">Projetos</span>
