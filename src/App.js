@@ -26,7 +26,7 @@ const SECTION_ICONS = {
   keywords: EyeOff 
 };
 
-// --- COMPONENTES AUXILIARES (RESTAURADOS) ---
+// --- COMPONENTES AUXILIARES ---
 
 const ToggleSwitch = ({ checked, onChange, title }) => (
     <button 
@@ -52,7 +52,6 @@ const insertFormatting = (ref, type) => {
   return newText;
 };
 
-// Helper para formatação direta em campos de texto simples
 const handleFormatText = (ref, type, currentVal, setVal) => {
     const newVal = insertFormatting(ref, type);
     if (newVal !== undefined) setVal(newVal);
@@ -582,7 +581,6 @@ export default function App() {
   };
   const addDetailedItem = (sid) => setData(p => ({ ...p, customSections: p.customSections.map(s => s.id === sid ? { ...s, content: [...s.content, { title: '', subtitle: '', date: '', location: '', description: [''] }] } : s) }));
   
-  // CORREÇÃO DO ERRO DE SINTAXE ANTERIOR:
   const removeDetailedItem = (sid, idx) => setData(p => ({ 
     ...p, 
     customSections: p.customSections.map(s => 
@@ -635,7 +633,6 @@ export default function App() {
         <div className="flex justify-between items-center border-b pb-2 mb-4 group">
             <div className="flex items-center text-gray-800 flex-1">
                 <Icon size={20} className="mr-2 text-gray-500"/>
-                {/* INPUT EDITÁVEL AQUI - CORREÇÃO #2 */}
                 <input 
                     type="text" 
                     value={config.title} 
@@ -1327,9 +1324,6 @@ export default function App() {
     );
   };
   
-  // --------------------------------------------------------
-  // ALTERAÇÃO PARA LISTA DE COMPETÊNCIAS - CORREÇÃO #3
-  // --------------------------------------------------------
   const renderSkillsForm = () => (
     <DraggableSection 
       sectionId="skills" 
@@ -1349,13 +1343,14 @@ export default function App() {
                 <label className="text-xs font-semibold text-gray-500 uppercase mb-1">{t.itemsList}</label>
                 <RichTextToolbar 
                     onFormat={(type) => {
+                        // Lógica simplificada para formatação no textarea
                         const newVal = s.items + (type === 'bold' ? '**texto**' : '*texto*');
                         updateItem('skills', i, 'items', newVal);
                     }} 
                     onExpand={() => handleOpenExpand(t.itemsList, s.items, (val) => updateItem('skills', i, 'items', val))} 
                 />
             </div>
-            {/* USANDO TEXTAREA PARA PERMITIR QUEBRA DE LINHA */}
+            {/* TEXTAREA QUE ACEITA QUEBRA DE LINHA */}
             <textarea 
                 className="w-full p-2 border rounded-md outline-none text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 h-24 rounded-tr-none"
                 value={s.items}
@@ -1610,7 +1605,7 @@ export default function App() {
                   <p className="text-xs text-slate-500 mt-1 whitespace-nowrap">{t.version}</p>
               </div>
               <div className="flex gap-2">
-                  {/* BANDEIRAS ADICIONADAS - CORREÇÃO #1 */}
+                  {/* BANDEIRAS ADICIONADAS AQUI */}
                   <button onClick={() => changeLanguage('pt')} className={`text-sm hover:scale-105 transition-transform flex items-center gap-1 ${language === 'pt' ? 'opacity-100 font-bold text-white' : 'opacity-60'}`} title="Português">
                     <span className="text-lg">🇧🇷</span> BR
                   </button>
