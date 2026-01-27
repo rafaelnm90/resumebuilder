@@ -378,12 +378,28 @@ export default function ResumePreview({ data, settings }) {
             return structure.skills.visible && data.skills.length > 0 && (
                 <SimpleSectionWrapper title={displayTitle} sectionId={sectionId}>
                     <div style={containerStyle}>
-                    {data.skills.map((skill, i) => (
-                        <div key={i} className="flex flex-row items-baseline gap-4" >
-                        <div className="font-bold text-[0.95em] leading-tight break-words flex-shrink-0" style={{ width: `${settings.leftColumnWidth}mm` }}>{formatText(skill.category)}</div>
-                        <div className="break-words leading-tight flex-1" style={{ textAlign: settings.textAlign, textJustify: 'inter-word' }}>{formatText(skill.items)}</div>
-                        </div>
-                    ))}
+                    {data.skills.map((skill, i) => {
+                        // VERIFICAÇÃO: Se houver quebra de linha, trata como lista
+                        const isMultiLine = skill.items && skill.items.includes('\n');
+                        
+                        return (
+                            <div key={i} className="flex flex-row items-baseline gap-4" >
+                                <div className="font-bold text-[0.95em] leading-tight break-words flex-shrink-0" style={{ width: `${settings.leftColumnWidth}mm` }}>
+                                    {formatText(skill.category)}
+                                </div>
+                                <div className="break-words leading-tight flex-1" style={{ textAlign: settings.textAlign, textJustify: 'inter-word' }}>
+                                    {isMultiLine ? (
+                                        // CORREÇÃO: Usando renderListItems para respeitar estilos globais
+                                        <ul className="list-outside ml-4 mt-1" style={innerListStyle}>
+                                            {renderListItems(skill.items.split('\n').filter(line => line.trim()), sectionId)}
+                                        </ul>
+                                    ) : (
+                                        formatText(skill.items)
+                                    )}
+                                </div>
+                            </div>
+                        );
+                    })}
                     </div>
                 </SimpleSectionWrapper>
             );
