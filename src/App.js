@@ -12,7 +12,6 @@ import {
 } from 'lucide-react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import ResumePreview from './ResumePreview';
-// CORREÇÃO NA IMPORTAÇÃO ABAIXO:
 import { INITIAL_DATA, INITIAL_SETTINGS, FONTS, LIST_STYLES, TRANSLATIONS, EXIBIR_LOGS } from './constants';
 
 const SECTION_ICONS = {
@@ -26,6 +25,8 @@ const SECTION_ICONS = {
   references: UserPlus,
   keywords: EyeOff 
 };
+
+// --- COMPONENTES AUXILIARES (RESTAURADOS) ---
 
 const ToggleSwitch = ({ checked, onChange, title }) => (
     <button 
@@ -296,6 +297,8 @@ const ExpandedModal = ({ isOpen, onClose, title, value, onSave, disableFormattin
   );
 };
 
+// --- FIM DOS COMPONENTES AUXILIARES ---
+
 export default function App() {
   const [data, setData] = useState(INITIAL_DATA);
   const [settings, setSettings] = useState(INITIAL_SETTINGS);
@@ -380,6 +383,7 @@ export default function App() {
     const guides = contentClone.querySelectorAll('.page-guide');
     guides.forEach(g => g.remove());
     
+    // Remove transformações de zoom para impressão
     contentClone.style.transform = 'none';
     contentClone.style.zoom = '1';
     contentClone.style.margin = '0'; 
@@ -392,10 +396,24 @@ export default function App() {
           ${FONTS[settings.font].url ? `<link href="${FONTS[settings.font].url}" rel="stylesheet">` : ''}
           <script src="https://cdn.tailwindcss.com"></script>
           <style>
+            /* CSS RESET HARDCORE PARA IMPRESSÃO */
             *, *::before, *::after { box-sizing: border-box !important; }
+            
+            /* Remove margens padrão do navegador que somam ao gap do flexbox */
+            ul, ol, li, h1, h2, h3, h4, h5, h6, p, figure, blockquote, dl, dd {
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+
+            /* Regras de quebra de página e hifenização */
             .keep-together { page-break-inside: avoid !important; break-inside: avoid !important; display: block !important; }
             h3, .dynamic-title { page-break-after: avoid !important; break-after: avoid !important; }
-            html, body, p, li, div, span { -webkit-hyphens: auto !important; -ms-hyphens: auto !important; hyphens: auto !important; word-break: break-word !important; }
+            html, body, p, li, div, span { 
+                -webkit-hyphens: auto !important; 
+                -ms-hyphens: auto !important; 
+                hyphens: auto !important; 
+                word-break: break-word !important; 
+            }
             
             @media print {
               @page { size: A4; margin: 0; }
@@ -405,6 +423,10 @@ export default function App() {
               .dynamic-title { color: ${settings.themeColor} !important; }
               .content-container { width: 100% !important; margin: 0 !important; }
               a { text-decoration: none !important; }
+              
+              /* Garante que listas mantenham o estilo visual mas sem margens externas */
+              ul.list-disc, ul.list-decimal { padding-left: 1.2em !important; }
+              
               thead { display: table-header-group; }
               tfoot { display: table-footer-group; }
             }
@@ -414,7 +436,13 @@ export default function App() {
         </head>
         <body>
             ${contentClone.outerHTML}
-            <script>setTimeout(() => { window.print(); window.close(); }, 1000);</script>
+            <script>
+                // Aumentei o timeout para garantir o load das fontes e Tailwind
+                setTimeout(() => { 
+                    window.print(); 
+                    window.close(); 
+                }, 1500);
+            </script>
         </body>
       </html>
     `);
@@ -553,7 +581,15 @@ export default function App() {
     setData(prev => ({ ...prev, customSections: prev.customSections.map(s => s.id === id ? { ...s, title: newTitle } : s) }));
   };
   const addDetailedItem = (sid) => setData(p => ({ ...p, customSections: p.customSections.map(s => s.id === sid ? { ...s, content: [...s.content, { title: '', subtitle: '', date: '', location: '', description: [''] }] } : s) }));
-  const removeDetailedItem = (sid, idx) => setData(p => ({ ...p, customSections: p.customSections.map(s => s.id === sid ? { ...s, content: s.content.filter((_, i) => i !== idx) } : s) }));
+  
+  // CORREÇÃO DO ERRO DE SINTAXE AQUI:
+  const removeDetailedItem = (sid, idx) => setData(p => ({ 
+    ...p, 
+    customSections: p.customSections.map(s => 
+        s.id === sid ? { ...s, content: s.content.filter((_, i) => i !== idx) } : s
+    ) 
+  }));
+
   const updateDetailedItem = (sid, idx, f, v) => setData(p => ({ ...p, customSections: p.customSections.map(s => s.id === sid ? { ...s, content: s.content.map((item, i) => i === idx ? { ...item, [f]: v } : item) } : s) }));
   
   const updateDetailedItemDesc = (sid, idx, ignoredField, di, v) => {
