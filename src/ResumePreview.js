@@ -6,8 +6,7 @@ import { LIST_STYLES } from './constants';
 const EXIBIR_LOGS = true;
 
 if (EXIBIR_LOGS) {
-    console.log("🚀 [ResumePreview.js] Renderizando...");
-    console.log("📄 Verificando configurações de quebra de página e visibilidade.");
+    console.log("🚀 [ResumePreview.js] Carregando...");
 }
 
 const formatText = (text) => {
@@ -378,12 +377,28 @@ export default function ResumePreview({ data, settings }) {
             return structure.skills.visible && data.skills.length > 0 && (
                 <SimpleSectionWrapper title={displayTitle} sectionId={sectionId}>
                     <div style={containerStyle}>
-                    {data.skills.map((skill, i) => (
-                        <div key={i} className="flex flex-row items-baseline gap-4" >
-                        <div className="font-bold text-[0.95em] leading-tight break-words flex-shrink-0" style={{ width: `${settings.leftColumnWidth}mm` }}>{formatText(skill.category)}</div>
-                        <div className="break-words leading-tight flex-1" style={{ textAlign: settings.textAlign, textJustify: 'inter-word' }}>{formatText(skill.items)}</div>
-                        </div>
-                    ))}
+                    {data.skills.map((skill, i) => {
+                        // Verifica se tem quebras de linha para decidir se renderiza lista ou texto
+                        const hasNewLines = skill.items && skill.items.includes('\n');
+                        const listItems = hasNewLines ? skill.items.split('\n').filter(item => item.trim() !== '') : [];
+
+                        return (
+                            <div key={i} className="flex flex-row items-baseline gap-4" >
+                                <div className="font-bold text-[0.95em] leading-tight break-words flex-shrink-0" style={{ width: `${settings.leftColumnWidth}mm` }}>
+                                    {formatText(skill.category)}
+                                </div>
+                                <div className="break-words leading-tight flex-1" style={{ textAlign: settings.textAlign, textJustify: 'inter-word' }}>
+                                    {hasNewLines ? (
+                                        <ul className="list-outside ml-4" style={innerListStyle}>
+                                            {renderListItems(listItems, sectionId)}
+                                        </ul>
+                                    ) : (
+                                        formatText(skill.items)
+                                    )}
+                                </div>
+                            </div>
+                        );
+                    })}
                     </div>
                 </SimpleSectionWrapper>
             );
