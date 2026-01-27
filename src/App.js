@@ -26,7 +26,7 @@ const SECTION_ICONS = {
   keywords: EyeOff 
 };
 
-// --- COMPONENTES AUXILIARES (RESTAURADOS) ---
+// --- COMPONENTES AUXILIARES ---
 
 const ToggleSwitch = ({ checked, onChange, title }) => (
     <button 
@@ -205,25 +205,10 @@ const DraggableDescriptionList = ({ items, sectionId, itemIndex, onUpdate, onRem
   );
 };
 
-const DraggableSection = ({ sectionId, title, items, onAdd, onRemove, renderItem, isVisible, onToggle, t }) => (
+const DraggableSection = ({ sectionId, title, items, onAdd, onRemove, renderItem, isVisible, onToggle, t, renderHeader }) => (
   <div className="space-y-4">
-    <div className="flex justify-between items-center border-b pb-2">
-        <h2 className="text-xl font-bold capitalize">{title}</h2>
-        <div className="flex items-center gap-3">
-             <span className={`text-[10px] font-bold px-2 py-1 rounded border transition-colors ${isVisible ? 'bg-green-100 text-green-700 border-green-200' : 'bg-red-100 text-red-700 border-red-200'}`}>
-                {isVisible ? t.atsStatusOn : t.atsStatusOff}
-             </span>
-             <ToggleSwitch 
-                checked={isVisible} 
-                onChange={onToggle} 
-                title={isVisible ? t.deactivate : t.activate}
-             />
-             <div className="h-4 w-px bg-gray-300 mx-1"></div>
-             <button onClick={onAdd} className="text-blue-600 text-sm flex items-center hover:text-blue-800" title={t.addItem}>
-                <Plus size={16} />
-             </button>
-        </div>
-    </div>
+    {/* Use renderHeader passed as prop to allow editable titles */}
+    {renderHeader(sectionId, title)}
 
     <div className={`transition-opacity duration-300 ${isVisible ? 'opacity-100' : 'opacity-60 pointer-events-none grayscale'}`}>
         <Droppable droppableId={sectionId} type="SECTION_ITEM">
@@ -267,6 +252,9 @@ const ExpandedModal = ({ isOpen, onClose, title, value, onSave, disableFormattin
     if (newValue !== undefined) setLocalValue(newValue);
   };
 
+  // DETECTA SE ESTÁ EM MODO LISTA
+  const isListMode = localValue && localValue.includes('\n');
+
   return (
     <div className="fixed inset-0 z-[9999] bg-black bg-opacity-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-lg shadow-xl w-full max-w-3xl flex flex-col h-[80vh]">
@@ -274,12 +262,25 @@ const ExpandedModal = ({ isOpen, onClose, title, value, onSave, disableFormattin
           <h3 className="font-bold text-lg">{title || 'Editar Texto'}</h3>
           <button onClick={onClose} className="text-gray-500 hover:text-gray-700"><X size={24}/></button>
         </div>
-        {!disableFormatting && (
-            <div className="p-2 bg-gray-50 border-b flex gap-2">
-                <button onClick={() => handleFormat('bold')} className="p-1 hover:bg-gray-200 rounded font-bold" title="Negrito"><Bold size={16}/></button>
-                <button onClick={() => handleFormat('italic')} className="p-1 hover:bg-gray-200 rounded italic" title="Itálico"><Italic size={16}/></button>
-            </div>
-        )}
+        
+        {/* BARRA DE FERRAMENTAS + AVISO DE LISTA */}
+        <div className="p-2 bg-gray-50 border-b flex justify-between items-center">
+            {!disableFormatting ? (
+                <div className="flex gap-2">
+                    <button onClick={() => handleFormat('bold')} className="p-1 hover:bg-gray-200 rounded font-bold" title="Negrito"><Bold size={16}/></button>
+                    <button onClick={() => handleFormat('italic')} className="p-1 hover:bg-gray-200 rounded italic" title="Itálico"><Italic size={16}/></button>
+                </div>
+            ) : <div></div>}
+
+            {/* AVISO VISUAL DE MODO LISTA DENTRO DO MODAL */}
+            {isListMode && (
+                <div className="flex items-center gap-2 text-xs text-blue-700 font-semibold bg-blue-50 px-2 py-1 rounded border border-blue-200 animate-in fade-in">
+                    <ListIcon size={12}/>
+                    <span>Modo Lista: Cada linha será um item com marcador (•)</span>
+                </div>
+            )}
+        </div>
+
         <div className="flex-1 p-4">
           <textarea 
             ref={textRef}
@@ -582,7 +583,6 @@ export default function App() {
   };
   const addDetailedItem = (sid) => setData(p => ({ ...p, customSections: p.customSections.map(s => s.id === sid ? { ...s, content: [...s.content, { title: '', subtitle: '', date: '', location: '', description: [''] }] } : s) }));
   
-  // CORREÇÃO DO ERRO DE SINTAXE AQUI:
   const removeDetailedItem = (sid, idx) => setData(p => ({ 
     ...p, 
     customSections: p.customSections.map(s => 
@@ -631,12 +631,28 @@ export default function App() {
     const isVisible = config.visible;
     const Icon = SECTION_ICONS[sectionId] || (isCustom ? PenTool : FileText);
 
+    const handleTitleChange = (e) => {
+        const newVal = e.target.value;
+        if (isCustom) {
+            updateCustomSectionTitle(sectionId, newVal);
+        } else {
+            updateStructure(sectionId, 'title', newVal);
+        }
+    };
+
     return (
         <div className="flex justify-between items-center border-b pb-2 mb-4">
-            <h2 className="text-xl font-bold flex items-center text-gray-800">
-                <Icon size={20} className="mr-2"/> {title}
-            </h2>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center flex-1 mr-4">
+                <Icon size={20} className="mr-2 text-gray-500 flex-shrink-0"/> 
+                <input 
+                    type="text" 
+                    value={config.title} 
+                    onChange={handleTitleChange}
+                    className="text-xl font-bold text-gray-800 bg-transparent border-b border-transparent hover:border-gray-300 focus:border-blue-500 focus:outline-none w-full transition-colors"
+                    placeholder="Título da Seção"
+                />
+            </div>
+            <div className="flex items-center gap-3 flex-shrink-0">
                  <span className={`text-[10px] font-bold px-2 py-1 rounded border transition-colors ${isVisible ? 'bg-green-100 text-green-700 border-green-200' : 'bg-red-100 text-red-700 border-red-200'}`}>
                     {isVisible ? t.atsStatusOn : t.atsStatusOff}
                  </span>
@@ -1328,14 +1344,28 @@ export default function App() {
       isVisible={data.structure.skills.visible}
       onToggle={() => updateStructure('skills', 'visible', !data.structure.skills.visible)}
       t={t}
-      renderItem={(s, i) => (
-        <>
-          <Input label={t.category} value={s.category} onChange={v=>updateItem('skills', i, 'category', v)} onExpandRequest={handleOpenExpand}/>
-          <div className="mt-2">
-            <Input label={t.itemsList} value={s.items} onChange={v=>updateItem('skills', i, 'items', v)} enableRich={true} onExpandRequest={handleOpenExpand}/>
-          </div>
-        </>
-      )}
+      renderItem={(s, i) => {
+        // DETECTA SE O ITEM ATUAL TEM QUEBRA DE LINHA
+        const isListMode = s.items && s.items.includes('\n');
+        
+        return (
+            <>
+              <Input label={t.category} value={s.category} onChange={v=>updateItem('skills', i, 'category', v)} onExpandRequest={handleOpenExpand}/>
+              <div className="mt-2">
+                <div className="flex justify-between items-end mb-1">
+                     {/* AVISO VISUAL ACIMA DO INPUT NA SIDEBAR */}
+                    {isListMode && (
+                        <div className="flex items-center gap-1 text-[10px] text-blue-700 font-semibold bg-blue-50 px-2 py-0.5 rounded border border-blue-200 w-full mb-1">
+                            <ListIcon size={10}/>
+                            <span>Modo Lista: Cada linha será um item com marcador (•)</span>
+                        </div>
+                    )}
+                </div>
+                <Input label={t.itemsList} value={s.items} onChange={v=>updateItem('skills', i, 'items', v)} enableRich={true} onExpandRequest={handleOpenExpand}/>
+              </div>
+            </>
+        );
+      }}
     />
   );
   
@@ -1568,21 +1598,38 @@ export default function App() {
         disableFormatting={expandedField?.disableFormatting}
       />
 
-      {/* ALTERAÇÃO 1: Mudança de min-h-screen para h-screen (fixo) para resolver problema do fundo preto cortado */}
       <div className="h-screen w-screen bg-gray-100 font-sans text-gray-900 flex flex-col md:flex-row overflow-hidden select-none" onMouseMove={isResizing ? resize : null} onMouseUp={stopResizing}>
         <link href={FONTS[settings.font].url} rel="stylesheet" />
         
-        {/* ALTERAÇÃO 1 (Continuação): Remover 'sticky' e garantir h-full/h-screen dentro do contexto flex */}
         <nav className={`bg-slate-900 text-slate-300 flex-shrink-0 h-full md:h-screen overflow-y-auto transition-all duration-300 ${isSidebarOpen ? 'w-full md:w-64' : 'w-0 md:w-0 overflow-hidden'}`}>
-          <div className="p-6 border-b border-slate-700">
-              {/* MODIFICAÇÃO: Flags colocadas embaixo do título */}
-              <div className="mb-2">
-                  <h1 className="text-white font-bold text-xl whitespace-nowrap">{t.appName}</h1>
+          <div className="p-6 border-b border-slate-700 flex flex-col items-center text-center">
+              {/* MODIFICAÇÃO: Título centralizado, maior e com cor */}
+              <div className="mb-6">
+                  <h1 className="text-blue-400 font-extrabold text-3xl whitespace-nowrap tracking-tight">{t.appName}</h1>
                   <p className="text-xs text-slate-500 mt-1 whitespace-nowrap">{t.version}</p>
               </div>
-              <div className="flex gap-2">
-                  <button onClick={() => changeLanguage('pt')} className={`text-xl hover:scale-110 transition-transform ${language === 'pt' ? 'opacity-100 scale-110' : 'opacity-50'}`} title="Português">🇧🇷</button>
-                  <button onClick={() => changeLanguage('en')} className={`text-xl hover:scale-110 transition-transform ${language === 'en' ? 'opacity-100 scale-110' : 'opacity-50'}`} title="English">🇺🇸</button>
+              
+              {/* MODIFICAÇÃO: Botões de idioma com rótulo e design específico */}
+              <div className="w-full bg-slate-800 p-3 rounded-lg border border-slate-700">
+                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2 block">
+                      {language === 'pt' ? 'Mudar Idioma' : 'Change Language'}
+                  </span>
+                  <div className="flex gap-2 justify-center">
+                      <button 
+                        onClick={() => changeLanguage('pt')} 
+                        className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded transition-all ${language === 'pt' ? 'bg-blue-600 text-white shadow-lg ring-1 ring-blue-400' : 'bg-slate-700 text-slate-400 hover:bg-slate-600'}`} 
+                        title="Português"
+                      >
+                          <span className="text-xs font-bold">BR</span> <span className="text-lg">🇧🇷</span>
+                      </button>
+                      <button 
+                        onClick={() => changeLanguage('en')} 
+                        className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded transition-all ${language === 'en' ? 'bg-blue-600 text-white shadow-lg ring-1 ring-blue-400' : 'bg-slate-700 text-slate-400 hover:bg-slate-600'}`} 
+                        title="English"
+                      >
+                          <span className="text-xs font-bold">US</span> <span className="text-lg">🇺🇸</span>
+                      </button>
+                  </div>
               </div>
           </div>
           <div className="p-4 space-y-1">
@@ -1621,7 +1668,6 @@ export default function App() {
           
           <div className="p-6 mt-auto border-t border-slate-700 space-y-3">
             
-            {/* GRUPO DE BACKUP */}
             <div className="grid grid-cols-2 gap-2">
                 <button 
                     onClick={handleExportJson} 
@@ -1643,7 +1689,6 @@ export default function App() {
                 <Download size={20} className="mr-2" /> {t.downloadPdf}
             </button>
 
-            {/* Créditos do Desenvolvedor */}
             <div className="pt-4 border-t border-slate-700 text-center">
                  <p className="text-[10px] text-slate-500 mb-1">Developed by</p>
                  <p className="text-xs font-bold text-slate-300 mb-2">Rafael Novais de Miranda</p>
