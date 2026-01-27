@@ -1,9 +1,9 @@
 // src/constants.js
-const EXIBIR_LOGS = true;
+export const EXIBIR_LOGS = true; // CORREÇÃO: Adicionado 'export'
 
 if (EXIBIR_LOGS) {
     console.log("🚀 [constants.js] Carregando configurações...");
-    console.log("🌐 Dicionário de Tradução (PT/EN) atualizado com avisos de risco detalhados.");
+    console.log("🌐 Dicionário de Tradução (PT/EN) atualizado com opções de Backup.");
 }
 
 export const FONTS = {
@@ -30,8 +30,10 @@ export const TRANSLATIONS = {
   pt: {
     ui: {
       appName: "Resume Builder",
-      version: "V8.0 - Security Update",
+      version: "",
       downloadPdf: "Baixar PDF",
+      exportJson: "Salvar Backup (JSON)",
+      importJson: "Restaurar Backup",
       layoutTab: "Layout & Otimização",
       sectionsTab: "Gerenciar Seções",
       personalTab: "Pessoal",
@@ -97,7 +99,7 @@ export const TRANSLATIONS = {
       youtube: "YouTube (Canal/Link)",
       expandEditor: "Expandir Editor em Tela Cheia",
       
-      // NOVOS TEXTOS DE ALERTA (MAIS AGRESSIVOS)
+      // NOVOS TEXTOS DE ALERTA
       atsTitle: "Camuflagem ATS (White Fonting)",
       atsStatusOn: "✅ ATIVADO",
       atsStatusOff: "❌ DESATIVADO",
@@ -149,8 +151,10 @@ export const TRANSLATIONS = {
   en: {
     ui: {
       appName: "Resume Builder",
-      version: "V8.0 - Security Update",
+      version: "",
       downloadPdf: "Download PDF",
+      exportJson: "Save Backup (JSON)",
+      importJson: "Restore Backup",
       layoutTab: "Layout & Optimization",
       sectionsTab: "Manage Sections",
       personalTab: "Personal Info",
@@ -216,7 +220,7 @@ export const TRANSLATIONS = {
       youtube: "YouTube (Channel/Link)",
       expandEditor: "Expand Editor Fullscreen",
       
-      // NEW AGGRESSIVE WARNING TEXTS (ENGLISH)
+      // NEW AGGRESSIVE WARNING TEXTS
       atsTitle: "ATS Camouflage (White Fonting)",
       atsStatusOn: "✅ ENABLED",
       atsStatusOff: "❌ DISABLED",
@@ -316,7 +320,6 @@ export const INITIAL_DATA = {
     experience: { title: "Experiência Profissional", visible: true, id: 'experience' },
     education: { title: "Formação", visible: true, id: 'education' },
     others: { title: "Idiomas e Certificações", visible: true, id: 'others' },
-    // ATENÇÃO: Referências Profissionais desativada por padrão
     references: { title: "Referências Profissionais", visible: false, id: 'references' },
     keywords: { title: "Camuflagem ATS (SEO)", visible: false, id: 'keywords' }
   },
