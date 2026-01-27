@@ -407,7 +407,8 @@ export default function ResumePreview({ data, settings }) {
                             </ul>
                         </div>
                         <div className="flex-shrink-0 flex items-start justify-start mt-1" style={{ width: projectsColWidthCSS }}>
-                            <span className={`text-[0.85em] bg-gray-100 px-2 py-1 rounded border border-gray-200 inline-block break-words hyphens-auto ${settings.rightTextBold ? 'font-bold text-gray-800' : 'font-medium text-gray-600'}`} 
+                             {/* CORREÇÃO: Adicionado block w-full text-center para esticar e centralizar */}
+                            <span className={`text-[0.85em] bg-gray-100 px-2 py-1 rounded border border-gray-200 inline-block break-words hyphens-auto block w-full text-center ${settings.rightTextBold ? 'font-bold text-gray-800' : 'font-medium text-gray-600'}`} 
                                   style={{ hyphens: 'auto', color: rightTextColor, borderColor: rightTextColor ? rightTextColor : undefined }}>
                                 {proj.tech}
                             </span>
