@@ -582,7 +582,7 @@ export default function App() {
   };
   const addDetailedItem = (sid) => setData(p => ({ ...p, customSections: p.customSections.map(s => s.id === sid ? { ...s, content: [...s.content, { title: '', subtitle: '', date: '', location: '', description: [''] }] } : s) }));
   
-  // CORREÇÃO DO ERRO DE SINTAXE AQUI:
+  // CORREÇÃO DO ERRO DE SINTAXE ANTERIOR:
   const removeDetailedItem = (sid, idx) => setData(p => ({ 
     ...p, 
     customSections: p.customSections.map(s => 
@@ -632,10 +632,20 @@ export default function App() {
     const Icon = SECTION_ICONS[sectionId] || (isCustom ? PenTool : FileText);
 
     return (
-        <div className="flex justify-between items-center border-b pb-2 mb-4">
-            <h2 className="text-xl font-bold flex items-center text-gray-800">
-                <Icon size={20} className="mr-2"/> {title}
-            </h2>
+        <div className="flex justify-between items-center border-b pb-2 mb-4 group">
+            <div className="flex items-center text-gray-800 flex-1">
+                <Icon size={20} className="mr-2 text-gray-500"/>
+                {/* INPUT EDITÁVEL AQUI - CORREÇÃO #2 */}
+                <input 
+                    type="text" 
+                    value={config.title} 
+                    onChange={(e) => {
+                        if (isCustom) updateCustomSectionTitle(sectionId, e.target.value);
+                        else updateStructure(sectionId, 'title', e.target.value);
+                    }}
+                    className="text-xl font-bold bg-transparent border-b border-transparent hover:border-gray-300 focus:border-blue-500 outline-none w-full"
+                />
+            </div>
             <div className="flex items-center gap-3">
                  <span className={`text-[10px] font-bold px-2 py-1 rounded border transition-colors ${isVisible ? 'bg-green-100 text-green-700 border-green-200' : 'bg-red-100 text-red-700 border-red-200'}`}>
                     {isVisible ? t.atsStatusOn : t.atsStatusOff}
@@ -1317,6 +1327,9 @@ export default function App() {
     );
   };
   
+  // --------------------------------------------------------
+  // ALTERAÇÃO PARA LISTA DE COMPETÊNCIAS - CORREÇÃO #3
+  // --------------------------------------------------------
   const renderSkillsForm = () => (
     <DraggableSection 
       sectionId="skills" 
@@ -1331,8 +1344,24 @@ export default function App() {
       renderItem={(s, i) => (
         <>
           <Input label={t.category} value={s.category} onChange={v=>updateItem('skills', i, 'category', v)} onExpandRequest={handleOpenExpand}/>
-          <div className="mt-2">
-            <Input label={t.itemsList} value={s.items} onChange={v=>updateItem('skills', i, 'items', v)} enableRich={true} onExpandRequest={handleOpenExpand}/>
+          <div className="mt-2 group relative">
+            <div className="flex justify-between items-end">
+                <label className="text-xs font-semibold text-gray-500 uppercase mb-1">{t.itemsList}</label>
+                <RichTextToolbar 
+                    onFormat={(type) => {
+                        const newVal = s.items + (type === 'bold' ? '**texto**' : '*texto*');
+                        updateItem('skills', i, 'items', newVal);
+                    }} 
+                    onExpand={() => handleOpenExpand(t.itemsList, s.items, (val) => updateItem('skills', i, 'items', val))} 
+                />
+            </div>
+            {/* USANDO TEXTAREA PARA PERMITIR QUEBRA DE LINHA */}
+            <textarea 
+                className="w-full p-2 border rounded-md outline-none text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 h-24 rounded-tr-none"
+                value={s.items}
+                onChange={e => updateItem('skills', i, 'items', e.target.value)}
+                placeholder="Digite os itens. Use Enter para criar uma lista com bolinhas."
+            />
           </div>
         </>
       )}
@@ -1581,8 +1610,13 @@ export default function App() {
                   <p className="text-xs text-slate-500 mt-1 whitespace-nowrap">{t.version}</p>
               </div>
               <div className="flex gap-2">
-                  <button onClick={() => changeLanguage('pt')} className={`text-xl hover:scale-110 transition-transform ${language === 'pt' ? 'opacity-100 scale-110' : 'opacity-50'}`} title="Português">🇧🇷</button>
-                  <button onClick={() => changeLanguage('en')} className={`text-xl hover:scale-110 transition-transform ${language === 'en' ? 'opacity-100 scale-110' : 'opacity-50'}`} title="English">🇺🇸</button>
+                  {/* BANDEIRAS ADICIONADAS - CORREÇÃO #1 */}
+                  <button onClick={() => changeLanguage('pt')} className={`text-sm hover:scale-105 transition-transform flex items-center gap-1 ${language === 'pt' ? 'opacity-100 font-bold text-white' : 'opacity-60'}`} title="Português">
+                    <span className="text-lg">🇧🇷</span> BR
+                  </button>
+                  <button onClick={() => changeLanguage('en')} className={`text-sm hover:scale-105 transition-transform flex items-center gap-1 ${language === 'en' ? 'opacity-100 font-bold text-white' : 'opacity-60'}`} title="English">
+                    <span className="text-lg">🇺🇸</span> US
+                  </button>
               </div>
           </div>
           <div className="p-4 space-y-1">
