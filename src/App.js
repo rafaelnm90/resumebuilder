@@ -1,3 +1,4 @@
+// src/App.js
 import React, { useState, useEffect, useRef } from 'react';
 import { 
   Briefcase, GraduationCap, User, Code, FileText, Download, Plus, Trash2, 
@@ -7,7 +8,7 @@ import {
   Image as ImageIcon, Upload, AlignLeft, AlignCenter, AlignRight,
   Circle, Square, Move, Crop, Info, 
   RotateCw, RotateCcw, Sun, FlipHorizontal, Droplet, Frame, Sliders, Link as LinkIcon,
-  UserPlus, AlertTriangle
+  UserPlus, AlertTriangle, List as ListIcon 
 } from 'lucide-react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import ResumePreview from './ResumePreview';
@@ -49,6 +50,12 @@ const insertFormatting = (ref, type) => {
   return newText;
 };
 
+// Helper para formatação direta em campos de texto simples
+const handleFormatText = (ref, type, currentVal, setVal) => {
+    const newVal = insertFormatting(ref, type);
+    if (newVal !== undefined) setVal(newVal);
+};
+
 const handleFormatList = (ref, type, currentVal, setVal) => {
     const input = ref.current;
     if (!input) return;
@@ -75,7 +82,7 @@ const RichTextToolbar = ({ onFormat, onExpand }) => (
   </div>
 );
 
-const Input = ({ label, value, onChange, onExpandRequest, enableRich = false }) => {
+const Input = ({ label, value, onChange, onExpandRequest, enableRich = false, expandDisableRich = false }) => {
   const inputRef = useRef(null);
 
   const handleFormat = (type) => {
@@ -90,7 +97,7 @@ const Input = ({ label, value, onChange, onExpandRequest, enableRich = false }) 
         {(enableRich || onExpandRequest) && (
           <RichTextToolbar 
             onFormat={enableRich ? handleFormat : null} 
-            onExpand={() => onExpandRequest && onExpandRequest(label, value, onChange)} 
+            onExpand={() => onExpandRequest && onExpandRequest(label, value, onChange, expandDisableRich)} 
           />
         )}
       </div>
@@ -243,7 +250,7 @@ const DraggableSection = ({ sectionId, title, items, onAdd, onRemove, renderItem
   </div>
 );
 
-const ExpandedModal = ({ isOpen, onClose, title, value, onSave }) => {
+const ExpandedModal = ({ isOpen, onClose, title, value, onSave, disableFormatting }) => {
   const [localValue, setLocalValue] = useState(value);
   const textRef = useRef(null);
 
@@ -265,10 +272,12 @@ const ExpandedModal = ({ isOpen, onClose, title, value, onSave }) => {
           <h3 className="font-bold text-lg">{title || 'Editar Texto'}</h3>
           <button onClick={onClose} className="text-gray-500 hover:text-gray-700"><X size={24}/></button>
         </div>
-        <div className="p-2 bg-gray-50 border-b flex gap-2">
-            <button onClick={() => handleFormat('bold')} className="p-1 hover:bg-gray-200 rounded font-bold" title="Negrito"><Bold size={16}/></button>
-            <button onClick={() => handleFormat('italic')} className="p-1 hover:bg-gray-200 rounded italic" title="Itálico"><Italic size={16}/></button>
-        </div>
+        {!disableFormatting && (
+            <div className="p-2 bg-gray-50 border-b flex gap-2">
+                <button onClick={() => handleFormat('bold')} className="p-1 hover:bg-gray-200 rounded font-bold" title="Negrito"><Bold size={16}/></button>
+                <button onClick={() => handleFormat('italic')} className="p-1 hover:bg-gray-200 rounded italic" title="Itálico"><Italic size={16}/></button>
+            </div>
+        )}
         <div className="flex-1 p-4">
           <textarea 
             ref={textRef}
@@ -302,6 +311,7 @@ export default function App() {
   const [isSpacingAdvancedOpen, setIsSpacingAdvancedOpen] = useState(false);
 
   const listTextRef = useRef(null); 
+  const textSectionRef = useRef(null); 
   const summaryRef = useRef(null);
   const objectiveRef = useRef(null);
 
@@ -410,8 +420,8 @@ export default function App() {
     printWindow.document.close();
   };
 
-  const handleOpenExpand = (title, currentValue, saveCallback) => {
-    setExpandedField({ title, value: currentValue, onSave: saveCallback });
+  const handleOpenExpand = (title, currentValue, saveCallback, disableFormatting = false) => {
+    setExpandedField({ title, value: currentValue, onSave: saveCallback, disableFormatting });
   };
 
   const handleDragEnd = (result) => {
@@ -893,44 +903,53 @@ export default function App() {
 
     return (
       <div className="space-y-4">
-        {/* CABEÇALHO PADRONIZADO COM TOGGLE */}
         {renderSectionHeader(sectionId, section.title)}
         
         <div className="mb-4">
-             <Input label={t.catTitle} value={section.title} onChange={(e) => updateCustomSectionTitle(section.id, e.target.value)} onExpandRequest={handleOpenExpand}/>
+             <Input 
+                label={t.catTitle} 
+                value={section.title} 
+                onChange={(v) => updateCustomSectionTitle(section.id, v)} 
+                onExpandRequest={handleOpenExpand}
+                expandDisableRich={true} 
+             />
              <div className="flex justify-end mt-1">
                 <button onClick={() => removeCustomSection(section.id)} className="text-red-400 flex items-center text-xs hover:text-red-600"><Trash2 size={12} className="mr-1"/> Remover Seção</button>
              </div>
         </div>
         
-        {/* CORREÇÃO AQUI: Envolver conteúdo com div de opacidade */}
         <div className={`transition-opacity duration-300 ${section.visible ? 'opacity-100' : 'opacity-50 pointer-events-none grayscale'}`}>
             {section.type === 'text' && (
             <div className="space-y-1 relative group">
-                <p className="text-xs text-gray-500">Dica: Use **palavra** para negrito.</p>
+                <p className="text-xs text-gray-500">Dica: Use **palavra** para negrito. Pressione Enter para criar parágrafos.</p>
                 <textarea 
+                    ref={textSectionRef}
                     className="w-full h-48 p-3 border rounded text-sm outline-none focus:ring-2 focus:ring-blue-500" 
                     value={section.content} 
                     onChange={(e) => {setData(prev => ({...prev, customSections: prev.customSections.map(s => s.id === section.id ? { ...s, content: e.target.value } : s)}))}} 
                     placeholder="Digite o texto da seção aqui..."
-                    disabled={!section.visible} // Desabilita edição
+                    disabled={!section.visible} 
                 />
                 <RichTextToolbar 
-                onFormat={(type) => {/* Simplificação */}} 
-                onExpand={() => handleOpenExpand(section.title, section.content, (val) => setData(prev => ({...prev, customSections: prev.customSections.map(s => s.id === section.id ? { ...s, content: val } : s)})) )}
+                    onFormat={(type) => handleFormatText(textSectionRef, type, section.content, (val) => setData(prev => ({...prev, customSections: prev.customSections.map(s => s.id === section.id ? { ...s, content: val } : s)})) )} 
+                    onExpand={() => handleOpenExpand(section.title, section.content, (val) => setData(prev => ({...prev, customSections: prev.customSections.map(s => s.id === section.id ? { ...s, content: val } : s)})) )}
                 />
             </div>
             )}
             
             {section.type === 'list' && (
             <div className="space-y-1 relative group">
-                <p className="text-xs text-gray-500">Adicione itens (um por linha):</p>
+                <div className="flex items-center gap-2 mb-1 text-xs text-gray-600 font-semibold bg-gray-100 p-2 rounded border border-gray-200">
+                    <ListIcon size={14} className="text-blue-600"/>
+                    <span>Modo Lista: Cada linha será um item com marcador (•)</span>
+                </div>
+                
                 <textarea 
                     ref={listTextRef}
                     className="w-full h-48 p-3 border rounded text-sm outline-none focus:ring-2 focus:ring-blue-500" 
                     value={Array.isArray(section.content) ? section.content.join('\n') : section.content} 
                     onChange={(e) => {setData(prev => ({...prev, customSections: prev.customSections.map(s => s.id === section.id ? { ...s, content: e.target.value.split('\n') } : s)}))}}
-                    disabled={!section.visible} // Desabilita edição
+                    disabled={!section.visible} 
                 />
                 <RichTextToolbar 
                     onFormat={(type) => {
@@ -953,10 +972,10 @@ export default function App() {
                 <div key={i} className="bg-gray-50 p-3 rounded relative border border-gray-200">
                     <button onClick={() => removeDetailedItem(section.id, i)} className="absolute top-2 right-2 text-red-400"><Trash2 size={16}/></button>
                     <div className="grid grid-cols-2 gap-2 mb-2">
-                    <Input label={t.title + " / " + t.company} value={item.title} onChange={v => updateDetailedItem(section.id, i, 'title', v)} onExpandRequest={handleOpenExpand} />
+                    <Input label={t.title + " / " + t.company} value={item.title} onChange={v => updateDetailedItem(section.id, i, 'title', v)} onExpandRequest={handleOpenExpand} expandDisableRich={true} />
                     <Input label="Subtítulo / Cargo" value={item.subtitle} onChange={v => updateDetailedItem(section.id, i, 'subtitle', v)} onExpandRequest={handleOpenExpand} />
-                    <Input label={t.period} value={item.date} onChange={v => updateDetailedItem(section.id, i, 'date', v)} onExpandRequest={handleOpenExpand} />
-                    <Input label={t.location} value={item.location} onChange={v => updateDetailedItem(section.id, i, 'location', v)} onExpandRequest={handleOpenExpand} />
+                    <Input label={t.period} value={item.date} onChange={v => updateDetailedItem(section.id, i, 'date', v)} onExpandRequest={handleOpenExpand} expandDisableRich={true} />
+                    <Input label={t.location} value={item.location} onChange={v => updateDetailedItem(section.id, i, 'location', v)} onExpandRequest={handleOpenExpand} expandDisableRich={true} />
                     </div>
                     <div className="space-y-1">
                     <label className="text-xs font-semibold text-gray-500 uppercase">Descrição (Tópicos)</label>
@@ -1450,6 +1469,7 @@ export default function App() {
         title={expandedField?.title} 
         value={expandedField?.value || ''} 
         onSave={expandedField?.onSave} 
+        disableFormatting={expandedField?.disableFormatting}
       />
 
       {/* ALTERAÇÃO 1: Mudança de min-h-screen para h-screen (fixo) para resolver problema do fundo preto cortado */}
