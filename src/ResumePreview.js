@@ -239,6 +239,10 @@ export default function ResumePreview({ data, settings }) {
     if (photoShape === 'square') frameRadius = '0%';
     if (photoShape === 'rounded') frameRadius = '12px';
 
+    // --- LÓGICA DE EXIBIÇÃO DA CNH (NOVO) ---
+    const cnhData = data.personal.cnh || [];
+    const cnhString = cnhData.length > 0 ? `CNH "${cnhData.join('')}"` : null;
+
     return (
         <header className={containerClasses} style={headerStyle}>
             {isPhotoVisible && (
@@ -264,6 +268,8 @@ export default function ResumePreview({ data, settings }) {
                     {data.personal.phone && <span className="flex items-center gap-1 border-l pl-2 border-gray-400"><Phone size={'1em'}/> {data.personal.phone}</span>}
                     {data.personal.location && <span className="flex items-center gap-1 border-l pl-2 border-gray-400"><MapPin size={'1em'}/> {data.personal.location}</span>}
                 </div>
+                
+                {/* LINHA 2: REDES SOCIAIS E CNH */}
                 <div className={`flex flex-wrap gap-3 ${dynamicTextSize} font-medium leading-tight ${contactJustify}`} style={{ color: settings.themeColor }}>
                     {data.personal.linkedin && (
                         <a 
@@ -307,6 +313,17 @@ export default function ResumePreview({ data, settings }) {
                         >
                             <Youtube size={'1em'}/> {data.personal.youtube.replace(/^https?:\/\/(www\.)?/, '')}
                         </a>
+                    )}
+
+                    {/* ITEM DA CNH - ADICIONADO AQUI */}
+                    {cnhString && (
+                        <span 
+                            className="flex items-center gap-1 border px-1.5 py-0.5 rounded border-current select-none" 
+                            style={{ opacity: 0.9, lineHeight: 1 }}
+                            title="Carteira Nacional de Habilitação"
+                        >
+                            <span className="font-bold text-[0.9em]">{cnhString}</span>
+                        </span>
                     )}
                 </div>
             </div>
@@ -389,7 +406,6 @@ export default function ResumePreview({ data, settings }) {
                                 </div>
                                 <div className="break-words leading-tight flex-1" style={{ textAlign: settings.textAlign, textJustify: 'inter-word' }}>
                                     {isMultiLine ? (
-                                        // CORREÇÃO: Usando renderListItems para respeitar estilos globais
                                         <ul className="list-outside ml-4 mt-1" style={innerListStyle}>
                                             {renderListItems(skill.items.split('\n').filter(line => line.trim()), sectionId)}
                                         </ul>
