@@ -8,7 +8,7 @@ import {
   Image as ImageIcon, Upload, AlignLeft, AlignCenter, AlignRight,
   Circle, Square, Move, Crop, Info, 
   RotateCw, RotateCcw, Sun, FlipHorizontal, Droplet, Frame, Sliders, Link as LinkIcon,
-  UserPlus, AlertTriangle, List as ListIcon, Mail, Phone, Save, Linkedin, Github, Youtube
+  UserPlus, AlertTriangle, List as ListIcon, Mail, Phone, Save
 } from 'lucide-react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import ResumePreview from './ResumePreview';
@@ -84,7 +84,7 @@ const RichTextToolbar = ({ onFormat, onExpand }) => (
   </div>
 );
 
-const Input = ({ label, value, onChange, onExpandRequest, enableRich = false, expandDisableRich = false, placeholder = "" }) => {
+const Input = ({ label, value, onChange, onExpandRequest, enableRich = false, expandDisableRich = false }) => {
   const inputRef = useRef(null);
 
   const handleFormat = (type) => {
@@ -93,7 +93,7 @@ const Input = ({ label, value, onChange, onExpandRequest, enableRich = false, ex
   };
 
   return (
-    <div className="flex flex-col group relative mb-2 w-full">
+    <div className="flex flex-col group relative mb-2">
       <div className="flex justify-between items-end">
         <label className="text-xs font-semibold text-gray-500 uppercase mb-1">{label}</label>
         {(enableRich || onExpandRequest) && (
@@ -109,7 +109,6 @@ const Input = ({ label, value, onChange, onExpandRequest, enableRich = false, ex
         className={`p-2 border rounded-md outline-none text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 w-full ${enableRich || onExpandRequest ? 'rounded-tr-none' : ''}`}
         value={value || ''} 
         onChange={e => onChange(e.target.value)} 
-        placeholder={placeholder}
       />
     </div>
   );
@@ -206,159 +205,12 @@ const DraggableDescriptionList = ({ items, sectionId, itemIndex, onUpdate, onRem
   );
 };
 
-// --- NOVO COMPONENTE: MODAL DE ADIÇÃO (PREENCHIMENTO DE DADOS) ---
-const AddItemModal = ({ isOpen, onClose, sectionId, onSave, t }) => {
-    const [formData, setFormData] = useState({});
-    
-    useEffect(() => {
-        if (isOpen) setFormData({});
-    }, [isOpen]);
-
-    if (!isOpen) return null;
-
-    const handleChange = (field, value) => {
-        setFormData(prev => ({ ...prev, [field]: value }));
-    };
-
-    const handleSave = () => {
-        const processedData = { ...formData };
-        // Processar campos de descrição (converte quebra de linha em array)
-        if (['projects', 'experience', 'others'].includes(sectionId) && formData.description) {
-             processedData.description = formData.description.split('\n').filter(line => line.trim() !== '');
-        }
-        onSave(sectionId, processedData);
-        onClose();
-    };
-
-    const renderFields = () => {
-        switch (sectionId) {
-            case 'skills':
-                return (
-                    <>
-                        <Input label={t.category} value={formData.category} onChange={v => handleChange('category', v)} placeholder="Ex: Linguagens, Soft Skills..." />
-                        <label className="text-xs font-semibold text-gray-500 uppercase mt-2 block">{t.itemsList}</label>
-                        <textarea 
-                            className="w-full p-2 border rounded text-sm h-32" 
-                            value={formData.items || ''} 
-                            onChange={e => handleChange('items', e.target.value)}
-                            placeholder="Liste suas habilidades aqui..."
-                        />
-                    </>
-                );
-            case 'projects':
-                return (
-                    <>
-                        <Input label={t.title} value={formData.title} onChange={v => handleChange('title', v)} />
-                        <Input label={t.link} value={formData.link} onChange={v => handleChange('link', v)} />
-                        <Input label={t.tech} value={formData.tech} onChange={v => handleChange('tech', v)} placeholder="Ex: React, Node.js, Python" />
-                        <label className="text-xs font-semibold text-gray-500 uppercase mt-2 block">Descrição (Um item por linha)</label>
-                        <textarea 
-                            className="w-full p-2 border rounded text-sm h-32" 
-                            value={formData.description || ''} 
-                            onChange={e => handleChange('description', e.target.value)}
-                            placeholder="• Implementei x...&#10;• Criei y..."
-                        />
-                    </>
-                );
-            case 'experience':
-                return (
-                    <>
-                        <Input label={t.company} value={formData.company} onChange={v => handleChange('company', v)} />
-                        <Input label={t.role} value={formData.role} onChange={v => handleChange('role', v)} />
-                        <div className="grid grid-cols-2 gap-2">
-                             <Input label={t.period} value={formData.period} onChange={v => handleChange('period', v)} placeholder="Ex: 2020 - Atual" />
-                             <Input label={t.location} value={formData.location} onChange={v => handleChange('location', v)} />
-                        </div>
-                        <label className="text-xs font-semibold text-gray-500 uppercase mt-2 block">Atividades / Resultados (Um item por linha)</label>
-                        <textarea 
-                            className="w-full p-2 border rounded text-sm h-32" 
-                            value={formData.description || ''} 
-                            onChange={e => handleChange('description', e.target.value)}
-                            placeholder="• Liderança de equipe...&#10;• Aumento de 20% em..."
-                        />
-                    </>
-                );
-            case 'education':
-                return (
-                    <>
-                        <Input label={t.institution} value={formData.institution} onChange={v => handleChange('institution', v)} />
-                        <Input label={t.degree} value={formData.degree} onChange={v => handleChange('degree', v)} />
-                        <div className="grid grid-cols-2 gap-2">
-                             <Input label={t.period} value={formData.period} onChange={v => handleChange('period', v)} />
-                             <Input label={t.location} value={formData.location} onChange={v => handleChange('location', v)} />
-                        </div>
-                        <Input label={t.details} value={formData.details} onChange={v => handleChange('details', v)} placeholder="Detalhes adicionais, tese, etc." />
-                    </>
-                );
-            case 'others':
-                return (
-                    <>
-                         <Input label={t.catTitle} value={formData.title} onChange={v => handleChange('title', v)} placeholder="Ex: Idiomas, Certificações" />
-                         <label className="text-xs font-semibold text-gray-500 uppercase mt-2 block">Itens (Um item por linha)</label>
-                         <textarea 
-                            className="w-full p-2 border rounded text-sm h-32" 
-                            value={formData.description || ''} 
-                            onChange={e => handleChange('description', e.target.value)}
-                            placeholder="• Inglês Avançado&#10;• Espanhol Intermediário"
-                        />
-                    </>
-                );
-            case 'references':
-                 return (
-                    <>
-                        <Input label={t.refName} value={formData.name} onChange={v => handleChange('name', v)} />
-                        <Input label={t.refCompany} value={formData.company} onChange={v => handleChange('company', v)} />
-                        <Input label={t.refRole} value={formData.role} onChange={v => handleChange('role', v)} />
-                        <div className="grid grid-cols-2 gap-2">
-                            <Input label={t.refEmail} value={formData.email} onChange={v => handleChange('email', v)} />
-                            <Input label={t.refPhone} value={formData.phone} onChange={v => handleChange('phone', v)} />
-                        </div>
-                    </>
-                 );
-            default:
-                return <p>Seção não configurada para adição rápida.</p>;
-        }
-    };
-
-    return (
-        <div className="fixed inset-0 z-[9999] bg-black bg-opacity-50 flex items-center justify-center p-4">
-             <div className="bg-white rounded-lg shadow-xl w-full max-w-lg flex flex-col max-h-[90vh]">
-                 <div className="flex justify-between items-center p-4 border-b bg-gray-50 rounded-t-lg">
-                     <h3 className="font-bold text-lg text-gray-800">Adicionar Item: {sectionId.toUpperCase()}</h3>
-                     <button onClick={onClose} className="text-gray-500 hover:text-gray-700"><X size={24}/></button>
-                 </div>
-                 
-                 <div className="flex-1 p-6 overflow-y-auto space-y-3">
-                     {renderFields()}
-                 </div>
-                 
-                 <div className="p-4 border-t flex justify-end gap-3 bg-gray-50 rounded-b-lg">
-                     <button onClick={onClose} className="px-4 py-2 text-gray-600 hover:bg-gray-200 rounded">Cancelar</button>
-                     <button onClick={handleSave} className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 font-bold flex items-center">
-                         <Plus size={16} className="mr-2"/> Adicionar ao Topo
-                     </button>
-                 </div>
-             </div>
-        </div>
-    );
-};
-
 const DraggableSection = ({ sectionId, title, items, onAdd, onRemove, renderItem, isVisible, onToggle, t, renderHeader }) => (
   <div className="space-y-4">
+    {/* Use renderHeader passed as prop to allow editable titles */}
     {renderHeader(sectionId, title)}
 
     <div className={`transition-opacity duration-300 ${isVisible ? 'opacity-100' : 'opacity-60 pointer-events-none grayscale'}`}>
-        
-        {/* BOTÃO DE ADIÇÃO NO TOPO (ABRE MODAL) */}
-        <div className="flex justify-end mb-2">
-             <button 
-                onClick={onAdd}
-                className="flex items-center gap-1 text-xs font-bold bg-blue-50 text-blue-700 px-3 py-1.5 rounded border border-blue-200 hover:bg-blue-100 transition-colors shadow-sm"
-             >
-                 <Plus size={14}/> {t.addItem}
-             </button>
-        </div>
-
         <Droppable droppableId={sectionId} type="SECTION_ITEM">
         {(provided) => (
             <div {...provided.droppableProps} ref={provided.innerRef} className="space-y-3">
@@ -400,6 +252,7 @@ const ExpandedModal = ({ isOpen, onClose, title, value, onSave, disableFormattin
     if (newValue !== undefined) setLocalValue(newValue);
   };
 
+  // DETECTA SE ESTÁ EM MODO LISTA
   const isListMode = localValue && localValue.includes('\n');
 
   return (
@@ -410,6 +263,7 @@ const ExpandedModal = ({ isOpen, onClose, title, value, onSave, disableFormattin
           <button onClick={onClose} className="text-gray-500 hover:text-gray-700"><X size={24}/></button>
         </div>
         
+        {/* BARRA DE FERRAMENTAS + AVISO DE LISTA */}
         <div className="p-2 bg-gray-50 border-b flex justify-between items-center">
             {!disableFormatting ? (
                 <div className="flex gap-2">
@@ -418,6 +272,7 @@ const ExpandedModal = ({ isOpen, onClose, title, value, onSave, disableFormattin
                 </div>
             ) : <div></div>}
 
+            {/* AVISO VISUAL DE MODO LISTA DENTRO DO MODAL */}
             {isListMode && (
                 <div className="flex items-center gap-2 text-xs text-blue-700 font-semibold bg-blue-50 px-2 py-1 rounded border border-blue-200 animate-in fade-in">
                     <ListIcon size={12}/>
@@ -458,10 +313,6 @@ export default function App() {
   const [sidebarWidth, setSidebarWidth] = useState(380);
   const [isResizing, setIsResizing] = useState(false);
   const [expandedField, setExpandedField] = useState(null);
-  
-  // ESTADO PARA O MODAL DE ADIÇÃO
-  const [addingSection, setAddingSection] = useState(null); 
-
   const [isSpacingAdvancedOpen, setIsSpacingAdvancedOpen] = useState(false);
 
   const listTextRef = useRef(null); 
@@ -548,10 +399,14 @@ export default function App() {
           <style>
             /* CSS RESET HARDCORE PARA IMPRESSÃO */
             *, *::before, *::after { box-sizing: border-box !important; }
+            
+            /* Remove margens padrão do navegador que somam ao gap do flexbox */
             ul, ol, li, h1, h2, h3, h4, h5, h6, p, figure, blockquote, dl, dd {
                 margin: 0 !important;
                 padding: 0 !important;
             }
+
+            /* Regras de quebra de página e hifenização */
             .keep-together { page-break-inside: avoid !important; break-inside: avoid !important; display: block !important; }
             h3, .dynamic-title { page-break-after: avoid !important; break-after: avoid !important; }
             html, body, p, li, div, span { 
@@ -560,6 +415,7 @@ export default function App() {
                 hyphens: auto !important; 
                 word-break: break-word !important; 
             }
+            
             @media print {
               @page { size: A4; margin: 0; }
               body { margin: 0; background-color: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
@@ -568,7 +424,10 @@ export default function App() {
               .dynamic-title { color: ${settings.themeColor} !important; }
               .content-container { width: 100% !important; margin: 0 !important; }
               a { text-decoration: none !important; }
+              
+              /* Garante que listas mantenham o estilo visual mas sem margens externas */
               ul.list-disc, ul.list-decimal { padding-left: 1.2em !important; }
+              
               thead { display: table-header-group; }
               tfoot { display: table-footer-group; }
             }
@@ -579,6 +438,7 @@ export default function App() {
         <body>
             ${contentClone.outerHTML}
             <script>
+                // Aumentei o timeout para garantir o load das fontes e Tailwind
                 setTimeout(() => { 
                     window.print(); 
                     window.close(); 
@@ -591,27 +451,41 @@ export default function App() {
   };
 
   const handleExportJson = () => {
+    if (typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS) {
+        console.log("💾 [App.js] Iniciando exportação de backup JSON...");
+    }
+
     const backupData = {
         version: "1.0",
         timestamp: new Date().toISOString(),
         data: data,
         settings: settings
     };
+
     const jsonString = JSON.stringify(backupData, null, 2);
     const blob = new Blob([jsonString], { type: "application/json" });
     const url = URL.createObjectURL(blob);
+    
     const link = document.createElement('a');
     link.href = url;
     const safeName = data.personal.name.replace(/[^a-z0-9]/gi, '_').toLowerCase();
     link.download = `backup_resume_${safeName}_${new Date().toISOString().slice(0,10)}.json`;
+    
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    
+    if (typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS) console.log("✅ [App.js] Backup JSON gerado e baixado.");
   };
 
   const handleImportJson = (e) => {
     const file = e.target.files[0];
     if (!file) return;
+
+    if (typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS) {
+        console.log("📂 [App.js] Arquivo selecionado para importação:", file.name);
+    }
+
     const reader = new FileReader();
     reader.onload = (event) => {
         try {
@@ -620,12 +494,15 @@ export default function App() {
                 if (window.confirm("Isso substituirá todos os dados atuais pelos dados do backup. Deseja continuar?")) {
                     setData(parsed.data);
                     setSettings(parsed.settings);
+                    if (typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS) console.log("✅ [App.js] Dados restaurados com sucesso.");
                 }
             } else {
                 alert("Erro: O arquivo JSON não parece ser um backup válido deste aplicativo.");
+                if (typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS) console.error("❌ [App.js] JSON inválido: falta estrutura data/settings.");
             }
         } catch (err) {
             alert("Erro ao ler o arquivo JSON.");
+            console.error(err);
         }
     };
     reader.readAsText(file);
@@ -661,13 +538,17 @@ export default function App() {
       const parts = source.droppableId.split('-');
       const sectionId = parts[1];
       const itemIdx = parseInt(parts[2]);
+
       const sectionItems = Array.from(data[sectionId]);
       const targetItem = { ...sectionItems[itemIdx] };
       const currentDescriptions = Array.from(targetItem.description);
+
       const [reorderedDesc] = currentDescriptions.splice(source.index, 1);
       currentDescriptions.splice(destination.index, 0, reorderedDesc);
+
       targetItem.description = currentDescriptions;
       sectionItems[itemIdx] = targetItem;
+
       setData(prev => ({ ...prev, [sectionId]: sectionItems }));
     }
   };
@@ -679,14 +560,7 @@ export default function App() {
   const updateField = (s, f, v) => setData(p => ({ ...p, [s]: { ...p[s], [f]: v } }));
   const updateSimpleField = (f, v) => setData(p => ({ ...p, [f]: v }));
   
-  // FUNÇÃO IMPORTANTE: ADICIONAR ITEM AO TOPO DA LISTA (UNSHIFT)
-  const handleAddNewItem = (sectionId, newItem) => {
-      setData(p => ({
-          ...p,
-          [sectionId]: [newItem, ...p[sectionId]] // Adiciona no início do array
-      }));
-  };
-
+  const addItem = (s, item) => setData(p => ({ ...p, [s]: [...p[s], item] }));
   const removeItem = (s, idx) => setData(p => ({ ...p, [s]: p[s].filter((_, i) => i !== idx) }));
   const updateItem = (s, idx, f, v) => setData(p => ({ ...p, [s]: p[s].map((it, i) => i === idx ? { ...it, [f]: v } : it) }));
   
@@ -708,8 +582,16 @@ export default function App() {
     setData(prev => ({ ...prev, customSections: prev.customSections.map(s => s.id === id ? { ...s, title: newTitle } : s) }));
   };
   const addDetailedItem = (sid) => setData(p => ({ ...p, customSections: p.customSections.map(s => s.id === sid ? { ...s, content: [...s.content, { title: '', subtitle: '', date: '', location: '', description: [''] }] } : s) }));
-  const removeDetailedItem = (sid, idx) => setData(p => ({ ...p, customSections: p.customSections.map(s => s.id === sid ? { ...s, content: s.content.filter((_, i) => i !== idx) } : s) }));
+  
+  const removeDetailedItem = (sid, idx) => setData(p => ({ 
+    ...p, 
+    customSections: p.customSections.map(s => 
+        s.id === sid ? { ...s, content: s.content.filter((_, i) => i !== idx) } : s
+    ) 
+  }));
+
   const updateDetailedItem = (sid, idx, f, v) => setData(p => ({ ...p, customSections: p.customSections.map(s => s.id === sid ? { ...s, content: s.content.map((item, i) => i === idx ? { ...item, [f]: v } : item) } : s) }));
+  
   const updateDetailedItemDesc = (sid, idx, ignoredField, di, v) => {
     setData(p => ({
         ...p,
@@ -726,6 +608,7 @@ export default function App() {
         )
     }));
   };
+  
   const addDetailedItemDescLine = (sid, idx) => setData(p => ({ ...p, customSections: p.customSections.map(s => s.id === sid ? { ...s, content: s.content.map((item, i) => i === idx ? { ...item, description: [...item.description, ""] } : item) } : s) }));
   const removeDetailedItemDescLine = (sid, idx, di) => setData(p => ({ ...p, customSections: p.customSections.map(s => s.id === sid ? { ...s, content: s.content.map((item, i) => i === idx ? { ...item, description: item.description.filter((_, k) => k !== di) } : item) } : s) }));
   
@@ -1228,22 +1111,7 @@ export default function App() {
     );
   };
 
-  const renderPersonalForm = () => {
-    // Helper para CNH
-    const handleCnhToggle = (cat) => {
-        const current = data.personal.cnh || [];
-        let newCnh;
-        if (current.includes(cat)) {
-            newCnh = current.filter(c => c !== cat);
-        } else {
-            newCnh = [...current, cat].sort();
-        }
-        updateField('personal', 'cnh', newCnh);
-    };
-
-    const CNH_TYPES = ['A', 'B', 'C', 'D', 'E'];
-
-    return (
+  const renderPersonalForm = () => (
     <div className="space-y-4">
       <h2 className="text-xl font-bold border-b pb-2">{t.personalTab}</h2>
       
@@ -1396,34 +1264,13 @@ export default function App() {
         <Input label={t.linkedin} value={data.personal.linkedin} onChange={v=>updateField('personal','linkedin',v)} onExpandRequest={handleOpenExpand}/>
         <Input label={t.github} value={data.personal.github} onChange={v=>updateField('personal','github',v)} onExpandRequest={handleOpenExpand}/>
         <Input label={t.lattes} value={data.personal.lattes || ''} onChange={v=>updateField('personal','lattes',v)} onExpandRequest={handleOpenExpand}/>
-        <Input label={t.website} value={data.personal.website || ''} onChange={v=>updateField('personal','website',v)} onExpandRequest={handleOpenExpand} placeholder="Site/Portfólio"/>
         <Input label={t.youtube} value={data.personal.youtube || ''} onChange={v=>updateField('personal','youtube',v)} onExpandRequest={handleOpenExpand}/>
-      </div>
-
-      {/* NOVO BLOCO: CNH (Carteira de Motorista) */}
-      <div className="mt-4 p-4 border rounded bg-gray-50">
-          <label className="text-xs font-semibold text-gray-500 uppercase mb-2 block">Carteira de Motorista (CNH)</label>
-          <div className="flex flex-wrap gap-4">
-              {CNH_TYPES.map(cat => (
-                  <label key={cat} className="flex items-center gap-2 cursor-pointer hover:bg-gray-200 p-2 rounded transition-colors">
-                      <input 
-                        type="checkbox" 
-                        checked={(data.personal.cnh || []).includes(cat)}
-                        onChange={() => handleCnhToggle(cat)}
-                        className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
-                      />
-                      <span className="font-bold text-gray-700">{cat}</span>
-                  </label>
-              ))}
-          </div>
-          <p className="text-[10px] text-gray-400 mt-2">Selecione as categorias habilitadas. Elas aparecerão como CNH "AB", por exemplo.</p>
       </div>
     </div>
   );
-  };
   
   const renderSummaryForm = () => {
-    const isVisible = data.structure.summary.visible;
+    const isVisible = data.structure.summary.visible; // VERIFICA VISIBILIDADE
     const handleFormatSummary = (type) => {
       const newVal = insertFormatting(summaryRef, type);
       if(newVal !== undefined) updateSimpleField('summary', newVal);
@@ -1433,6 +1280,7 @@ export default function App() {
       <div className="space-y-4 relative group">
         {renderSectionHeader('summary', t.sections?.summary || "Resumo")}
         
+        {/* WRAPPER PARA ACINZENTAR E DESABILITAR */}
         <div className={`transition-opacity duration-300 ${isVisible ? 'opacity-100' : 'opacity-50 pointer-events-none grayscale'}`}>
             <p className="text-xs text-gray-500 mb-1">Dica: Selecione o texto e use os botões que aparecem no canto.</p>
             <div className="relative">
@@ -1441,7 +1289,7 @@ export default function App() {
                 className="w-full h-48 p-3 border rounded text-sm focus:ring-2 focus:ring-blue-500 outline-none" 
                 value={data.summary} 
                 onChange={e => updateSimpleField('summary', e.target.value)} 
-                disabled={!isVisible} 
+                disabled={!isVisible} // DESABILITA TEXTAREA
               />
               <RichTextToolbar 
                 onFormat={handleFormatSummary} 
@@ -1454,7 +1302,7 @@ export default function App() {
   };
 
   const renderObjectiveForm = () => {
-    const isVisible = data.structure.objective.visible;
+    const isVisible = data.structure.objective.visible; // VERIFICA VISIBILIDADE
     const handleFormatObjective = (type) => {
       const newVal = insertFormatting(objectiveRef, type);
       if(newVal !== undefined) updateSimpleField('objective', newVal);
@@ -1464,6 +1312,7 @@ export default function App() {
       <div className="space-y-4 relative group">
         {renderSectionHeader('objective', t.sections?.objective || "Objetivo")}
         
+        {/* WRAPPER PARA ACINZENTAR E DESABILITAR */}
         <div className={`transition-opacity duration-300 ${isVisible ? 'opacity-100' : 'opacity-50 pointer-events-none grayscale'}`}>
             <p className="text-xs text-gray-500 mb-1">Dica: Selecione o texto e use os botões que aparecem no canto.</p>
             <div className="relative">
@@ -1472,7 +1321,7 @@ export default function App() {
                 className="w-full h-32 p-3 border rounded text-sm focus:ring-2 focus:ring-blue-500 outline-none" 
                 value={data.objective} 
                 onChange={e => updateSimpleField('objective', e.target.value)} 
-                disabled={!isVisible} 
+                disabled={!isVisible} // DESABILITA TEXTAREA
               />
               <RichTextToolbar 
                 onFormat={handleFormatObjective} 
@@ -1489,13 +1338,14 @@ export default function App() {
       sectionId="skills" 
       title={t.sections?.skills || "Competências"} 
       items={data.skills} 
-      onAdd={() => setAddingSection('skills')} // MODIFICADO PARA ABRIR MODAL
+      onAdd={() => addItem('skills', {category:'', items:''})} 
       onRemove={(idx) => removeItem('skills', idx)} 
       renderHeader={renderSectionHeader}
       isVisible={data.structure.skills.visible}
       onToggle={() => updateStructure('skills', 'visible', !data.structure.skills.visible)}
       t={t}
       renderItem={(s, i) => {
+        // DETECTA SE O ITEM ATUAL TEM QUEBRA DE LINHA
         const isListMode = s.items && s.items.includes('\n');
         
         return (
@@ -1503,6 +1353,7 @@ export default function App() {
               <Input label={t.category} value={s.category} onChange={v=>updateItem('skills', i, 'category', v)} onExpandRequest={handleOpenExpand}/>
               <div className="mt-2">
                 <div className="flex justify-between items-end mb-1">
+                     {/* AVISO VISUAL ACIMA DO INPUT NA SIDEBAR */}
                     {isListMode && (
                         <div className="flex items-center gap-1 text-[10px] text-blue-700 font-semibold bg-blue-50 px-2 py-0.5 rounded border border-blue-200 w-full mb-1">
                             <ListIcon size={10}/>
@@ -1523,7 +1374,7 @@ export default function App() {
       sectionId="projects" 
       title={t.sections?.projects || "Projetos"} 
       items={data.projects} 
-      onAdd={() => setAddingSection('projects')} // MODIFICADO PARA ABRIR MODAL
+      onAdd={() => addItem('projects', {title:'', tech:'', description:['']})} 
       onRemove={(idx) => removeItem('projects', idx)} 
       renderHeader={renderSectionHeader}
       isVisible={data.structure.projects.visible}
@@ -1547,7 +1398,7 @@ export default function App() {
       sectionId="experience" 
       title={t.sections?.experience || "Experiência"} 
       items={data.experience} 
-      onAdd={() => setAddingSection('experience')} // MODIFICADO PARA ABRIR MODAL
+      onAdd={() => addItem('experience', {company:'', role:'', period:'', location:'', description:['']})} 
       onRemove={(idx) => removeItem('experience', idx)} 
       renderHeader={renderSectionHeader}
       isVisible={data.structure.experience.visible}
@@ -1572,7 +1423,7 @@ export default function App() {
       sectionId="education" 
       title={t.sections?.education || "Formação"} 
       items={data.education} 
-      onAdd={() => setAddingSection('education')} // MODIFICADO PARA ABRIR MODAL
+      onAdd={() => addItem('education', {institution:'', degree:'', period:'', location:'', details:''})} 
       onRemove={(idx) => removeItem('education', idx)} 
       renderHeader={renderSectionHeader}
       isVisible={data.structure.education.visible}
@@ -1597,7 +1448,7 @@ export default function App() {
       sectionId="others" 
       title={t.sections?.others || "Outros"}
       items={data.others} 
-      onAdd={() => setAddingSection('others')} // MODIFICADO PARA ABRIR MODAL
+      onAdd={() => addItem('others', {title: 'Nova Categoria', description: ['']})}
       onRemove={(idx) => removeItem('others', idx)}
       renderHeader={renderSectionHeader}
       isVisible={data.structure.others.visible}
@@ -1628,7 +1479,7 @@ export default function App() {
       sectionId="references" 
       title={t.sections?.references || "Referências"} 
       items={data.references} 
-      onAdd={() => setAddingSection('references')} // MODIFICADO PARA ABRIR MODAL
+      onAdd={() => addItem('references', { name: '', company: '', role: '', email: '', phone: '' })} 
       onRemove={(idx) => removeItem('references', idx)} 
       renderHeader={renderSectionHeader}
       isVisible={data.structure.references.visible}
@@ -1747,25 +1598,18 @@ export default function App() {
         disableFormatting={expandedField?.disableFormatting}
       />
 
-      {/* RENDERIZAÇÃO DO MODAL DE ADIÇÃO AQUI */}
-      <AddItemModal 
-        isOpen={!!addingSection}
-        onClose={() => setAddingSection(null)}
-        sectionId={addingSection || ''}
-        onSave={handleAddNewItem}
-        t={t}
-      />
-
       <div className="h-screen w-screen bg-gray-100 font-sans text-gray-900 flex flex-col md:flex-row overflow-hidden select-none" onMouseMove={isResizing ? resize : null} onMouseUp={stopResizing}>
         <link href={FONTS[settings.font].url} rel="stylesheet" />
         
         <nav className={`bg-slate-900 text-slate-300 flex-shrink-0 h-full md:h-screen overflow-y-auto transition-all duration-300 ${isSidebarOpen ? 'w-full md:w-64' : 'w-0 md:w-0 overflow-hidden'}`}>
           <div className="p-6 border-b border-slate-700 flex flex-col items-center text-center">
+              {/* MODIFICAÇÃO: Título centralizado, maior e com cor */}
               <div className="mb-6">
                   <h1 className="text-blue-400 font-extrabold text-3xl whitespace-nowrap tracking-tight">{t.appName}</h1>
                   <p className="text-xs text-slate-500 mt-1 whitespace-nowrap">{t.version}</p>
               </div>
               
+              {/* MODIFICAÇÃO: Botões de idioma com rótulo e design específico */}
               <div className="w-full bg-slate-800 p-3 rounded-lg border border-slate-700">
                   <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2 block">
                       {language === 'pt' ? 'Mudar Idioma' : 'Change Language'}
