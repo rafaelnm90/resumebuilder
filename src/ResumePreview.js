@@ -7,8 +7,8 @@ const EXIBIR_LOGS = true;
 
 if (EXIBIR_LOGS) {
     console.log("🚀 [ResumePreview.js] Renderizando...");
-    console.log("📄 CNH: Posicionada inline com contatos.");
-    console.log("👻 ATS: Modo 'Ghost Text' ativado (Absolute + White + 1px).");
+    console.log("📄 Listas: Margens ajustadas para impressão (Padding dinâmico).");
+    console.log("👻 ATS: Modo Ghost Text (Absolute 1px White) ativo.");
 }
 
 const formatText = (text) => {
@@ -28,23 +28,32 @@ const formatText = (text) => {
 const getFormattedDate = (dataObj) => {
     let dateToUse = dataObj.date;
 
+    // Se for automático, pega a data de hoje
     if (dataObj.autoDate) {
         const today = new Date();
+        // Se formato for numérico
         if (dataObj.format !== 'long') {
             return today.toLocaleDateString('pt-BR');
         }
+        // Se formato for extenso
         return today.toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' });
     }
 
+    // Se for manual e o usuário quer extenso
     if (dataObj.format === 'long' && dateToUse) {
+        // Tenta detectar formato DD/MM/YYYY ou DD-MM-YYYY
         const match = dateToUse.match(/^(\d{1,2})[\/\.-](\d{1,2})[\/\.-](\d{4})$/);
         if (match) {
+            // Cria data (Mês é 0-indexed)
             const d = new Date(match[3], match[2] - 1, match[1]);
+            // Verifica se é data válida
             if (!isNaN(d.getTime())) {
                 return d.toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' });
             }
         }
     }
+
+    // Retorna como está se não for possível converter ou se for numérico
     return dateToUse;
 };
 
@@ -163,37 +172,40 @@ export default function ResumePreview({ data, settings }) {
         
         let text = item;
         let bulletClass = activeStyle.cssMain;
-        let indentClass = '';
         let extraClasses = '';
+        
+        // CORREÇÃO CRÍTICA PARA IMPRESSÃO:
+        // Marcadores largos (check, arrow) precisam de padding extra no LI.
+        // Removemos margins fixas (ml-4) em favor de padding controlado.
+        let liStyle = { 
+            textAlign: settings.textAlign, 
+            textJustify: 'inter-word',
+            color: settings.listMarkerUseThemeColor ? settings.themeColor : (settings.bodyColor || '#374151'),
+            // Se for largo, dá mais espaço. Se não, usa o padrão do UL (que definimos no App.js como 1.2em)
+            paddingLeft: isWideMarker ? '0.5em' : '0' 
+        };
 
         if (isHeader) {
             text = item.slice(3);
             bulletClass = 'list-none'; 
             extraClasses = 'font-bold mt-0 mb-0 pt-0'; 
+            liStyle.color = settings.bodyColor;
+            liStyle.paddingLeft = '0';
         } else if (isSub) {
             text = item.slice(3);
             bulletClass = activeStyle.cssSub;
-            indentClass = 'ml-6';
-            if (isWideMarker) extraClasses = 'pl-2';
-        } else {
-            if (isWideMarker) {
-                extraClasses = 'pl-3';
-            }
+            // Para subtópicos, aumentamos a margem esquerda visualmente
+            extraClasses = 'ml-6'; 
         }
-
-        const markerColor = settings.listMarkerUseThemeColor ? settings.themeColor : (settings.bodyColor || '#374151');
 
         return (
             <li 
                 key={i} 
-                className={`break-words ${indentClass} ${bulletClass} ${extraClasses} ${settings.listMarkerBold ? 'marker:font-bold' : ''}`} 
-                style={{ 
-                    textAlign: settings.textAlign, 
-                    textJustify: 'inter-word',
-                    color: isHeader ? settings.bodyColor : markerColor 
-                }}
+                className={`break-words ${bulletClass} ${extraClasses} ${settings.listMarkerBold ? 'marker:font-bold' : ''}`} 
+                style={liStyle}
             >
-                <span style={{ color: settings.bodyColor || '#374151' }}>
+                {/* Pequeno ajuste relativo para afastar o texto do marcador largo */}
+                <span style={{ color: settings.bodyColor || '#374151', position: 'relative', left: isWideMarker ? '0.3em' : '0' }}>
                     {formatText(text)}
                 </span>
             </li>
@@ -285,12 +297,13 @@ export default function ResumePreview({ data, settings }) {
             <div className={textContainerClasses}>
                 <h1 className="font-extrabold tracking-wide uppercase leading-none mb-4 break-words" style={{ color: settings.themeColor, fontSize: dynamicTitleSize }}>{data.personal.name}</h1>
                 
+                {/* LINHA 1: CONTATOS (Email, Tel, Local E CNH) */}
                 <div className={`flex flex-wrap gap-x-3 gap-y-1 ${dynamicTextSize} font-medium leading-tight mb-2 ${contactJustify}`}>
                     {data.personal.email && <span className="flex items-center gap-1"><Mail size={'1em'} className="flex-shrink-0"/> {data.personal.email}</span>}
                     {data.personal.phone && <span className="flex items-center gap-1 border-l pl-2 border-gray-400"><Phone size={'1em'} className="flex-shrink-0"/> {data.personal.phone}</span>}
                     {data.personal.location && <span className="flex items-center gap-1 border-l pl-2 border-gray-400"><MapPin size={'1em'} className="flex-shrink-0"/> {data.personal.location}</span>}
                     
-                    {/* CNH INLINE AQUI (SOLICITAÇÃO ATENDIDA) */}
+                    {/* CNH AQUI - INLINE COM DADOS */}
                     {data.personal.driverLicenses && data.personal.driverLicenses.length > 0 && (
                         <span className="flex items-center gap-1 border-l pl-2 border-gray-400">
                             <Car size={'1em'} className="flex-shrink-0"/> 
@@ -299,6 +312,7 @@ export default function ResumePreview({ data, settings }) {
                     )}
                 </div>
 
+                {/* LINHA 2: LINKS SOCIAIS */}
                 <div className={`flex flex-wrap gap-3 ${dynamicTextSize} font-medium leading-tight ${contactJustify} mb-2`} style={{ color: settings.themeColor }}>
                     {data.personal.linkedin && (
                         <a 
@@ -391,7 +405,16 @@ export default function ResumePreview({ data, settings }) {
                 </SimpleSectionWrapper>
             ); 
         }
-        if (sec.type === 'list') { return (<SimpleSectionWrapper title={displayTitle} sectionId={sectionId}><ul className="list-outside ml-4" style={containerStyle}>{renderListItems(sec.content, sectionId)}</ul></SimpleSectionWrapper>); }
+        // AQUI ESTÁ A CORREÇÃO PRINCIPAL DE PADDING
+        if (sec.type === 'list') { 
+            return (
+                <SimpleSectionWrapper title={displayTitle} sectionId={sectionId}>
+                    <ul className="list-outside" style={{...containerStyle, paddingLeft: '1.2em'}}>
+                        {renderListItems(sec.content, sectionId)}
+                    </ul>
+                </SimpleSectionWrapper>
+            ); 
+        }
         
         if (sec.type === 'detailed') { 
             return (
@@ -412,7 +435,8 @@ export default function ResumePreview({ data, settings }) {
                                         <div className={`text-[0.9em] text-right leading-tight flex-shrink-0 ${rightTextStyle}`} style={{ width: expColWidthCSS, color: rightTextColor }}>{item.date}</div>
                                     </div>
                                     <div className="mt-1" style={{ paddingRight: expColWidthCSS }}>
-                                        <ul className="list-outside ml-4" style={innerListStyle}>
+                                        {/* REPLICAÇÃO DO PADDING NO SUB-CONTAINER */}
+                                        <ul className="list-outside" style={{...innerListStyle, paddingLeft: '1.2em'}}>
                                             {renderListItems(item.description, sectionId)}
                                         </ul>
                                     </div>
@@ -451,7 +475,7 @@ export default function ResumePreview({ data, settings }) {
                                 </div>
                                 <div className="break-words leading-tight flex-1" style={{ textAlign: settings.textAlign, textJustify: 'inter-word' }}>
                                     {isMultiLine ? (
-                                        <ul className="list-outside ml-4 mt-1" style={innerListStyle}>
+                                        <ul className="list-outside" style={{...innerListStyle, paddingLeft: '1.2em'}}>
                                             {renderListItems(skill.items.split('\n').filter(line => line.trim()), sectionId)}
                                         </ul>
                                     ) : (
@@ -483,7 +507,7 @@ export default function ResumePreview({ data, settings }) {
                                     <span>{proj.link.replace(/^https?:\/\/(www\.)?/, '')}</span>
                                 </a>
                             )}
-                            <ul className="list-outside ml-4" style={innerListStyle}>
+                            <ul className="list-outside" style={{...innerListStyle, paddingLeft: '1.2em'}}>
                                 {renderListItems(proj.description, sectionId)}
                             </ul>
                         </div>
@@ -517,7 +541,7 @@ export default function ResumePreview({ data, settings }) {
                             <div className={`text-[0.9em] text-right leading-tight flex-shrink-0 ${rightTextStyle}`} style={{ width: expColWidthCSS, color: rightTextColor }}>{exp.period}</div>
                         </div>
                         <div className="mt-0" style={{ paddingRight: expColWidthCSS }}>
-                            <ul className="list-outside ml-4" style={innerListStyle}>
+                            <ul className="list-outside" style={{...innerListStyle, paddingLeft: '1.2em'}}>
                                 {renderListItems(exp.description, sectionId)}
                             </ul>
                         </div>
@@ -565,7 +589,7 @@ export default function ResumePreview({ data, settings }) {
                              return (
                                 <div key={i} className={pageBreakClass}>
                                     {item.title && <h4 className="font-bold text-[0.95em] mb-1">{item.title}</h4>}
-                                    <ul className="list-outside ml-4" style={innerListStyle}>
+                                    <ul className="list-outside" style={{...innerListStyle, paddingLeft: '1.2em'}}>
                                         {renderListItems(item.description, sectionId)}
                                     </ul>
                                 </div>
@@ -577,26 +601,34 @@ export default function ResumePreview({ data, settings }) {
         case 'references':
             return structure.references.visible && data.references && data.references.length > 0 && (
                 <SimpleSectionWrapper title={displayTitle} sectionId={sectionId}>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4" style={{ gap: `${settings.itemSpacing}mm` }}>
+                    {/* Grid de 2 colunas fixo para impressão */}
+                    <div className="grid grid-cols-2" style={{ gap: `${settings.itemSpacing}mm` }}>
                         {data.references.map((ref, i) => (
-                            <div key={i} className="break-inside-avoid">
-                                <div className="font-bold text-[0.95em]" style={{ color: settings.bodyColor }}>{ref.name}</div>
+                            <div key={i} className="break-inside-avoid min-w-0 pr-2">
+                                <div className="font-bold text-[0.95em] break-words leading-tight" style={{ color: settings.bodyColor }}>{ref.name}</div>
                                 {(ref.role || ref.company) && (
-                                    <div className="text-[0.9em] italic mb-0.5" style={{ color: roleColor }}>
+                                    <div className="text-[0.9em] italic mb-1 break-words leading-tight" style={{ color: roleColor }}>
                                         {ref.role}{ref.role && ref.company ? ' | ' : ''}{ref.company}
                                     </div>
                                 )}
-                                <div className="text-[0.85em] space-y-0.5 text-gray-600">
+                                
+                                <div className="text-[0.85em] space-y-1 text-gray-600">
                                     {ref.email && (
-                                        <div className="flex items-center gap-1.5">
-                                            <Mail size={10} />
-                                            <span>{ref.email}</span>
+                                        /* items-start: Alinha ícone no topo. flex-shrink-0: Impede ícone de esmagar */
+                                        <div className="flex items-start gap-2">
+                                            <div className="mt-[3px] flex-shrink-0">
+                                                <Mail size={10} />
+                                            </div>
+                                            {/* break-all: Força quebra de linha em emails gigantes */}
+                                            <span className="break-all leading-tight">{ref.email}</span>
                                         </div>
                                     )}
                                     {ref.phone && (
-                                        <div className="flex items-center gap-1.5">
-                                            <Phone size={10} />
-                                            <span>{ref.phone}</span>
+                                        <div className="flex items-start gap-2">
+                                            <div className="mt-[3px] flex-shrink-0">
+                                                <Phone size={10} />
+                                            </div>
+                                            <span className="break-all leading-tight">{ref.phone}</span>
                                         </div>
                                     )}
                                 </div>
