@@ -69,7 +69,7 @@ const handleFormatList = (ref, type, currentVal, setVal) => {
     setVal(newText);
 };
 
-// NOVO COMPONENTE: Botão grande tracejado para adicionar no topo
+// Botão grande tracejado para adicionar no topo
 const AddItemButton = ({ onClick, label }) => (
   <button 
     onClick={onClick}
@@ -389,6 +389,7 @@ export default function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isResizing]);
 
+  // --- CORREÇÃO DA IMPRESSÃO (PDF) ---
   const handlePrint = () => {
     const resumeContent = document.getElementById('resume-preview');
     if (!resumeContent) return alert("Erro ao gerar PDF.");
@@ -415,9 +416,15 @@ export default function App() {
             /* CSS RESET HARDCORE PARA IMPRESSÃO - CORRIGIDO */
             *, *::before, *::after { box-sizing: border-box !important; }
             
-            /* MODIFICAÇÃO: Removido reset agressivo de margens para h1, h2, p, etc. */
-            /* Isso permite que as classes do Tailwind (mb-4, gap-2) funcionem no PDF */
-            ul, ol, li {
+            /* CSS DE IMPRESSÃO CORRIGIDO PARA LISTAS */
+            /* Removemos o 'padding: 0' agressivo que causava o problema de margem */
+            ul, ol {
+                margin-top: 0 !important;
+                margin-bottom: 0 !important;
+                /* IMPORTANTE: Garante padding para os bullets não sumirem da página */
+                padding-left: 1.2em !important; 
+            }
+            li {
                 margin: 0 !important;
                 padding: 0 !important;
             }
@@ -440,9 +447,6 @@ export default function App() {
               .dynamic-title { color: ${settings.themeColor} !important; }
               .content-container { width: 100% !important; margin: 0 !important; }
               a { text-decoration: none !important; }
-              
-              /* Garante que listas mantenham o estilo visual mas sem margens externas */
-              ul.list-disc, ul.list-decimal { padding-left: 1.2em !important; }
               
               thead { display: table-header-group; }
               tfoot { display: table-footer-group; }
@@ -1638,15 +1642,23 @@ export default function App() {
       onToggle={() => updateStructure('references', 'visible', !data.structure.references.visible)}
       t={t}
       renderItem={(item, i) => (
-        <div className="space-y-2">
-            <div className="grid grid-cols-2 gap-2">
+        <div className="space-y-3"> {/* Aumentei um pouco o espaçamento vertical */}
+            {/* Linha 1: Nome e Empresa */}
+            <div className="grid grid-cols-2 gap-3">
                 <Input label={t.refName} value={item.name} onChange={v=>updateItem('references', i, 'name', v)} onExpandRequest={handleOpenExpand}/>
                 <Input label={t.refCompany} value={item.company} onChange={v=>updateItem('references', i, 'company', v)} onExpandRequest={handleOpenExpand}/>
             </div>
-            <div className="grid grid-cols-3 gap-2">
+            
+            {/* Linha 2: Cargo e Email (Mudei de 3 colunas para 2 para evitar quebra) */}
+            <div className="grid grid-cols-2 gap-3">
                 <Input label={t.refRole} value={item.role} onChange={v=>updateItem('references', i, 'role', v)} onExpandRequest={handleOpenExpand}/>
                 <Input label={t.refEmail} value={item.email} onChange={v=>updateItem('references', i, 'email', v)} onExpandRequest={handleOpenExpand}/>
-                <Input label={t.refPhone} value={item.phone} onChange={v=>updateItem('references', i, 'phone', v)} onExpandRequest={handleOpenExpand}/>
+            </div>
+
+            {/* Linha 3: Telefone (Sozinho ou em grid se quiser adicionar mais coisas depois) */}
+            <div className="grid grid-cols-2 gap-3">
+                 <Input label={t.refPhone} value={item.phone} onChange={v=>updateItem('references', i, 'phone', v)} onExpandRequest={handleOpenExpand}/>
+                 {/* Espaço vazio ou futuro campo */}
             </div>
         </div>
       )}
@@ -1751,7 +1763,6 @@ export default function App() {
           </div>
           <div className="p-4 space-y-1">
             {tabs.map(tab => {
-                // MODIFICAÇÃO: Lógica para destacar botão de settings mesmo se não ativo
                 const isSettings = tab.id === 'settings';
                 const isActive = activeTab === tab.id;
                 
