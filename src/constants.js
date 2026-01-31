@@ -1,9 +1,9 @@
 // src/constants.js
-export const EXIBIR_LOGS = true; // CORREÇÃO: Adicionado 'export'
+export const EXIBIR_LOGS = true;
 
 if (EXIBIR_LOGS) {
     console.log("🚀 [constants.js] Carregando configurações...");
-    console.log("🌐 Dicionário de Tradução (PT/EN) atualizado com opções de Backup.");
+    console.log("🌐 Dados preenchidos com base no Currículo Lattes (Histórico Completo).");
 }
 
 export const FONTS = {
@@ -67,7 +67,7 @@ export const TRANSLATIONS = {
       fontFamily: "Família da Fonte",
       themeOptions: "Opções de Cor do Tema",
       colorRoles: "Cargos, Instituições & URLs",
-      colorDates: "Datas, Locais & Tech",
+      colorDates: "Datas, Locations & Tech",
       boldDates: "Negrito em Datas e Locais (Direita)",
       linkIcon: "Mostrar Ícone de Link (🔗) em 'Projetos Relevantes'",
       accentColor: "Cor de Destaque",
@@ -97,9 +97,22 @@ export const TRANSLATIONS = {
       github: "GitHub",
       lattes: "Currículo Lattes (Link/ID)",
       youtube: "YouTube (Canal/Link)",
-      expandEditor: "Expandir Editor em Tela Cheia",
+      expandEditor: "Expand Editor em Tela Cheia",
       
-      // NOVOS TEXTOS DE ALERTA
+      driverLicenses: "CNH (Carteiras de Motorista)",
+      addNewItem: "Adicionar Novo Item",
+      
+      footerSettings: "Rodapé: Data & Local",
+      showFooter: "Exibir Data e Local no Final?",
+      footerLocation: "Cidade/Estado",
+      footerDate: "Data",
+      footerAutoDate: "Usar Data Atual (Automático)",
+      footerBold: "Negrito",
+      footerColor: "Usar Cor do Tema",
+      footerFormat: "Estilo da Data",
+      footerFormatNumeric: "Numérica (31/01/2026)",
+      footerFormatLong: "Por Extenso (31 de janeiro...)",
+
       atsTitle: "Camuflagem ATS (White Fonting)",
       atsStatusOn: "✅ ATIVADO",
       atsStatusOff: "❌ DESATIVADO",
@@ -220,7 +233,20 @@ export const TRANSLATIONS = {
       youtube: "YouTube (Channel/Link)",
       expandEditor: "Expand Editor Fullscreen",
       
-      // NEW AGGRESSIVE WARNING TEXTS
+      driverLicenses: "Driver's License (Categories)",
+      addNewItem: "Add New Item",
+      
+      footerSettings: "Footer: Date & Location",
+      showFooter: "Show Date & Location at Bottom?",
+      footerLocation: "City/State",
+      footerDate: "Date",
+      footerAutoDate: "Use Current Date (Auto)",
+      footerBold: "Bold",
+      footerColor: "Use Theme Color",
+      footerFormat: "Date Style",
+      footerFormatNumeric: "Numeric (31/01/2026)",
+      footerFormatLong: "Long Form (January 31...)",
+      
       atsTitle: "ATS Camouflage (White Fonting)",
       atsStatusOn: "✅ ENABLED",
       atsStatusOff: "❌ DISABLED",
@@ -323,7 +349,20 @@ export const INITIAL_DATA = {
     references: { title: "Referências Profissionais", visible: false, id: 'references' },
     keywords: { title: "Camuflagem ATS (SEO)", visible: false, id: 'keywords' }
   },
+  
   customSections: [], 
+  
+  // ESTRUTURA PARA RODAPÉ (DATA/LOCAL)
+  dateLocation: {
+    visible: true,
+    location: "Uberlândia, MG", 
+    date: "",
+    autoDate: true,
+    useBold: false,
+    useThemeColor: true,
+    format: 'numeric' 
+  },
+
   personal: {
     name: "RAFAEL NOVAIS DE MIRANDA",
     email: "rafaelnovaismiranda@gmail.com",
@@ -332,7 +371,7 @@ export const INITIAL_DATA = {
     linkedin: "linkedin.com/in/rafael-miranda",
     github: "github.com/rafael-miranda",
     youtube: "youtube.com/@rafael-miranda", 
-    lattes: "lattes.cnpq.br/123456789", 
+    lattes: "lattes.cnpq.br/6450189926093594", 
     website: "",
     photo: "", 
     showPhoto: false,
@@ -349,117 +388,175 @@ export const INITIAL_DATA = {
     photoFlip: false,     
     photoCover: false,    
     photoBorder: 0,       
-    photoShadow: false    
+    photoShadow: false,
+    
+    // CNH
+    driverLicenses: ['A', 'C'] 
   },
-  objective: "Atuar como Desenvolvedor de Software Full Stack, aplicando conhecimentos em Python e React para criar soluções escaláveis e eficientes.",
-  summary: "Doutor em Genética e Melhoramento com perfil híbrido e estratégico, integrando a expertise agronômica à engenharia de software (Ciência da Computação em curso). Especialista em **Computational Breeding**, atuo na interface entre Biologia e Dados desenvolvendo ferramentas AgTech que automatizam pipelines complexos de Big Data Genômico e análises biométricas. Busco integrar o time de P&D da **Bayer** em Uberlândia para traduzir desafios biológicos em soluções computacionais escaláveis, acelerando a inovação genética e a tomada de decisão no campo.",
+  
+  objective: "Profissional com perfil multidisciplinar, atuando na interface entre as Ciências Agrárias e a Ciência da Computação. Busco oportunidades que permitam integrar análise de dados, desenvolvimento de software e gestão técnica para otimização de processos e tomada de decisão estratégica.",
+  
+  summary: "Doutor em Genética e Melhoramento de Plantas pela UFLA, atualmente graduando em Ciência da Computação para expandir a aplicação de métodos computacionais. Possui sólida experiência em análise experimental, modelagem de dados e liderança técnica, tendo atuado como pesquisador na EPAMIG e coordenador de TI no Núcleo de Estudos em Genética (GEN). Desenvolvedor do software AgroStatPro, com domínio de Python, R, SQL e ferramentas de Business Intelligence.",
+  
   skills: [
-    { category: "Computational Breeding", items: "R (Avançado para Biometria), Python (Pandas/NumPy), Automação de Pipelines, Linux HPC." },
-    { category: "Estatística & Modelagem", items: "Modelos Mistos (REML/BLUP), GWAS, Seleção Genômica, Análise Espacial, Testes Multi-ambientes." },
-    { category: "Engenharia de Software", items: "SQL, Git/GitHub, Streamlit (Dashboarding). Conceitos de Cloud Computing, Docker." },
-    { category: "Automação & Google Stack", items: "Especialista em Planilhas (Google Sheets/Excel) + Apps Script (Bots de Coleta/Web Scraping, Fórmulas Avançadas)." },
-    { category: "IA Generativa", items: "Engenharia de Prompt e uso avançado de assistentes de IA para aceleração de desenvolvimento." }
+    { category: "Linguagens & Desenvolvimento", items: "Python, R (Avançado), SQL, Google Apps Script, Streamlit, HTML/CSS." },
+    { category: "Dados & BI", items: "Power BI, Excel Avançado, Google Data Analytics, Análise Multivariada, Modelos Mistos, Estatística Experimental." },
+    { category: "Infraestrutura & Ferramentas", items: "Linux (Bioinformática), Git/GitHub, Docker, Google Cloud Platform (Conceitos)." },
+    { category: "Gestão & Soft Skills", items: "Liderança de Equipes, Organização de Eventos, Gestão Financeira, Comunicação Estratégica, Planejamento de Projetos." },
+    { category: "Agrárias & Bio", items: "Genética Quantitativa, GWAS, Biologia Molecular, Manejo de Culturas (Milho/Feijão/Cana), Fitopatologia." }
   ],
+  
   projects: [
     {
-      title: "AgroStatPro - Solução SaaS para Pesquisa Agrícola",
+      title: "AgroStatPro - Software de Análise Estatística",
       link: "agrostat.streamlit.app", 
       tech: "Python, Streamlit, Pandas",
       description: [
-        "Desenvolvimento **Fullstack** para automação de cálculos estatísticos.",
-        "Transformação de scripts acadêmicos complexos em um produto de dados intuitivo (SaaS).",
-        "Demonstração de entrega de software, saindo do ambiente de pesquisa para uma solução de mercado."
+        "Desenvolvimento integral de solução SaaS focada em análise estatística agronômica.",
+        "Integração de inteligência de dados e otimização de processos para pesquisadores."
       ]
     },
     {
-      title: "Suíte de Automação e Web Scraping",
-      link: "github.com/rafael/automacao", 
-      tech: "Google Apps Script, Sheets",
+      title: "Coordenação Geral e de TI - GEN (Núcleo de Estudos)",
+      link: "ufla.br", 
+      tech: "Gestão, Web, CMS",
       description: [
-        "Desenvolvimento de robôs de coleta (**Web Scraping**) integrados ao Google Sheets.",
-        "Criação de scripts para automação de fluxo de trabalho (ETL leve)."
+        "Liderança na modernização da infraestrutura digital e gestão de ativos web.",
+        "Responsável pela organização logística e financeira de 4 Simpósios Internacionais e 12 Cursos.",
+        "Implementação de sistemas de gestão de inscrições e suporte tecnológico em eventos."
+      ]
+    },
+    {
+      title: "Mapeamento Genético (GWAS) em Feijão-Comum",
+      link: "lattes.cnpq.br/6450189926093594", 
+      tech: "R, Linux, Genomics",
+      description: [
+        "Identificação de marcadores moleculares para resistência à Mancha Angular usando modelos mistos.",
+        "Análise de grandes volumes de dados genotípicos (DArTseq) e fenotípicos."
       ]
     }
   ],
+  
   experience: [
     {
-      company: "Aroeira Agricultura Consultoria",
-      role: "Consultor Agronômico",
-      period: "2024 - Atual",
-      location: "Sul de Minas, MG",
-      description: [
-        "Consultoria técnica especializada em grandes culturas (Milho, Soja, Feijão).",
-        "Monitoramento de campo e coleta estratégica de dados agronômicos.",
-        "Orientação prática de manejo visando retorno financeiro (**ROI**)."
-      ]
-    },
-    {
-      company: "EPAMIG",
-      role: "Pesquisador de Dados e Estatística",
-      period: "2023 - 2024",
+      company: "Empresa de Pesquisa Agropecuária de Minas Gerais (EPAMIG)",
+      role: "Pesquisador Doutor (Bolsista BDCTI-I)",
+      period: "2024 - 2025",
       location: "Minas Gerais",
       description: [
-        "Gestão estratégica de dados de uma Rede Experimental Multi-ambiente (MET).",
-        "Aplicação de estatística espacial e modelos de adaptabilidade.",
-        "Implementação de cultura **Data-Driven** na análise de ensaios."
+        "Condução de ensaios de Valor de Cultivo e Uso (VCU) de milho em rede multiambiente.",
+        "Gestão de dados experimentais e análise estatística para posicionamento ecofisiológico de híbridos.",
+        "Difusão de tecnologias inovadoras para o setor produtivo e mitigação de riscos na safra."
       ]
     },
     {
       company: "Universidade Federal de Lavras (UFLA)",
-      role: "Coordenador de Informática e Vice-Coordenador Geral - GEN",
+      role: "Pesquisador (Doutorado) & Vice-Coordenador GEN",
       period: "2019 - 2023",
       location: "Lavras, MG",
       description: [
-        "Liderança técnica na modernização da infraestrutura digital.",
-        "Organização executiva de 4 Simpósios Internacionais.",
-        "Mentoria em ferramentas computacionais (R/Python)."
+        "Pesquisa em Genética Quantitativa e Genômica (GWAS).",
+        "Atuação como Vice-Coordenador Geral e Coordenador de Informática do GEN.",
+        "Representante Discente no Colegiado do Programa de Pós-Graduação e na Comissão de Bolsas (PROEX/CAPES)."
+      ]
+    },
+    {
+      company: "Universidade Federal de Lavras (UFLA)",
+      role: "Pesquisador (Mestrado)",
+      period: "2017 - 2019",
+      location: "Lavras, MG",
+      description: [
+        "Investigação de expressão gênica diferencial (cDNA-RAPD) em feijoeiro.",
+        "Otimização de protocolos laboratoriais para extração de RNA.",
+        "Coordenação de Informática no Núcleo de Estudos (GEN)."
+      ]
+    },
+    {
+      company: "Flora Novaes Paisagismo LTDA",
+      role: "Assistente Comercial e Técnico",
+      period: "2016 - 2017",
+      location: "Uberlândia, MG",
+      description: [
+        "Elaboração de projetos executivos e paisagísticos (AutoCAD/SketchUp).",
+        "Gestão administrativa, controle de fluxo de caixa e negociação com fornecedores.",
+        "Consultoria técnica agronômica e prospecção de clientes."
+      ]
+    },
+    {
+      company: "Vazante Agropecuária LTDA",
+      role: "Estagiário (Agronomia)",
+      period: "2012",
+      location: "Vazante, MG",
+      description: [
+        "Monitoramento técnico de produção comercial de cana-de-açúcar.",
+        "Controle de qualidade de plantio, tratos culturais e logística de colheita (CTT)."
       ]
     }
   ],
+  
   education: [
     {
       institution: "Gran Faculdade",
-      degree: "Bacharelado em Ciência da Computação",
-      period: "2024 - 2028 (Prev.)",
+      degree: "Graduação em Ciência da Computação",
+      period: "2024 - Atual",
       location: "EAD",
-      details: "Foco em Engenharia de Software e Ciência de Dados para automação AgTech."
+      details: "Foco em desenvolvimento de software e algoritmos."
+    },
+    {
+      institution: "Universidade Federal de Lavras (UFLA)",
+      degree: "Doutorado em Genética e Melhoramento de Plantas",
+      period: "2019 - 2023",
+      location: "Lavras, MG",
+      details: "Tese em mapeamento associativo (GWAS) e resistência a doenças."
     },
     {
       institution: "Universidade Federal de Viçosa (UFV)",
       degree: "Especialização em Inteligência Artificial e Computacional",
       period: "2022",
       location: "Viçosa, MG",
-      details: "Aprofundamento em Machine Learning e visão computacional aplicada."
+      details: "Pós-graduação Lato Sensu (420h)."
     },
     {
       institution: "Universidade Federal de Lavras (UFLA)",
-      degree: "Doutorado em Genética e Melhoramento",
-      period: "2019 - 2023",
+      degree: "Mestrado em Genética e Melhoramento de Plantas",
+      period: "2017 - 2019",
       location: "Lavras, MG",
-      details: "Pesquisa avançada em mapeamento genético (GWAS)."
+      details: "Dissertação em expressão gênica diferencial e marcadores moleculares."
+    },
+    {
+      institution: "Universidade Federal de Uberlândia (UFU)",
+      degree: "Graduação em Agronomia",
+      period: "2009 - 2016",
+      location: "Uberlândia, MG",
+      details: "Inclui período de mobilidade acadêmica na UFLA."
     }
   ],
+  
   others: [
     {
       title: "Idiomas",
-      description: ["Inglês Avançado (Leitura e Escrita)"]
+      description: ["Português (Nativo)", "Inglês (Avançado - Leitura, Escrita e Fala)"]
     },
     {
-      title: "Certificações",
+      title: "Certificações Técnicas",
       description: [
-        "Google Data Analytics Professional Certificate (2023)",
-        "Linux para Bioinformática (EMAS, 2022)"
+        "Google Data Analytics Professional Certificate (Google, 2023)",
+        "Linux para Bioinformática (EMAS, 2022)",
+        "SQL: A linguagem dos bancos de dados (Conquer, 2022)",
+        "Análise de Dados e Power BI (Conquer, 2022)",
+        "Excel Avançado (Conquer, 2022)"
+      ]
+    },
+    {
+      title: "Soft Skills & Outros",
+      description: [
+        "Apresentações de Alto Impacto (Conquer, 2022)",
+        "Liderança e Gestão de Equipes (Experiência Prática no GEN)"
       ]
     }
   ],
-  references: [
-    {
-      name: "Nome do Indicador",
-      company: "Empresa Parceira / Anterior",
-      role: "Cargo (ex: Gerente de Projetos)",
-      email: "email.corporativo@empresa.com",
-      phone: "(XX) 99999-9999"
-    }
-  ],
-  keywords: "Python Java React SQL AWS Docker Kubernetes Leadership Management Agile Scrum Data Analysis Machine Learning AI Project Management Communication Teamwork Problem Solving Critical Thinking Creativity Time Management Adaptability Flexibility Sales Marketing Customer Service Finance Accounting HR Operations Strategy Innovation Growth Efficiency ROI KPIs Metrics Analytics Reporting"
+  
+  references: [],
+  
+  keywords: "Python R SQL Data Science Machine Learning Artificial Intelligence Agronomy Genetics Plant Breeding Bioinformatics Linux Git GitHub Leadership Project Management Event Management Financial Management Sales Customer Service AutoCAD SketchUp Microsoft Office Power BI Google Analytics Research Development Innovation"
 };
