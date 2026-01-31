@@ -1378,15 +1378,15 @@ export default function App() {
         <Input label={t.lattes} value={data.personal.lattes || ''} onChange={v=>updateField('personal','lattes',v)} onExpandRequest={handleOpenExpand}/>
         <Input label={t.youtube} value={data.personal.youtube || ''} onChange={v=>updateField('personal','youtube',v)} onExpandRequest={handleOpenExpand}/>
 
-        {/* NOVA SEÇÃO: CNH (Checkboxes) - MOVIDA PARA O FINAL DO FORMULÁRIO */}
+        {/* NOVA SEÇÃO: CNH (Checkboxes) - Ajustada para linha única */}
         <div className="col-span-2 bg-gray-50 p-3 rounded border border-gray-200 mt-2">
             <label className="text-xs font-semibold text-gray-500 uppercase mb-2 block">{t.driverLicenses}</label>
-            <div className="flex flex-wrap gap-4">
+            <div className="flex flex-row justify-between items-center">
                 {['A', 'B', 'C', 'D', 'E'].map(cat => (
-                    <label key={cat} className="flex items-center gap-2 cursor-pointer hover:bg-white p-2 rounded transition-colors border border-transparent hover:border-gray-200">
+                    <label key={cat} className="flex items-center gap-1.5 cursor-pointer hover:bg-white px-2 py-1 rounded transition-colors border border-transparent hover:border-gray-200">
                         <input 
                             type="checkbox" 
-                            className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                            className="w-3.5 h-3.5 text-blue-600 rounded focus:ring-blue-500"
                             checked={(data.personal.driverLicenses || []).includes(cat)}
                             onChange={(e) => {
                                 const current = data.personal.driverLicenses || [];
@@ -1397,7 +1397,7 @@ export default function App() {
                                 }
                             }}
                         />
-                        <span className="font-bold text-gray-700">{cat}</span>
+                        <span className="font-bold text-gray-700 text-xs">{cat}</span>
                     </label>
                 ))}
             </div>
