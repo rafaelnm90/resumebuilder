@@ -507,7 +507,7 @@ export const INITIAL_DATA = {
     {
       institution: "Universidade Federal de Uberlândia (UFU)",
       degree: "Graduação em Agronomia",
-      period: "2009 - 2016",
+      period: "2009 - 2015",
       location: "Uberlândia, MG",
       details: "Base sólida em ciências exatas e biológicas."
     }
