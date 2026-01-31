@@ -394,7 +394,7 @@ export const INITIAL_DATA = {
     driverLicenses: ['B'] 
   },
   
-  objective: "Desenvolvedor de Software e Analista de Dados em transição de carreira, buscando aplicar sólida experiência em resolução de problemas complexos, lógica algorítmica e gestão técnica para criar soluções de software escaláveis e orientadas a dados.",
+  objective: "Desenvolvedor de Software e Analista de Dados, busco aplicar sólida experiência em resolução de problemas complexos, lógica algorítmica e gestão técnica para criar soluções de software escaláveis e orientadas a dados.",
   
   summary: "Desenvolvedor Full Stack e Cientista de Dados com background analítico robusto. Experiência prática na construção de aplicações SaaS (como o Editor de Currículo e o AgroStatPro), utilizando React, Python e SQL. Histórico comprovado em liderança técnica e gestão de projetos (Coordenação de TI - GEN), com foco em otimização de processos, automação e entrega de valor. Transfere competências de análise estatística avançada e rigor metodológico para o desenvolvimento de software corporativo.",
   
