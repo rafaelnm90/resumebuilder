@@ -3,7 +3,7 @@ export const EXIBIR_LOGS = true;
 
 if (EXIBIR_LOGS) {
     console.log("🚀 [constants.js] Carregando configurações...");
-    console.log("🌐 Dados preenchidos com base no Currículo Lattes (Histórico Completo).");
+    console.log("🌐 Dados ajustados: Perfil Corporativo/Dev (Ex-Acadêmico) e CNH B.");
 }
 
 export const FONTS = {
@@ -390,49 +390,40 @@ export const INITIAL_DATA = {
     photoBorder: 0,       
     photoShadow: false,
     
-    // CNH
-    driverLicenses: ['A', 'C'] 
+    // CNH (Ajustado para B conforme solicitado)
+    driverLicenses: ['B'] 
   },
   
-  objective: "Profissional com perfil multidisciplinar, atuando na interface entre as Ciências Agrárias e a Ciência da Computação. Busco oportunidades que permitam integrar análise de dados, desenvolvimento de software e gestão técnica para otimização de processos e tomada de decisão estratégica.",
+  objective: "Desenvolvedor de Software e Analista de Dados em transição de carreira, buscando aplicar sólida experiência em resolução de problemas complexos, lógica algorítmica e gestão técnica para criar soluções de software escaláveis e orientadas a dados.",
   
-  summary: "Doutor em Genética e Melhoramento de Plantas pela UFLA, atualmente graduando em Ciência da Computação para expandir a aplicação de métodos computacionais. Possui sólida experiência em análise experimental, modelagem de dados e liderança técnica, tendo atuado como pesquisador na EPAMIG e coordenador de TI no Núcleo de Estudos em Genética (GEN). Desenvolvedor do software AgroStatPro, com domínio de Python, R, SQL e ferramentas de Business Intelligence.",
+  summary: "Desenvolvedor Full Stack e Cientista de Dados com background analítico robusto. Experiência prática na construção de aplicações SaaS (como o Editor de Currículo e o AgroStatPro), utilizando React, Python e SQL. Histórico comprovado em liderança técnica e gestão de projetos (Coordenação de TI - GEN), com foco em otimização de processos, automação e entrega de valor. Transfere competências de análise estatística avançada e rigor metodológico para o desenvolvimento de software corporativo.",
   
   skills: [
-    { category: "Linguagens & Desenvolvimento", items: "Python, R (Avançado), SQL, Google Apps Script, Streamlit, HTML/CSS." },
-    { category: "Dados & BI", items: "Power BI, Excel Avançado, Google Data Analytics, Análise Multivariada, Modelos Mistos, Estatística Experimental." },
-    { category: "Infraestrutura & Ferramentas", items: "Linux (Bioinformática), Git/GitHub, Docker, Google Cloud Platform (Conceitos)." },
-    { category: "Gestão & Soft Skills", items: "Liderança de Equipes, Organização de Eventos, Gestão Financeira, Comunicação Estratégica, Planejamento de Projetos." },
-    { category: "Agrárias & Bio", items: "Genética Quantitativa, GWAS, Biologia Molecular, Manejo de Culturas (Milho/Feijão/Cana), Fitopatologia." }
+    { category: "Desenvolvimento de Software", items: "Python, JavaScript (React), HTML5/CSS3, SQL, Streamlit, Google Apps Script, Lógica de Programação." },
+    { category: "Dados & Analytics", items: "Análise de Dados, Power BI, Estatística Avançada, Modelagem Preditiva, Excel Avançado, Visualização de Dados." },
+    { category: "Ferramentas & DevOps", items: "Git/GitHub, Linux (Gerenciamento de Servidores/Bioinformática), Docker (Conceitos), VS Code." },
+    { category: "Gestão & Liderança", items: "Gestão de Projetos Ágeis, Liderança de Equipes Multidisciplinares, Organização de Eventos, Planejamento Estratégico." },
+    { category: "Outras Competências", items: "Resolução de Problemas, Comunicação Técnica, Inglês Avançado, Adaptabilidade." }
   ],
   
   projects: [
     {
-      title: "AgroStatPro - Software de Análise Estatística",
+      title: "Editor de Currículo Online (Resume Builder)",
+      link: "editorcurriculumvitae.vercel.app", 
+      tech: "React, Tailwind CSS, jsPDF",
+      description: [
+        "Desenvolvimento Full Stack de aplicação web para criação de currículos com preview em tempo real.",
+        "Implementação de funcionalidades complexas de UX/UI, incluindo Drag & Drop e customização avançada de layout.",
+        "Engenharia de software focada em performance e geração de documentos PDF no front-end."
+      ]
+    },
+    {
+      title: "AgroStatPro - SaaS de Análise de Dados",
       link: "agrostat.streamlit.app", 
-      tech: "Python, Streamlit, Pandas",
+      tech: "Python, Streamlit, Pandas, Cloud",
       description: [
-        "Desenvolvimento integral de solução SaaS focada em análise estatística agronômica.",
-        "Integração de inteligência de dados e otimização de processos para pesquisadores."
-      ]
-    },
-    {
-      title: "Coordenação Geral e de TI - GEN (Núcleo de Estudos)",
-      link: "ufla.br", 
-      tech: "Gestão, Web, CMS",
-      description: [
-        "Liderança na modernização da infraestrutura digital e gestão de ativos web.",
-        "Responsável pela organização logística e financeira de 4 Simpósios Internacionais e 12 Cursos.",
-        "Implementação de sistemas de gestão de inscrições e suporte tecnológico em eventos."
-      ]
-    },
-    {
-      title: "Mapeamento Genético (GWAS) em Feijão-Comum",
-      link: "lattes.cnpq.br/6450189926093594", 
-      tech: "R, Linux, Genomics",
-      description: [
-        "Identificação de marcadores moleculares para resistência à Mancha Angular usando modelos mistos.",
-        "Análise de grandes volumes de dados genotípicos (DArTseq) e fenotípicos."
+        "Criação e implantação de um produto SaaS (Software as a Service) para automação de análises estatísticas.",
+        "Transformação de scripts complexos em uma interface amigável, reduzindo o tempo de processamento de dados dos usuários."
       ]
     }
   ],
@@ -440,56 +431,46 @@ export const INITIAL_DATA = {
   experience: [
     {
       company: "Empresa de Pesquisa Agropecuária de Minas Gerais (EPAMIG)",
-      role: "Pesquisador Doutor (Bolsista BDCTI-I)",
+      role: "Analista de Dados e Inovação (Projeto BDCTI)",
       period: "2024 - 2025",
       location: "Minas Gerais",
       description: [
-        "Condução de ensaios de Valor de Cultivo e Uso (VCU) de milho em rede multiambiente.",
-        "Gestão de dados experimentais e análise estatística para posicionamento ecofisiológico de híbridos.",
-        "Difusão de tecnologias inovadoras para o setor produtivo e mitigação de riscos na safra."
+        "Gerenciamento de grandes volumes de dados experimentais em rede multiambiente.",
+        "Aplicação de modelos estatísticos e algorítmicos para suporte à tomada de decisão estratégica.",
+        "Implementação de processos de inovação tecnológica para otimização da cadeia produtiva."
       ]
     },
     {
-      company: "Universidade Federal de Lavras (UFLA)",
-      role: "Pesquisador (Doutorado) & Vice-Coordenador GEN",
+      company: "Núcleo de Estudos em Genética (GEN/UFLA)",
+      role: "Gerente de Projetos e Coordenador de TI",
       period: "2019 - 2023",
       location: "Lavras, MG",
       description: [
-        "Pesquisa em Genética Quantitativa e Genômica (GWAS).",
-        "Atuação como Vice-Coordenador Geral e Coordenador de Informática do GEN.",
-        "Representante Discente no Colegiado do Programa de Pós-Graduação e na Comissão de Bolsas (PROEX/CAPES)."
+        "Liderança na modernização da infraestrutura digital e gestão de ativos web (CMS).",
+        "Gestão financeira e logística de grandes eventos (4 Simpósios Internacionais), coordenando equipes e fornecedores.",
+        "Implementação de sistemas digitais para otimização de inscrições e processos administrativos."
       ]
     },
     {
       company: "Universidade Federal de Lavras (UFLA)",
-      role: "Pesquisador (Mestrado)",
-      period: "2017 - 2019",
+      role: "Cientista de Dados (Pesquisador Associado)",
+      period: "2017 - 2023",
       location: "Lavras, MG",
       description: [
-        "Investigação de expressão gênica diferencial (cDNA-RAPD) em feijoeiro.",
-        "Otimização de protocolos laboratoriais para extração de RNA.",
-        "Coordenação de Informática no Núcleo de Estudos (GEN)."
+        "Desenvolvimento de pipelines de análise para Big Data Genômico (GWAS/DArTseq).",
+        "Uso avançado de R e Linux para processamento de dados complexos e modelagem estatística.",
+        "Resolução de problemas biológicos complexos através de abordagens computacionais."
       ]
     },
     {
       company: "Flora Novaes Paisagismo LTDA",
-      role: "Assistente Comercial e Técnico",
+      role: "Gestão Comercial e Projetos",
       period: "2016 - 2017",
       location: "Uberlândia, MG",
       description: [
-        "Elaboração de projetos executivos e paisagísticos (AutoCAD/SketchUp).",
-        "Gestão administrativa, controle de fluxo de caixa e negociação com fornecedores.",
-        "Consultoria técnica agronômica e prospecção de clientes."
-      ]
-    },
-    {
-      company: "Vazante Agropecuária LTDA",
-      role: "Estagiário (Agronomia)",
-      period: "2012",
-      location: "Vazante, MG",
-      description: [
-        "Monitoramento técnico de produção comercial de cana-de-açúcar.",
-        "Controle de qualidade de plantio, tratos culturais e logística de colheita (CTT)."
+        "Gerenciamento administrativo e financeiro, incluindo controle de fluxo de caixa e negociação B2B.",
+        "Elaboração de projetos técnicos utilizando ferramentas de CAD e modelagem 3D.",
+        "Atendimento consultivo e prospecção ativa de clientes para expansão de negócios."
       ]
     }
   ],
@@ -500,63 +481,63 @@ export const INITIAL_DATA = {
       degree: "Graduação em Ciência da Computação",
       period: "2024 - Atual",
       location: "EAD",
-      details: "Foco em desenvolvimento de software e algoritmos."
+      details: "Foco em Engenharia de Software, Algoritmos e Estrutura de Dados."
     },
     {
       institution: "Universidade Federal de Lavras (UFLA)",
-      degree: "Doutorado em Genética e Melhoramento de Plantas",
+      degree: "Doutorado (Foco em Genética Quantitativa e Estatística)",
       period: "2019 - 2023",
       location: "Lavras, MG",
-      details: "Tese em mapeamento associativo (GWAS) e resistência a doenças."
+      details: "Ênfase em análise de dados massivos e modelagem computacional."
     },
     {
       institution: "Universidade Federal de Viçosa (UFV)",
       degree: "Especialização em Inteligência Artificial e Computacional",
       period: "2022",
       location: "Viçosa, MG",
-      details: "Pós-graduação Lato Sensu (420h)."
+      details: "Pós-graduação Lato Sensu focada em Machine Learning."
     },
     {
       institution: "Universidade Federal de Lavras (UFLA)",
-      degree: "Mestrado em Genética e Melhoramento de Plantas",
+      degree: "Mestrado (Foco em Biologia Molecular)",
       period: "2017 - 2019",
       location: "Lavras, MG",
-      details: "Dissertação em expressão gênica diferencial e marcadores moleculares."
+      details: "Pesquisa envolvendo marcadores moleculares e expressão gênica."
     },
     {
       institution: "Universidade Federal de Uberlândia (UFU)",
       degree: "Graduação em Agronomia",
       period: "2009 - 2016",
       location: "Uberlândia, MG",
-      details: "Inclui período de mobilidade acadêmica na UFLA."
+      details: "Base sólida em ciências exatas e biológicas."
     }
   ],
   
   others: [
     {
       title: "Idiomas",
-      description: ["Português (Nativo)", "Inglês (Avançado - Leitura, Escrita e Fala)"]
+      description: ["Português (Nativo)", "Inglês (Avançado - Fluente em leitura técnica e comunicação)"]
     },
     {
       title: "Certificações Técnicas",
       description: [
         "Google Data Analytics Professional Certificate (Google, 2023)",
-        "Linux para Bioinformática (EMAS, 2022)",
-        "SQL: A linguagem dos bancos de dados (Conquer, 2022)",
-        "Análise de Dados e Power BI (Conquer, 2022)",
-        "Excel Avançado (Conquer, 2022)"
+        "Linux para Bioinformática (Infraestrutura/Shell Script) (2022)",
+        "SQL e Bancos de Dados (Conquer, 2022)",
+        "Business Intelligence com Power BI (Conquer, 2022)"
       ]
     },
     {
-      title: "Soft Skills & Outros",
+      title: "Competências Transversais",
       description: [
-        "Apresentações de Alto Impacto (Conquer, 2022)",
-        "Liderança e Gestão de Equipes (Experiência Prática no GEN)"
+        "Comunicação de Alto Impacto e Oratória (Conquer)",
+        "Gestão de Tempo e Produtividade",
+        "Trabalho em Equipe e Liderança Ágil"
       ]
     }
   ],
   
   references: [],
   
-  keywords: "Python R SQL Data Science Machine Learning Artificial Intelligence Agronomy Genetics Plant Breeding Bioinformatics Linux Git GitHub Leadership Project Management Event Management Financial Management Sales Customer Service AutoCAD SketchUp Microsoft Office Power BI Google Analytics Research Development Innovation"
+  keywords: "Python React JavaScript SQL Data Science Machine Learning Artificial Intelligence Web Development Full Stack Product Management Business Intelligence Analytics Linux Git Agile Scrum Leadership SaaS Cloud Computing Innovation Problem Solving"
 };
