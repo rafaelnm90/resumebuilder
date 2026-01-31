@@ -1,13 +1,14 @@
 // src/ResumePreview.js
 import React from 'react';
-import { MapPin, Mail, Phone, Linkedin, Github, FileText, Youtube, Link } from 'lucide-react';
+import { MapPin, Mail, Phone, Linkedin, Github, FileText, Youtube, Link, Car } from 'lucide-react';
 import { LIST_STYLES } from './constants';
 
 const EXIBIR_LOGS = true;
 
 if (EXIBIR_LOGS) {
     console.log("🚀 [ResumePreview.js] Renderizando...");
-    console.log("📄 Verificando configurações de quebra de página e visibilidade.");
+    console.log("📄 CNH: Posicionada inline com contatos.");
+    console.log("👻 ATS: Modo 'Ghost Text' ativado (Absolute + White + 1px).");
 }
 
 const formatText = (text) => {
@@ -23,6 +24,30 @@ const formatText = (text) => {
     return part;
   });
 };
+
+const getFormattedDate = (dataObj) => {
+    let dateToUse = dataObj.date;
+
+    if (dataObj.autoDate) {
+        const today = new Date();
+        if (dataObj.format !== 'long') {
+            return today.toLocaleDateString('pt-BR');
+        }
+        return today.toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' });
+    }
+
+    if (dataObj.format === 'long' && dateToUse) {
+        const match = dateToUse.match(/^(\d{1,2})[\/\.-](\d{1,2})[\/\.-](\d{4})$/);
+        if (match) {
+            const d = new Date(match[3], match[2] - 1, match[1]);
+            if (!isNaN(d.getTime())) {
+                return d.toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' });
+            }
+        }
+    }
+    return dateToUse;
+};
+
 
 export default function ResumePreview({ data, settings }) {
   const { structure, customSections, sectionOrder } = data; 
@@ -258,13 +283,23 @@ export default function ResumePreview({ data, settings }) {
                 </div>
             )}
             <div className={textContainerClasses}>
-                <h1 className="font-extrabold tracking-wide uppercase leading-none mb-2 break-words" style={{ color: settings.themeColor, fontSize: dynamicTitleSize }}>{data.personal.name}</h1>
+                <h1 className="font-extrabold tracking-wide uppercase leading-none mb-4 break-words" style={{ color: settings.themeColor, fontSize: dynamicTitleSize }}>{data.personal.name}</h1>
+                
                 <div className={`flex flex-wrap gap-x-3 gap-y-1 ${dynamicTextSize} font-medium leading-tight mb-2 ${contactJustify}`}>
-                    {data.personal.email && <span className="flex items-center gap-1"><Mail size={'1em'}/> {data.personal.email}</span>}
-                    {data.personal.phone && <span className="flex items-center gap-1 border-l pl-2 border-gray-400"><Phone size={'1em'}/> {data.personal.phone}</span>}
-                    {data.personal.location && <span className="flex items-center gap-1 border-l pl-2 border-gray-400"><MapPin size={'1em'}/> {data.personal.location}</span>}
+                    {data.personal.email && <span className="flex items-center gap-1"><Mail size={'1em'} className="flex-shrink-0"/> {data.personal.email}</span>}
+                    {data.personal.phone && <span className="flex items-center gap-1 border-l pl-2 border-gray-400"><Phone size={'1em'} className="flex-shrink-0"/> {data.personal.phone}</span>}
+                    {data.personal.location && <span className="flex items-center gap-1 border-l pl-2 border-gray-400"><MapPin size={'1em'} className="flex-shrink-0"/> {data.personal.location}</span>}
+                    
+                    {/* CNH INLINE AQUI (SOLICITAÇÃO ATENDIDA) */}
+                    {data.personal.driverLicenses && data.personal.driverLicenses.length > 0 && (
+                        <span className="flex items-center gap-1 border-l pl-2 border-gray-400">
+                            <Car size={'1em'} className="flex-shrink-0"/> 
+                            CNH: {data.personal.driverLicenses.sort().join(' / ')}
+                        </span>
+                    )}
                 </div>
-                <div className={`flex flex-wrap gap-3 ${dynamicTextSize} font-medium leading-tight ${contactJustify}`} style={{ color: settings.themeColor }}>
+
+                <div className={`flex flex-wrap gap-3 ${dynamicTextSize} font-medium leading-tight ${contactJustify} mb-2`} style={{ color: settings.themeColor }}>
                     {data.personal.linkedin && (
                         <a 
                             href={data.personal.linkedin.startsWith('http') ? data.personal.linkedin : `https://${data.personal.linkedin}`} 
@@ -272,7 +307,7 @@ export default function ResumePreview({ data, settings }) {
                             target="_blank" 
                             rel="noopener noreferrer"
                         >
-                            <Linkedin size={'1em'}/> {data.personal.linkedin.replace(/^https?:\/\/(www\.)?/, '')}
+                            <Linkedin size={'1em'} className="flex-shrink-0"/> {data.personal.linkedin.replace(/^https?:\/\/(www\.)?/, '')}
                         </a>
                     )}
                     
@@ -283,7 +318,7 @@ export default function ResumePreview({ data, settings }) {
                             target="_blank" 
                             rel="noopener noreferrer"
                         >
-                            <Github size={'1em'}/> {data.personal.github.replace(/^https?:\/\/(www\.)?/, '')}
+                            <Github size={'1em'} className="flex-shrink-0"/> {data.personal.github.replace(/^https?:\/\/(www\.)?/, '')}
                         </a>
                     )}
                     
@@ -294,7 +329,7 @@ export default function ResumePreview({ data, settings }) {
                             target="_blank" 
                             rel="noopener noreferrer"
                         >
-                            <FileText size={'1em'}/> {data.personal.lattes.replace(/^https?:\/\/(www\.)?/, '')}
+                            <FileText size={'1em'} className="flex-shrink-0"/> {data.personal.lattes.replace(/^https?:\/\/(www\.)?/, '')}
                         </a>
                     )}
 
@@ -305,7 +340,7 @@ export default function ResumePreview({ data, settings }) {
                             target="_blank" 
                             rel="noopener noreferrer"
                         >
-                            <Youtube size={'1em'}/> {data.personal.youtube.replace(/^https?:\/\/(www\.)?/, '')}
+                            <Youtube size={'1em'} className="flex-shrink-0"/> {data.personal.youtube.replace(/^https?:\/\/(www\.)?/, '')}
                         </a>
                     )}
                 </div>
@@ -352,13 +387,42 @@ export default function ResumePreview({ data, settings }) {
         if (sec.type === 'text') { 
             return (
                 <SimpleSectionWrapper title={displayTitle} sectionId={sectionId}>
-                    {/* ATENÇÃO AQUI: whiteSpace: 'pre-line' permite quebras de linha */}
                     <p className="break-words" style={{ textAlign: settings.textAlign, textJustify: 'inter-word', whiteSpace: 'pre-line' }}>{formatText(sec.content)}</p>
                 </SimpleSectionWrapper>
             ); 
         }
         if (sec.type === 'list') { return (<SimpleSectionWrapper title={displayTitle} sectionId={sectionId}><ul className="list-outside ml-4" style={containerStyle}>{renderListItems(sec.content, sectionId)}</ul></SimpleSectionWrapper>); }
-        if (sec.type === 'detailed') { return (<PaginatedSectionWrapper title={displayTitle}><div style={containerStyle}>{(Array.isArray(sec.content) ? sec.content : []).map((item, i) => (<div key={i} className={pageBreakClass}><div className="flex flex-row items-baseline justify-between flex-row-print"><div className="font-bold text-[1.05em] leading-tight break-words flex-1 pr-3">{formatText(item.title)}</div><div className={`text-[0.9em] text-right leading-tight flex-shrink-0 ${rightTextStyle}`} style={{ width: expColWidthCSS, color: rightTextColor }}>{item.location}</div></div><div className="flex flex-row items-baseline justify-between flex-row-print"><div className="italic font-medium leading-tight break-words flex-1 pr-3" style={{ color: roleColor }}>{formatText(item.subtitle)}</div><div className={`text-[0.9em] text-right leading-tight flex-shrink-0 ${rightTextStyle}`} style={{ width: expColWidthCSS, color: rightTextColor }}>{item.date}</div></div><div className="mt-1" style={{ paddingRight: expColWidthCSS }}><ul className="list-outside ml-4" style={innerListStyle}>{renderListItems(item.description, sectionId)}</ul></div></div>))}</div></PaginatedSectionWrapper>); }
+        
+        if (sec.type === 'detailed') { 
+            return (
+                <PaginatedSectionWrapper title={displayTitle}>
+                    <div style={containerStyle}>
+                        {(Array.isArray(sec.content) ? sec.content : []).map((item, i) => {
+                             const hasContent = item.title?.trim() || item.subtitle?.trim() || (item.description || []).some(d => d.trim());
+                             if (!hasContent) return null;
+
+                             return (
+                                <div key={i} className={pageBreakClass}>
+                                    <div className="flex flex-row items-baseline justify-between flex-row-print">
+                                        <div className="font-bold text-[1.05em] leading-tight break-words flex-1 pr-3">{formatText(item.title)}</div>
+                                        <div className={`text-[0.9em] text-right leading-tight flex-shrink-0 ${rightTextStyle}`} style={{ width: expColWidthCSS, color: rightTextColor }}>{item.location}</div>
+                                    </div>
+                                    <div className="flex flex-row items-baseline justify-between flex-row-print">
+                                        <div className="italic font-medium leading-tight break-words flex-1 pr-3" style={{ color: roleColor }}>{formatText(item.subtitle)}</div>
+                                        <div className={`text-[0.9em] text-right leading-tight flex-shrink-0 ${rightTextStyle}`} style={{ width: expColWidthCSS, color: rightTextColor }}>{item.date}</div>
+                                    </div>
+                                    <div className="mt-1" style={{ paddingRight: expColWidthCSS }}>
+                                        <ul className="list-outside ml-4" style={innerListStyle}>
+                                            {renderListItems(item.description, sectionId)}
+                                        </ul>
+                                    </div>
+                                </div>
+                             );
+                        })}
+                    </div>
+                </PaginatedSectionWrapper>
+            ); 
+        }
     }
 
     switch(sectionId) {
@@ -379,9 +443,7 @@ export default function ResumePreview({ data, settings }) {
                 <SimpleSectionWrapper title={displayTitle} sectionId={sectionId}>
                     <div style={containerStyle}>
                     {data.skills.map((skill, i) => {
-                        // VERIFICAÇÃO: Se houver quebra de linha, trata como lista
                         const isMultiLine = skill.items && skill.items.includes('\n');
-                        
                         return (
                             <div key={i} className="flex flex-row items-baseline gap-4" >
                                 <div className="font-bold text-[0.95em] leading-tight break-words flex-shrink-0" style={{ width: `${settings.leftColumnWidth}mm` }}>
@@ -389,7 +451,6 @@ export default function ResumePreview({ data, settings }) {
                                 </div>
                                 <div className="break-words leading-tight flex-1" style={{ textAlign: settings.textAlign, textJustify: 'inter-word' }}>
                                     {isMultiLine ? (
-                                        // CORREÇÃO: Usando renderListItems para respeitar estilos globais
                                         <ul className="list-outside ml-4 mt-1" style={innerListStyle}>
                                             {renderListItems(skill.items.split('\n').filter(line => line.trim()), sectionId)}
                                         </ul>
@@ -407,7 +468,11 @@ export default function ResumePreview({ data, settings }) {
             return structure.projects.visible && data.projects.length > 0 && (
                 <PaginatedSectionWrapper title={displayTitle}>
                     <div style={containerStyle}>
-                    {data.projects.map((proj, i) => (
+                    {data.projects.map((proj, i) => {
+                        const hasContent = proj.title?.trim() || proj.tech?.trim() || (proj.description || []).some(d => d.trim());
+                        if (!hasContent) return null;
+
+                        return (
                         <div key={i} className={`${pageBreakClass} flex flex-row items-start gap-8 flex-row-print`}>
                         <div className="flex-1">
                             <h4 className="font-bold text-[1.05em] break-words mb-0.5" style={{ color: settings.bodyColor }}>{proj.title}</h4>
@@ -423,14 +488,13 @@ export default function ResumePreview({ data, settings }) {
                             </ul>
                         </div>
                         <div className="flex-shrink-0 flex items-start justify-start mt-1" style={{ width: projectsColWidthCSS }}>
-                             {/* CORREÇÃO: Adicionado block w-full text-center para esticar e centralizar */}
                             <span className={`text-[0.85em] bg-gray-100 px-2 py-1 rounded border border-gray-200 inline-block break-words hyphens-auto block w-full text-center ${settings.rightTextBold ? 'font-bold text-gray-800' : 'font-medium text-gray-600'}`} 
                                   style={{ hyphens: 'auto', color: rightTextColor, borderColor: rightTextColor ? rightTextColor : undefined }}>
                                 {proj.tech}
                             </span>
                         </div>
                         </div>
-                    ))}
+                    )})}
                     </div>
                 </PaginatedSectionWrapper>
             );
@@ -441,6 +505,7 @@ export default function ResumePreview({ data, settings }) {
                     {data.experience.map((exp, i) => {
                         const hasContent = exp.company?.trim() || exp.role?.trim() || (exp.description || []).some(d => d.trim());
                         if (!hasContent) return null;
+
                         return (
                         <div key={i} className={pageBreakClass}>
                         <div className="flex flex-row items-baseline justify-between flex-row-print">
@@ -468,6 +533,7 @@ export default function ResumePreview({ data, settings }) {
                     {data.education.map((edu, i) => {
                         const hasContent = edu.institution?.trim() || edu.degree?.trim();
                         if (!hasContent) return null;
+
                         return (
                         <div key={i} className={pageBreakClass}>
                             <div className="flex flex-row items-baseline justify-between flex-row-print">
@@ -492,14 +558,19 @@ export default function ResumePreview({ data, settings }) {
             return structure.others.visible && data.others.length > 0 && (
                 <SimpleSectionWrapper title={displayTitle} sectionId={sectionId}>
                     <div style={{ paddingRight: expColWidthCSS, ...containerStyle }}>
-                        {data.others.map((item, i) => (
-                            <div key={i} className={pageBreakClass}>
-                                {item.title && <h4 className="font-bold text-[0.95em] mb-1">{item.title}</h4>}
-                                <ul className="list-outside ml-4" style={innerListStyle}>
-                                    {renderListItems(item.description, sectionId)}
-                                </ul>
-                            </div>
-                        ))}
+                        {data.others.map((item, i) => {
+                             const hasContent = item.title?.trim() || (item.description || []).some(d => d.trim());
+                             if (!hasContent) return null;
+
+                             return (
+                                <div key={i} className={pageBreakClass}>
+                                    {item.title && <h4 className="font-bold text-[0.95em] mb-1">{item.title}</h4>}
+                                    <ul className="list-outside ml-4" style={innerListStyle}>
+                                        {renderListItems(item.description, sectionId)}
+                                    </ul>
+                                </div>
+                            );
+                        })}
                     </div>
                 </SimpleSectionWrapper>
             );
@@ -536,16 +607,37 @@ export default function ResumePreview({ data, settings }) {
             );
 
         case 'keywords':
+            // ----------------------------------------------------------------------------------
+            // ESTRATÉGIA "GHOST TEXT" (SEO BLACK HAT / CAMUFLAGEM)
+            // ----------------------------------------------------------------------------------
+            // 1. position: 'absolute' -> Tira o texto do fluxo normal do documento.
+            //    Isso IMPEDE que ele empurre conteúdo ou crie páginas em branco extras.
+            // 2. bottom/left -> Fixa no rodapé da página.
+            // 3. color: '#FFFFFF' -> Texto branco em fundo branco (invisível ao olho humano).
+            // 4. fontSize: '1px' -> Minimiza a chance de ser notado como "sujeira" se selecionado.
+            // 5. opacity: 0.01 -> Quase transparente, mas tecnicamente "existe" para o robô.
+            // 6. zIndex: -1 -> Fica atrás de tudo, evitando bloquear cliques em links do rodapé.
+            // 7. userSelect: 'none' -> Dificulta a seleção acidental pelo mouse do usuário.
+            // ----------------------------------------------------------------------------------
             return structure.keywords.visible && data.keywords && (
                 <div 
                     style={{ 
+                        position: 'absolute',  
+                        bottom: '5mm',         
+                        left: '15mm',          
+                        width: '180mm',        // Ocupa a largura da margem para fluir
+                        
+                        fontSize: '1px',       
+                        lineHeight: '1px',     
                         color: '#FFFFFF',      
-                        fontSize: '6pt',       
-                        lineHeight: '1em',
-                        marginTop: '5mm',      
-                        userSelect: 'none',    
-                        zIndex: -1,
-                        position: 'relative'   
+                        
+                        whiteSpace: 'pre-wrap', // Permite quebra de linha se necessário
+                        overflow: 'hidden',    
+                        
+                        opacity: 0.01,         
+                        zIndex: -1,            
+                        userSelect: 'none',
+                        pointerEvents: 'none'   // Garante que não interfira em cliques
                     }}
                     className="ats-camouflage"
                 >
@@ -560,7 +652,33 @@ export default function ResumePreview({ data, settings }) {
   const ResumeContent = (
       <>
         {renderHeader()}
-        {sectionOrder.map(sectionId => renderSection(sectionId))}
+        
+        {sectionOrder.map(sectionId => {
+            if (sectionId === 'keywords') return null;
+            return renderSection(sectionId);
+        })}
+
+        {/* RODAPÉ (DATA E LOCAL) */}
+        {data.dateLocation && data.dateLocation.visible && (
+             <div 
+                className="w-full flex justify-end mt-8 mb-4 break-inside-avoid"
+                style={{ 
+                    textAlign: 'right',
+                    color: data.dateLocation.useThemeColor ? settings.themeColor : settings.bodyColor,
+                    fontWeight: data.dateLocation.useBold ? 'bold' : 'normal',
+                    fontSize: '0.9em'
+                }}
+             >
+                <span>
+                    {data.dateLocation.location}
+                    {(data.dateLocation.location && (data.dateLocation.date || data.dateLocation.autoDate)) ? ', ' : ''}
+                    {getFormattedDate(data.dateLocation)}
+                </span>
+             </div>
+        )}
+
+        {/* ATS (Inserido no final para ficar "em cima/em baixo" do rodapé via absolute) */}
+        {renderSection('keywords')}
       </>
   );
 
