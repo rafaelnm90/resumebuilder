@@ -8,7 +8,7 @@ import {
   Image as ImageIcon, Upload, AlignLeft, AlignCenter, AlignRight,
   Circle, Square, Move, Crop, Info, 
   RotateCw, RotateCcw, Sun, FlipHorizontal, Droplet, Frame, Sliders, Link as LinkIcon,
-  UserPlus, AlertTriangle, List as ListIcon, Mail, Phone, Save, MapPin, Calendar
+  UserPlus, AlertTriangle, List as ListIcon, Mail, Phone, Save, MapPin, Calendar, Sparkles
 } from 'lucide-react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import ResumePreview from './ResumePreview';
@@ -330,6 +330,13 @@ export default function App() {
   const [expandedField, setExpandedField] = useState(null);
   const [isSpacingAdvancedOpen, setIsSpacingAdvancedOpen] = useState(false);
 
+  const sidebarRef = useRef(null);
+  useEffect(() => {
+    if (sidebarRef.current) {
+        sidebarRef.current.scrollTop = 0;
+    }
+  }, [activeTab]);
+  
   const listTextRef = useRef(null); 
   const textSectionRef = useRef(null); 
   const summaryRef = useRef(null);
@@ -1859,9 +1866,40 @@ export default function App() {
         </nav>
 
         <aside 
-            className="flex-shrink-0 bg-white border-r border-gray-200 overflow-y-auto relative h-full flex flex-col"
+            ref={sidebarRef}
+            className="flex-shrink-0 bg-white border-r border-gray-200 relative h-full flex flex-col overflow-y-scroll"
             style={{ width: isSidebarOpen ? (window.innerWidth < 768 ? '100%' : `${sidebarWidth}px`) : '0px', transition: isResizing ? 'none' : 'width 0.3s' }}
         >
+             {/* BANNER GEMINI AI */}
+             <a 
+                href="https://gemini.google.com/gem/1GUqkZDYhpAHlO_mr7kmtKKhcYPrr-ptV?usp=sharing"
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-indigo-100 p-4 flex items-center gap-3 hover:bg-indigo-50 transition-colors group relative overflow-hidden flex-shrink-0"
+             >
+                <div className="absolute top-0 right-0 p-4 opacity-10 transform translate-x-2 -translate-y-2">
+                    <Sparkles size={48} className="text-indigo-600" />
+                </div>
+                
+                <div className="bg-white p-2 rounded-lg shadow-sm border border-indigo-100 text-indigo-600 flex-shrink-0 z-10">
+                    <Sparkles size={20} />
+                </div>
+                
+                {/* min-w-0 permite que o flex-item encolha para quebrar o texto */}
+                <div className="flex-1 z-10 min-w-0">
+                    <h3 className="text-xs font-bold text-indigo-900 uppercase tracking-wide mb-0.5 flex items-center gap-1 whitespace-nowrap">
+                        Assistente de Conteúdo IA
+                    </h3>
+                    <p className="text-xs text-indigo-700 leading-tight whitespace-normal break-words">
+                        Está sem ideias? Clique aqui para usar nosso <strong>Gemini Gems</strong> e criar textos incríveis para seu currículo.
+                    </p>
+                </div>
+
+                <div className="z-10 flex-shrink-0">
+                    <ChevronRight size={16} className="text-indigo-400 group-hover:text-indigo-600 group-hover:translate-x-1 transition-all" />
+                </div>
+             </a>
+
              <div className="p-8 pb-20 flex-1">
                 {renderActiveSection()}
              </div>
