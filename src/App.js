@@ -1856,10 +1856,6 @@ export default function App() {
                     >
                         <Mail size={10} /> <span>rafaelnovaismiranda@gmail.com</span>
                     </a>
-                    
-                    <a href="tel:+55349997779966" className="flex items-center justify-center gap-1 hover:text-white transition-colors cursor-pointer">
-                        <Phone size={10} /> <span>+55 (34) 9.99777-9966</span>
-                    </a>
                  </div>
             </div>
           </div>
