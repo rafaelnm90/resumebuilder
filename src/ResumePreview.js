@@ -715,28 +715,31 @@ if (sec.type === 'category-simple') {
         case 'references':
             return structure.references.visible && data.references && data.references.length > 0 && (
                 <SimpleSectionWrapper title={displayTitle} sectionId={sectionId}>
+                    {/* Grid de 2 colunas fixo para impressão */}
                     <div className="grid grid-cols-2" style={{ gap: `${settings.itemSpacing}mm` }}>
-                        {data.references.map((ref, i) => (
+                        {data.references.map((ref, i) => {
+                            const iconColor = settings.listMarkerUseThemeColor ? settings.themeColor : 'currentColor';
+                            return (
                             <div key={i} className="break-inside-avoid min-w-0 pr-2">
                                 <div className="font-bold text-[0.95em] break-words leading-tight" style={{ color: settings.bodyColor }}>{ref.name}</div>
                                 {(ref.role || ref.company) && (
-                                    <div className="text-[0.9em] italic mb-1 break-words leading-tight" style={{ color: roleColor }}>
+                                    <div className="text-[0.9em] italic mb-0.5 break-words leading-tight" style={{ color: roleColor }}>
                                         {ref.role}{ref.role && ref.company ? ' | ' : ''}{ref.company}
                                     </div>
                                 )}
                                 
-                                <div className="text-[0.85em] space-y-1 text-gray-600">
+                                <div className="text-[0.85em] flex flex-col gap-0.5 text-gray-600 mt-0.5">
                                     {ref.email && (
-                                        <div className="flex items-start gap-2">
-                                            <div className="mt-[3px] flex-shrink-0">
+                                        <div className="flex items-center gap-1.5">
+                                            <div className="flex-shrink-0" style={{ color: iconColor }}>
                                                 <Mail size={10} />
                                             </div>
                                             <span className="break-all leading-tight">{ref.email}</span>
                                         </div>
                                     )}
                                     {ref.phone && (
-                                        <div className="flex items-start gap-2">
-                                            <div className="mt-[3px] flex-shrink-0">
+                                        <div className="flex items-center gap-1.5">
+                                            <div className="flex-shrink-0" style={{ color: iconColor }}>
                                                 <Phone size={10} />
                                             </div>
                                             <span className="break-all leading-tight">{ref.phone}</span>
@@ -744,7 +747,7 @@ if (sec.type === 'category-simple') {
                                     )}
                                 </div>
                             </div>
-                        ))}
+                        )})}
                     </div>
                 </SimpleSectionWrapper>
             );
