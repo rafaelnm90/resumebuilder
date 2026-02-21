@@ -791,12 +791,12 @@ if (sec.type === 'category-simple') {
 
         {data.dateLocation && data.dateLocation.visible && (
              <div 
-                className="w-full flex justify-end mt-8 mb-4 break-inside-avoid"
+                className="w-full flex justify-end mt-10 mb-2 break-inside-avoid"
                 style={{ 
                     textAlign: 'right',
                     color: data.dateLocation.useThemeColor ? settings.themeColor : settings.bodyColor,
                     fontWeight: data.dateLocation.useBold ? 'bold' : 'normal',
-                    fontSize: '0.9em'
+                    fontSize: '1.05em'
                 }}
              >
                 <span>
@@ -870,19 +870,20 @@ if (sec.type === 'category-simple') {
             </div>
         )}
 
+        {/* Linhas fixas garantem que o design cole nas bordas do papel */}
+        <div style={{ position: 'fixed', top: '20mm', left: '15mm', right: '15mm', height: '2px', backgroundColor: settings.showPageLines ? settings.themeColor : 'transparent', zIndex: 9999 }}></div>
+        <div style={{ position: 'fixed', bottom: '20mm', left: '15mm', right: '15mm', height: '2px', backgroundColor: settings.showPageLines ? settings.themeColor : 'transparent', zIndex: 9999 }}></div>
+
+        {/* Tabela Mestre: Atua apenas como bloqueador de espaço (Padding) para o texto não atropelar as linhas */}
         <table style={{ width: '100%', borderCollapse: 'collapse', ...typographyStyles }}>
             <thead>
                 <tr>
-                    <td style={{ paddingTop: '20mm', paddingBottom: '2mm', paddingLeft: '15mm', paddingRight: '15mm' }}>
-                        <div style={{ width: '100%', height: '2px', backgroundColor: settings.showPageLines ? settings.themeColor : 'transparent' }}></div>
-                    </td>
+                    <td style={{ height: '22mm', padding: 0 }}></td>
                 </tr>
             </thead>
             <tfoot>
                 <tr>
-                    <td style={{ height: '20mm', padding: 0, paddingLeft: '15mm', paddingRight: '15mm', verticalAlign: 'top', paddingTop: '2mm' }}>
-                        <div style={{ width: '100%', height: '2px', backgroundColor: settings.showPageLines ? settings.themeColor : 'transparent' }}></div>
-                    </td>
+                    <td style={{ height: '22mm', padding: 0 }}></td>
                 </tr>
             </tfoot>
             <tbody>
