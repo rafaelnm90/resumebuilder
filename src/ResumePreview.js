@@ -819,6 +819,15 @@ if (sec.type === 'category-simple') {
         boxSizing: 'border-box',
         position: 'relative'
     }}>
+        {/* Força o navegador a zerar as margens automaticamente na hora de imprimir */}
+        <style>
+            {`
+                @media print {
+                    @page { margin: 0mm; }
+                }
+            `}
+        </style>
+
         {settings.showGuides && (
             <div className="absolute inset-0 z-50 pointer-events-none page-guide">
                 <div
