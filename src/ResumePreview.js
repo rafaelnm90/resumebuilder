@@ -5,22 +5,29 @@ import { LIST_STYLES } from './constants';
 
 const EXIBIR_LOGS = true;
 
+if (EXIBIR_LOGS) {
+    console.log("🚀 [ResumePreview.js] Renderizando...");
+    console.log("✅ Layout original Restaurado (Divs limpas).");
+    console.log("✅ Data Unificada com Slider Funcional em ambos os modos.");
+}
+
 const formatText = (text) => {
-    if (!text) return null;
-    const parts = text.split(/(\*\*[^*]+\*\*|\*[^*]+\*)/g);
-    return parts.map((part, index) => {
-        if (part.startsWith('**') && part.endsWith('**')) {
-            return <strong key={index}>{part.slice(2, -2)}</strong>;
-        }
-        if (part.startsWith('*') && part.endsWith('*')) {
-            return <em key={index}>{part.slice(1, -1)}</em>;
-        }
-        return part;
-    });
+  if (!text) return null;
+  const parts = text.split(/(\*\*[^*]+\*\*|\*[^*]+\*)/g);
+  return parts.map((part, index) => {
+    if (part.startsWith('**') && part.endsWith('**')) {
+      return <strong key={index}>{part.slice(2, -2)}</strong>;
+    }
+    if (part.startsWith('*') && part.endsWith('*')) {
+      return <em key={index}>{part.slice(1, -1)}</em>;
+    }
+    return part;
+  });
 };
 
 const getFormattedDate = (dataObj) => {
     let dateToUse = dataObj.date;
+
     if (dataObj.autoDate) {
         const today = new Date();
         if (dataObj.format !== 'long') {
@@ -28,6 +35,7 @@ const getFormattedDate = (dataObj) => {
         }
         return today.toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' });
     }
+
     if (dataObj.format === 'long' && dateToUse) {
         const match = dateToUse.match(/^(\d{1,2})[\/\.-](\d{1,2})[\/\.-](\d{4})$/);
         if (match) {
@@ -37,339 +45,867 @@ const getFormattedDate = (dataObj) => {
             }
         }
     }
+
     return dateToUse;
 };
 
 export default function ResumePreview({ data, settings }) {
-    if (EXIBIR_LOGS) {
-        console.log("🚀 [ResumePreview.js] Renderizando...");
-        console.log("✅ Rodapé sincronizado: Linha obrigatória em todas as páginas.");
-    }
+  const { structure, customSections, sectionOrder } = data; 
+  
+  const expColWidthCSS = `${settings.experienceColumnWidth}mm`;
+  const eduColWidthCSS = `${settings.educationColumnWidth}mm`;
+  const projectsColWidthCSS = `${settings.projectsColumnWidth}mm`;
 
-    const { structure, customSections, sectionOrder } = data;
-    const expColWidthCSS = `${settings.experienceColumnWidth}mm`;
-    const eduColWidthCSS = `${settings.educationColumnWidth}mm`;
-    const projectsColWidthCSS = `${settings.projectsColumnWidth}mm`;
-    const pageBreakClass = settings.pageBreakAuto ? 'keep-together' : '';
+  const pageBreakClass = settings.pageBreakAuto ? 'keep-together' : '';
 
-    const { photo, showPhoto, photoAlignment, photoShape, photoScale, photoX, photoY, photoGrayscale, photoRotate, photoBrightness, photoContrast, photoSaturation, photoFlip, photoCover, photoBorder, photoShadow } = data.personal;
+  const { 
+    photo, showPhoto, photoAlignment,
+    photoShape, photoScale, photoX, photoY, photoGrayscale,
+    photoRotate, photoBrightness, photoContrast, photoSaturation,
+    photoFlip, photoCover, photoBorder, photoShadow
+  } = data.personal;
 
-    const themeColorStyle = settings.themeColor;
-    const roleColor = settings.roleUseThemeColor ? themeColorStyle : undefined;
-    const rightTextColor = settings.rightTextUseThemeColor ? themeColorStyle : undefined;
+  const themeColorStyle = settings.themeColor;
+  const roleColor = settings.roleUseThemeColor ? themeColorStyle : undefined;
+  const rightTextColor = settings.rightTextUseThemeColor ? themeColorStyle : undefined;
 
-    const typographyStyles = {
-        fontFamily: `'${settings.font}', sans-serif`,
-        color: settings.bodyColor || '#374151',
-        fontSize: `${settings.fontSizeBase}pt`,
-        lineHeight: settings.lineHeight,
-    };
+  const typographyStyles = {
+    fontFamily: `'${settings.font}', sans-serif`,
+    color: settings.bodyColor || '#374151', 
+    fontSize: `${settings.fontSizeBase}pt`,
+    lineHeight: settings.lineHeight, 
+  };
 
-    const getSectionSpacing = (sectionId) => {
-        const specific = settings.sectionItemSpacings?.[sectionId];
-        return specific !== undefined ? `${specific}mm` : `${settings.itemSpacing}mm`;
-    };
+  const getSectionSpacing = (sectionId) => {
+      const specific = settings.sectionItemSpacings?.[sectionId];
+      return specific !== undefined ? `${specific}mm` : `${settings.itemSpacing}mm`;
+  };
 
-    const rightTextStyle = settings.rightTextBold ? "font-bold text-gray-900" : "font-medium text-gray-700 opacity-75";
+  const rightTextStyle = settings.rightTextBold 
+    ? "font-bold text-gray-900" 
+    : "font-medium text-gray-700 opacity-75";
 
-    const getHeaderStyle = (isSimple = false) => ({
-        color: settings.themeColor,
-        fontWeight: settings.sectionTitleBold ? '700' : '400',
-        borderColor: settings.themeColor,
-        borderBottomWidth: '1px',
-        borderBottomStyle: 'solid',
-        margin: 0,
-        marginBottom: '4px',
-        paddingBottom: '2px',
-        lineHeight: 1.2,
-        textTransform: 'uppercase',
-        letterSpacing: '0.05em',
-        fontSize: '1.1em',
-        display: 'block',
-        width: '100%',
-        backgroundColor: 'white',
-        boxSizing: 'border-box',
-        ...(isSimple ? { backgroundColor: 'transparent' } : {})
-    });
+  const getHeaderStyle = (isSimple = false) => ({
+      color: settings.themeColor, 
+      fontWeight: settings.sectionTitleBold ? '700' : '400', 
+      borderColor: settings.themeColor,
+      borderBottomWidth: '1px',
+      borderBottomStyle: 'solid',
+      margin: 0,
+      marginBottom: '4px', 
+      paddingBottom: '2px',
+      lineHeight: 1.2,
+      textTransform: 'uppercase',
+      letterSpacing: '0.05em',
+      fontSize: '1.1em',
+      display: 'block',
+      width: '100%',
+      backgroundColor: 'white', 
+      boxSizing: 'border-box',
+      ...(isSimple ? { backgroundColor: 'transparent' } : {})
+  });
 
-    const SimpleSectionWrapper = ({ title, children, sectionId }) => (
-        <div style={{ marginBottom: `${settings.sectionSpacing}mm`, width: '100%' }}>
-            <div style={getHeaderStyle(true)}>{title}</div>
-            <div style={{ marginTop: '1mm' }}>{children}</div>
-        </div>
-    );
+  const SimpleSectionWrapper = ({ title, children, sectionId }) => (
+      <div style={{ marginBottom: `${settings.sectionSpacing}mm`, width: '100%' }}>
+          <div style={getHeaderStyle(true)}>
+              {title}
+          </div>
+          <div style={{ marginTop: '1mm' }}>
+              {children}
+          </div>
+      </div>
+  );
 
-    const PaginatedSectionWrapper = ({ title, children }) => (
+  const PaginatedSectionWrapper = ({ title, children }) => {
+    return (
         <div style={{ position: 'relative', marginBottom: `${settings.sectionSpacing}mm`, width: '100%' }}>
-            <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', zIndex: 20, pointerEvents: 'none', backgroundColor: 'white' }}>
-                <div style={getHeaderStyle(false)}>{title}</div>
+            <div style={{ 
+                position: 'absolute', top: 0, left: 0, width: '100%', 
+                zIndex: 20, pointerEvents: 'none', backgroundColor: 'white'
+            }}>
+                <div style={getHeaderStyle(false)}>
+                    {title}
+                </div>
             </div>
+
             <table style={{ width: '100%', borderCollapse: 'collapse', ...typographyStyles }}>
                 <thead style={{ display: 'table-header-group' }}>
                     <tr style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}>
                         <td style={{ padding: 0, border: 'none' }}>
-                            <div style={getHeaderStyle(false)}>{title} <span style={{ fontSize: '0.65em', fontWeight: 'normal', opacity: 0.7, textTransform: 'none' }}>(Continuação)</span></div>
-                            <div style={{ height: '1mm' }}></div>
+                            <div style={getHeaderStyle(false)}>
+                                {title} <span style={{ fontSize: '0.65em', fontWeight: 'normal', opacity: 0.7, textTransform: 'none' }}>(Continuação)</span>
+                            </div>
+                            <div style={{ height: '1mm' }}></div> 
                         </td>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr><td style={{ padding: 0, border: 'none', verticalAlign: 'top' }}>{children}</td></tr>
+                    <tr>
+                        <td style={{ padding: 0, border: 'none', verticalAlign: 'top' }}>
+                            {children}
+                        </td>
+                    </tr>
                 </tbody>
             </table>
         </div>
     );
+  };
 
-    const renderListItems = (items, sectionId) => {
-        const activeStyle = LIST_STYLES[settings.listStyle] || LIST_STYLES['disc'];
-        const isWideMarker = ['arrow', 'check', 'dash'].includes(settings.listStyle);
-        return (items || []).map((item, i) => {
-            if (!item || !item.trim()) return null;
-            const isHeader = item.startsWith('## ');
-            const isSub = item.startsWith('>> ');
-            let text = item;
-            let bulletClass = activeStyle.cssMain;
-            let extraClasses = '';
-            let liStyle = { textAlign: settings.textAlign, textJustify: 'inter-word', color: settings.listMarkerUseThemeColor ? settings.themeColor : (settings.bodyColor || '#374151'), paddingLeft: isWideMarker ? '0.5em' : '0' };
-            if (isHeader) {
-                text = item.slice(3); bulletClass = 'list-none'; extraClasses = 'font-bold mt-0 mb-0 pt-0'; liStyle.color = settings.bodyColor; liStyle.paddingLeft = '0';
-            } else if (isSub) {
-                text = item.slice(3); bulletClass = activeStyle.cssSub; extraClasses = 'ml-6';
-            }
-            return (
-                <li key={i} className={`break-words ${bulletClass} ${extraClasses} ${settings.listMarkerBold ? 'marker:font-bold' : ''}`} style={liStyle}>
-                    <span style={{ color: settings.bodyColor || '#374151', position: 'relative', left: isWideMarker ? '0.3em' : '0' }}>{formatText(text)}</span>
-                </li>
-            );
-        });
-    };
+  const renderListItems = (items, sectionId) => {
+    const activeStyle = LIST_STYLES[settings.listStyle] || LIST_STYLES['disc'];
+    const isWideMarker = ['arrow', 'check', 'dash'].includes(settings.listStyle);
 
-    const renderHeader = () => {
-        const isPhotoVisible = showPhoto && photo;
-        const align = photoAlignment || 'center';
-        let dynamicPhotoSize = "w-28 h-28";
-        let dynamicGap = "gap-6";
-        let dynamicTitleSize = "1.8em";
-        let dynamicTextSize = "text-[0.9em]";
-        if (isPhotoVisible && (align === 'left' || align === 'right')) {
-            dynamicPhotoSize = "w-24 h-24"; dynamicGap = "gap-4"; dynamicTitleSize = "2em"; dynamicTextSize = "text-[0.95em]";
+    return (items || []).map((item, i) => {
+        if (!item || !item.trim()) return null;
+        
+        const isHeader = item.startsWith('## ');
+        const isSub = item.startsWith('>> ');
+        
+        let text = item;
+        let bulletClass = activeStyle.cssMain;
+        let extraClasses = '';
+        
+        let liStyle = { 
+            textAlign: settings.textAlign, 
+            textJustify: 'inter-word',
+            color: settings.listMarkerUseThemeColor ? settings.themeColor : (settings.bodyColor || '#374151'),
+            paddingLeft: isWideMarker ? '0.5em' : '0' 
+        };
+
+        if (isHeader) {
+            text = item.slice(3);
+            bulletClass = 'list-none'; 
+            extraClasses = 'font-bold mt-0 mb-0 pt-0'; 
+            liStyle.color = settings.bodyColor;
+            liStyle.paddingLeft = '0';
+        } else if (isSub) {
+            text = item.slice(3);
+            bulletClass = activeStyle.cssSub;
+            extraClasses = 'ml-6'; 
         }
-        let containerClasses = `border-b-2 flex `;
-        let textContainerClasses = "flex-1 ";
-        let photoContainerClasses = "flex-shrink-0 ";
-        let contactJustify = "justify-center";
-        const headerStyle = { borderColor: settings.themeColor, marginBottom: `${settings.headerSpacing}mm`, paddingBottom: `${settings.headerSpacing / 2}mm` };
-        if (isPhotoVisible) {
-            if (align === 'left') { containerClasses += `flex-row items-center ${dynamicGap} text-left`; textContainerClasses += "text-left"; contactJustify = "justify-start"; }
-            else if (align === 'right') { containerClasses += `flex-row-reverse items-center ${dynamicGap} text-right`; textContainerClasses += "text-right"; contactJustify = "justify-end"; }
-            else { containerClasses += "flex-col items-center text-center"; textContainerClasses += "text-center"; contactJustify = "justify-center"; photoContainerClasses += "mb-4"; }
-        } else { containerClasses += "flex-col items-center text-center"; textContainerClasses += "text-center"; }
-        const scaleX = (photoScale / 100) * (photoFlip ? -1 : 1);
-        const scaleY = (photoScale / 100);
-        const photoStyle = { width: '100%', height: '100%', objectFit: photoCover ? 'cover' : 'contain', transform: `scale(${scaleX}, ${scaleY}) translate(${photoX}%, ${photoY}%) rotate(${photoRotate || 0}deg)`, filter: `${photoGrayscale ? 'grayscale(100%)' : ''} brightness(${photoBrightness || 100}%) contrast(${photoContrast || 100}%) saturate(${photoSaturation || 100}%)`, transition: 'transform 0.1s' };
-        let frameRadius = '50%'; if (photoShape === 'square') frameRadius = '0%'; if (photoShape === 'rounded') frameRadius = '12px';
+
         return (
-            <header className={containerClasses} style={headerStyle}>
-                {isPhotoVisible && (
-                    <div className={photoContainerClasses}>
-                        <div className={`${dynamicPhotoSize} overflow-hidden bg-gray-100`} style={{ borderRadius: frameRadius, borderWidth: `${photoBorder || 0}px`, borderColor: settings.themeColor, borderStyle: 'solid', boxShadow: photoShadow ? '0 4px 6px 1px rgba(0, 0, 0, 0.35), 0 2px 4px -1px rgba(0, 0, 0, 0.15)' : 'none' }}>
-                            <img src={photo} alt="Foto de Perfil" style={photoStyle} />
-                        </div>
-                    </div>
-                )}
-                <div className={textContainerClasses}>
-                    <h1 className="font-extrabold tracking-wide uppercase leading-none mb-4 break-words" style={{ color: settings.themeColor, fontSize: dynamicTitleSize }}>{data.personal.name}</h1>
-                    <div className={`flex flex-wrap gap-x-3 gap-y-1 ${dynamicTextSize} font-medium leading-tight mb-2 ${contactJustify}`}>
-                        {data.personal.email && <span className="flex items-center gap-1"><Mail size={'1em'} className="flex-shrink-0"/> {data.personal.email}</span>}
-                        {data.personal.phone && <span className="flex items-center gap-1 border-l pl-2 border-gray-400"><Phone size={'1em'} className="flex-shrink-0"/> {data.personal.phone}</span>}
-                        {data.personal.location && <span className="flex items-center gap-1 border-l pl-2 border-gray-400"><MapPin size={'1em'} className="flex-shrink-0"/> {data.personal.location}</span>}
-                        {data.personal.driverLicenses && data.personal.driverLicenses.length > 0 && (
-                            <span className="flex items-center gap-1 border-l pl-2 border-gray-400"><Car size={'1em'} className="flex-shrink-0"/> CNH: {data.personal.driverLicenses.sort().join(' / ')}</span>
-                        )}
-                    </div>
-                    <div className={`flex flex-wrap gap-3 ${dynamicTextSize} font-medium leading-tight ${contactJustify} mb-2`} style={{ color: settings.themeColor }}>
-                        {data.personal.linkedin && <a href={data.personal.linkedin.startsWith('http') ? data.personal.linkedin : `https://${data.personal.linkedin}`} className="flex items-center gap-1 hover:underline" target="_blank" rel="noopener noreferrer"><Linkedin size={'1em'} className="flex-shrink-0"/> {data.personal.linkedin.replace(/^https?:\/\/(www\.)?/, '')}</a>}
-                        {data.personal.github && <a href={data.personal.github.startsWith('http') ? data.personal.github : `https://${data.personal.github}`} className="flex items-center gap-1 hover:underline" target="_blank" rel="noopener noreferrer"><Github size={'1em'} className="flex-shrink-0"/> {data.personal.github.replace(/^https?:\/\/(www\.)?/, '')}</a>}
-                        {data.personal.lattes && <a href={data.personal.lattes.startsWith('http') ? data.personal.lattes : `https://${data.personal.lattes}`} className="flex items-center gap-1 hover:underline" target="_blank" rel="noopener noreferrer"><FileText size={'1em'} className="flex-shrink-0"/> {data.personal.lattes.replace(/^https?:\/\/(www\.)?/, '')}</a>}
-                        {data.personal.youtube && <a href={data.personal.youtube.startsWith('http') ? data.personal.youtube : `https://${data.personal.youtube}`} className="flex items-center gap-1 hover:underline" target="_blank" rel="noopener noreferrer"><Youtube size={'1em'} className="flex-shrink-0"/> {data.personal.youtube.replace(/^https?:\/\/(www\.)?/, '')}</a>}
-                    </div>
-                </div>
-            </header>
+            <li 
+                key={i} 
+                className={`break-words ${bulletClass} ${extraClasses} ${settings.listMarkerBold ? 'marker:font-bold' : ''}`} 
+                style={liStyle}
+            >
+                <span style={{ color: settings.bodyColor || '#374151', position: 'relative', left: isWideMarker ? '0.3em' : '0' }}>
+                    {formatText(text)}
+                </span>
+            </li>
         );
+    });
+  };
+
+  const renderHeader = () => {
+    const isPhotoVisible = showPhoto && photo;
+    const align = photoAlignment || 'center'; 
+
+    let dynamicPhotoSize = "w-28 h-28";     
+    let dynamicGap = "gap-6";               
+    let dynamicTitleSize = "1.8em";         
+    let dynamicTextSize = "text-[0.9em]";   
+
+    if (isPhotoVisible && (align === 'left' || align === 'right')) {
+        dynamicPhotoSize = "w-24 h-24";     
+        dynamicGap = "gap-4";               
+        dynamicTitleSize = "2em";           
+        dynamicTextSize = "text-[0.95em]";  
+    }
+
+    let containerClasses = `border-b-2 flex `;
+    let textContainerClasses = "flex-1 ";
+    let photoContainerClasses = "flex-shrink-0 ";
+    let contactJustify = "justify-center";
+    
+    const headerStyle = { 
+        borderColor: settings.themeColor,
+        marginBottom: `${settings.headerSpacing}mm`,
+        paddingBottom: `${settings.headerSpacing / 2}mm` 
     };
 
-    const renderSection = (sectionId) => {
-        const containerStyle = { display: 'flex', flexDirection: 'column', gap: getSectionSpacing(sectionId) };
-        const innerListStyle = { display: 'flex', flexDirection: 'column', gap: '0.5mm' };
-        let displayTitle = '';
-        let isCustom = false;
-        let customType = '';
-        if (sectionId.startsWith('custom-')) {
-            const sec = customSections.find(s => s.id === sectionId);
-            displayTitle = sec ? sec.title : ''; isCustom = true; customType = sec ? sec.type : '';
+    if (isPhotoVisible) {
+        if (align === 'left') {
+            containerClasses += `flex-row items-center ${dynamicGap} text-left`;
+            textContainerClasses += "text-left";
+            contactJustify = "justify-start";
+        } else if (align === 'right') {
+            containerClasses += `flex-row-reverse items-center ${dynamicGap} text-right`;
+            textContainerClasses += "text-right";
+            contactJustify = "justify-end";
         } else {
-            displayTitle = structure[sectionId] ? structure[sectionId].title : '';
+            containerClasses += "flex-col items-center text-center";
+            textContainerClasses += "text-center";
+            contactJustify = "justify-center";
+            photoContainerClasses += "mb-4";
         }
-        const usePaginatedWrapper = ['experience', 'education', 'projects'].includes(sectionId) || (isCustom && ['detailed', 'category-detailed', 'category-simple', 'list'].includes(customType)) || ['others', 'references', 'skills'].includes(sectionId);
-        const Wrapper = usePaginatedWrapper ? PaginatedSectionWrapper : SimpleSectionWrapper;
+    } else {
+        containerClasses += "flex-col items-center text-center";
+        textContainerClasses += "text-center";
+    }
 
-        if (sectionId.startsWith('custom-')) {
-            const sec = customSections.find(s => s.id === sectionId);
-            if (!sec || !sec.visible) return null;
-            if (sec.type === 'text') return (<SimpleSectionWrapper title={displayTitle} sectionId={sectionId}><p className="break-words" style={{ textAlign: settings.textAlign, textJustify: 'inter-word', whiteSpace: 'pre-line' }}>{formatText(sec.content)}</p></SimpleSectionWrapper>);
-            if (sec.type === 'list') return (<Wrapper title={displayTitle}><ul className="list-outside" style={{...containerStyle, paddingLeft: '1.2em'}}>{renderListItems(sec.content, sectionId)}</ul></Wrapper>);
-            if (sec.type === 'detailed') return (
-                <Wrapper title={displayTitle}><div style={containerStyle}>{(Array.isArray(sec.content) ? sec.content : []).map((item, i) => {
-                    if (!item.title?.trim() && !item.subtitle?.trim() && !(item.description || []).some(d => d.trim())) return null;
-                    return (<div key={i} className={pageBreakClass}><div className="flex flex-row items-baseline justify-between flex-row-print"><div className="font-bold text-[1.05em] leading-tight break-words flex-1 pr-3">{formatText(item.title)}</div><div className={`text-[0.9em] text-right leading-tight flex-shrink-0 ${rightTextStyle}`} style={{ width: expColWidthCSS, color: rightTextColor }}>{item.location}</div></div><div className="flex flex-row items-baseline justify-between flex-row-print"><div className="italic font-medium leading-tight break-words flex-1 pr-3" style={{ color: roleColor }}>{formatText(item.subtitle)}</div><div className={`text-[0.9em] text-right leading-tight flex-shrink-0 ${rightTextStyle}`} style={{ width: expColWidthCSS, color: rightTextColor }}>{item.date}</div></div><div className="mt-1" style={{ paddingRight: expColWidthCSS }}><ul className="list-outside" style={{...innerListStyle, paddingLeft: '1.2em'}}>{renderListItems(item.description, sectionId)}</ul></div></div>);
-                })}</div></Wrapper>
-            );
-            if (sec.type === 'category-simple') return (
-                <Wrapper title={displayTitle}><div style={containerStyle}>{(sec.content || []).map((item, i) => {
-                    if (!item.title?.trim() && !(item.description || []).some(d => typeof d === 'string' && d.trim())) return null;
-                    return (<div key={i} className={pageBreakClass}>{item.title && <h4 className="font-bold leading-tight mb-0.5" style={{ color: settings.themeColor }}>{item.title}</h4>}<ul className="list-outside" style={{...innerListStyle, paddingLeft: '1.2em'}}>{renderListItems(item.description, sectionId)}</ul></div>);
-                })}</div></Wrapper>
-            );
-            if (sec.type === 'category-detailed') return (
-                <Wrapper title={displayTitle}><div style={containerStyle}>{(sec.content || []).map((item, i) => {
-                    if (!item.title?.trim() && !(item.description || []).some(d => (typeof d === 'string' ? d.trim() : (d.text?.trim() || d.hours?.trim() || d.details?.trim())))) return null;
-                    return (<div key={i} className={pageBreakClass}>{item.title && <h4 className="font-bold text-[1.05em] leading-tight mb-0.5" style={{ color: settings.themeColor }}>{item.title}</h4>}<ul className="list-outside" style={{...innerListStyle, paddingLeft: '1.2em'}}>{(item.description || []).map((descObj, j) => {
-                        const isString = typeof descObj === 'string'; const text = isString ? descObj : descObj.text; const hours = isString ? '' : descObj.hours; const details = isString ? '' : descObj.details;
-                        if (!text?.trim() && !hours?.trim() && !details?.trim()) return null;
-                        const activeStyle = LIST_STYLES[settings.listStyle] || LIST_STYLES['disc']; const isWideMarker = ['arrow', 'check', 'dash'].includes(settings.listStyle); const bulletClass = activeStyle.cssMain;
-                        let liStyle = { textAlign: settings.textAlign, textJustify: 'inter-word', color: settings.listMarkerUseThemeColor ? settings.themeColor : (settings.bodyColor || '#374151'), paddingLeft: isWideMarker ? '0.5em' : '0' };
-                        return (<li key={j} className={`break-words ${bulletClass} ${settings.listMarkerBold ? 'marker:font-bold' : ''}`} style={liStyle}><div style={{ color: settings.bodyColor || '#374151', position: 'relative', left: isWideMarker ? '0.3em' : '0' }}>{(text || hours) && (<div className={`leading-tight break-words ${!details ? 'mb-0' : 'mb-0.5'}`} style={{ color: settings.bodyColor }}>{text && <span className="font-bold text-[0.95em]">{formatText(text)}</span>}{hours && (<span className="font-normal text-[0.9em] opacity-80">{text ? ' - ' : ''}<strong style={{ color: settings.themeColor }}>CH:</strong> {hours}{!hours.toLowerCase().includes('h') ? ' horas' : ''}</span>)}</div>)}{details && (<div className="mt-0"><p className="text-[0.85em] font-normal opacity-75 break-words" style={{ textAlign: settings.textAlign, textJustify: 'inter-word' }}>{formatText(details)}</p></div>)}</div></li>);
-                    })}</ul></div>);
-                })}</div></Wrapper>
-            );
-        }
+    const scaleX = (photoScale / 100) * (photoFlip ? -1 : 1);
+    const scaleY = (photoScale / 100);
 
-        switch(sectionId) {
-            case 'objective': return structure.objective.visible && data.objective && (<SimpleSectionWrapper title={displayTitle} sectionId={sectionId}><p className="break-words" style={{ textAlign: settings.textAlign, textJustify: 'inter-word' }}>{formatText(data.objective)}</p></SimpleSectionWrapper>);
-            case 'summary': return structure.summary.visible && data.summary && (<SimpleSectionWrapper title={displayTitle} sectionId={sectionId}><p className="break-words" style={{ textAlign: settings.textAlign, textJustify: 'inter-word' }}>{formatText(data.summary)}</p></SimpleSectionWrapper>);
-            case 'skills': return structure.skills.visible && data.skills.length > 0 && (
-                <Wrapper title={displayTitle}><div style={containerStyle}>{data.skills.map((skill, i) => (<div key={i} className="flex flex-row items-baseline gap-4" ><div className="font-bold text-[0.95em] leading-tight break-words flex-shrink-0" style={{ width: `${settings.leftColumnWidth}mm` }}>{formatText(skill.category)}</div><div className="break-words leading-tight flex-1" style={{ textAlign: settings.textAlign, textJustify: 'inter-word' }}>{skill.items && skill.items.includes('\n') ? (<ul className="list-outside" style={{...innerListStyle, paddingLeft: '1.2em'}}>{renderListItems(skill.items.split('\n').filter(line => line.trim()), sectionId)}</ul>) : formatText(skill.items)}</div></div>))}</div></Wrapper>
-            );
-            case 'projects': return structure.projects.visible && data.projects.length > 0 && (
-                <Wrapper title={displayTitle}><div style={containerStyle}>{data.projects.map((proj, i) => {
-                    if (!proj.title?.trim() && !proj.tech?.trim() && !(proj.description || []).some(d => d.trim())) return null;
-                    return (<div key={i} className={`${pageBreakClass} flex flex-row items-start gap-8 flex-row-print`}><div className="flex-1"><h4 className="font-bold text-[1.05em] break-words mb-0.5" style={{ color: settings.bodyColor }}>{proj.title}</h4>{proj.link && (<a href={proj.link.startsWith('http') ? proj.link : `https://${proj.link}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 italic font-medium text-[0.9em] mb-1 hover:underline" style={{ color: roleColor || 'inherit' }}>{settings.showLinkIcon !== false && <Link size={12} />}<span>{proj.link.replace(/^https?:\/\/(www\.)?/, '')}</span></a>)}<ul className="list-outside" style={{...innerListStyle, paddingLeft: '1.2em'}}>{renderListItems(proj.description, sectionId)}</ul></div><div className="flex-shrink-0 flex items-start justify-start mt-1" style={{ width: projectsColWidthCSS }}><span className={`text-[0.85em] bg-gray-100 px-2 py-1 rounded border border-gray-200 inline-block break-words hyphens-auto block w-full text-center ${settings.rightTextBold ? 'font-bold text-gray-800' : 'font-medium text-gray-600'}`} style={{ hyphens: 'auto', color: rightTextColor, borderColor: rightTextColor ? rightTextColor : undefined }}>{proj.tech}</span></div></div>)})}</div></Wrapper>
-            );
-            case 'experience': return structure.experience.visible && data.experience.length > 0 && (
-                <Wrapper title={displayTitle}><div style={containerStyle}>{data.experience.map((exp, i) => {
-                    if (!exp.company?.trim() && !exp.role?.trim() && !(exp.description || []).some(d => d.trim())) return null;
-                    return (<div key={i} className={pageBreakClass}><div className="flex flex-row items-baseline justify-between flex-row-print"><div className="font-bold text-[1.05em] leading-tight break-words flex-1 pr-4">{exp.company}</div><div className={`text-[0.9em] text-right leading-tight flex-shrink-0 ${rightTextStyle}`} style={{ width: expColWidthCSS, color: rightTextColor }}>{exp.location}</div></div><div className="flex flex-row items-baseline justify-between flex-row-print"><div className="italic font-medium leading-tight break-words flex-1 pr-4" style={{ color: roleColor }}>{exp.role}</div><div className={`text-[0.9em] text-right leading-tight flex-shrink-0 ${rightTextStyle}`} style={{ width: expColWidthCSS, color: rightTextColor }}>{exp.period}</div></div><div className="mt-0" style={{ paddingRight: expColWidthCSS }}><ul className="list-outside" style={{...innerListStyle, paddingLeft: '1.2em'}}>{renderListItems(exp.description, sectionId)}</ul></div></div>)})}</div></Wrapper>
-            );
-            case 'education': return structure.education.visible && data.education.length > 0 && (
-                <Wrapper title={displayTitle}><div style={containerStyle}>{data.education.map((edu, i) => {
-                    if (!edu.institution?.trim() && !edu.degree?.trim()) return null;
-                    return (<div key={i} className={pageBreakClass}><div className="flex flex-row items-baseline justify-between flex-row-print"><div className="font-bold leading-tight break-words flex-1 pr-4">{edu.degree}</div><div className={`text-[0.9em] text-right leading-tight flex-shrink-0 ${rightTextStyle}`} style={{ width: eduColWidthCSS, color: rightTextColor }}>{edu.period}</div></div><div className="flex flex-row items-baseline justify-between flex-row-print"><div className="leading-tight break-words flex-1 pr-4" style={{ color: roleColor }}>{edu.institution}</div><div className={`text-[0.9em] text-right leading-tight flex-shrink-0 ${rightTextStyle}`} style={{ width: eduColWidthCSS, color: rightTextColor }}>{edu.location}</div></div>{edu.details && (<div className="mt-0.5" style={{ paddingRight: eduColWidthCSS }}><p className="text-[0.9em] opacity-75 italic break-words" style={{ textAlign: settings.textAlign, textJustify: 'inter-word' }}>{formatText(edu.details)}</p></div>)}</div>);
-                })}</div></Wrapper>
-            );
-            case 'others': return structure.others.visible && data.others.length > 0 && (
-                <Wrapper title={displayTitle}><div style={containerStyle}>{data.others.map((item, i) => {
-                    if (!item.title?.trim() && !(item.description || []).some(d => (typeof d === 'string' ? d.trim() : (d.text?.trim() || d.hours?.trim() || d.details?.trim())))) return null;
-                    return (<div key={i} className={pageBreakClass}>{item.title && <h4 className="font-bold text-[1.05em] leading-tight mb-0.5" style={{ color: settings.themeColor }}>{item.title}</h4>}<ul className="list-outside" style={{...innerListStyle, paddingLeft: '1.2em'}}>{(item.description || []).map((descObj, j) => {
-                        const isString = typeof descObj === 'string'; const text = isString ? descObj : descObj.text; const hours = isString ? '' : descObj.hours; const details = isString ? '' : descObj.details;
-                        if (!text?.trim() && !hours?.trim() && !details?.trim()) return null;
-                        const activeStyle = LIST_STYLES[settings.listStyle] || LIST_STYLES['disc']; const isWideMarker = ['arrow', 'check', 'dash'].includes(settings.listStyle); const bulletClass = activeStyle.cssMain;
-                        let liStyle = { textAlign: settings.textAlign, textJustify: 'inter-word', color: settings.listMarkerUseThemeColor ? settings.themeColor : (settings.bodyColor || '#374151'), paddingLeft: isWideMarker ? '0.5em' : '0' };
-                        return (<li key={j} className={`break-words ${bulletClass} ${settings.listMarkerBold ? 'marker:font-bold' : ''}`} style={liStyle}><div style={{ color: settings.bodyColor || '#374151', position: 'relative', left: isWideMarker ? '0.3em' : '0' }}>{(text || hours) && (<div className={`leading-tight break-words ${!details ? 'mb-0' : 'mb-0.5'}`} style={{ color: settings.bodyColor }}>{text && <span className="font-bold text-[0.95em]">{formatText(text)}</span>}{hours && (<span className="font-normal text-[0.9em] opacity-80">{text ? ' | ' : ''}<strong style={{ color: settings.themeColor }}>Carga horária:</strong> {hours}{!hours.toLowerCase().includes('h') ? ' horas' : ''}</span>)}</div>)}{details && (<div className="mt-0"><p className="text-[0.85em] font-normal opacity-80 break-words" style={{ textAlign: settings.textAlign, textJustify: 'inter-word' }}><strong style={{ color: settings.themeColor }}>Descrição: </strong>{formatText(details)}</p></div>)}</div></li>);
-                    })}</ul></div>);
-                })}</div></Wrapper>
-            );
-            case 'references': return structure.references.visible && data.references && data.references.length > 0 && (
-                <Wrapper title={displayTitle}><div className="grid grid-cols-2" style={{ gap: `${settings.itemSpacing}mm` }}>{data.references.map((ref, i) => {
-                    const iconColor = settings.listMarkerUseThemeColor ? settings.themeColor : 'currentColor';
-                    return (<div key={i} className="break-inside-avoid min-w-0 pr-2"><div className="font-bold text-[0.95em] break-words leading-tight" style={{ color: settings.bodyColor }}>{ref.name}</div>{(ref.role || ref.company) && (<div className="text-[0.9em] italic mb-0.5 break-words leading-tight" style={{ color: roleColor }}>{ref.role}{ref.role && ref.company ? ' | ' : ''}{ref.company}</div>)}<div className="text-[0.85em] flex flex-col gap-0.5 text-gray-600 mt-0.5">{ref.email && (<div className="flex items-center gap-1.5"><div className="flex-shrink-0" style={{ color: iconColor }}><Mail size={10} /></div><span className="break-all leading-tight">{ref.email}</span></div>)}{ref.phone && (<div className="flex items-center gap-1.5"><div className="flex-shrink-0" style={{ color: iconColor }}><Phone size={10} /></div><span className="break-all leading-tight">{ref.phone}</span></div>)}</div></div>);
-                })}</div></Wrapper>
-            );
-            case 'keywords': return structure.keywords.visible && data.keywords && (
-                <div style={{ position: 'absolute', bottom: '5mm', left: '15mm', width: '180mm', fontSize: '1px', lineHeight: '1px', color: '#FFFFFF', whiteSpace: 'pre-wrap', overflow: 'hidden', opacity: 0.01, zIndex: -1, userSelect: 'none', pointerEvents: 'none' }} className="ats-camouflage">{data.keywords}</div>
-            );
-            default: return null;
-        }
+    const photoStyle = {
+        width: '100%',
+        height: '100%',
+        objectFit: photoCover ? 'cover' : 'contain', 
+        transform: `scale(${scaleX}, ${scaleY}) translate(${photoX}%, ${photoY}%) rotate(${photoRotate || 0}deg)`,
+        filter: `${photoGrayscale ? 'grayscale(100%)' : ''} brightness(${photoBrightness || 100}%) contrast(${photoContrast || 100}%) saturate(${photoSaturation || 100}%)`,
+        transition: 'transform 0.1s'
     };
 
-    const ResumeContent = (
-        <>
-            {renderHeader()}
-            {sectionOrder.map(sectionId => sectionId !== 'keywords' ? renderSection(sectionId) : null)}
-            {/* O texto de Cidade e Data é renderizado aqui. Se estiver fixado, o container pai do ResumeContent cuidará do alinhamento. */}
-            {data.dateLocation && data.dateLocation.visible && (
-                <div 
-                    className={`w-full flex justify-end break-inside-avoid ${data.dateLocation.fixedAtBottom ? 'date-location-fixed' : ''}`}
-                    style={{ 
-                        marginTop: data.dateLocation.fixedAtBottom ? 'auto' : '8mm',
-                        marginBottom: data.dateLocation.fixedAtBottom ? '0' : '4mm',
-                        textAlign: 'right',
-                        color: data.dateLocation.useThemeColor ? settings.themeColor : settings.bodyColor,
-                        fontWeight: data.dateLocation.useBold ? 'bold' : 'normal',
-                        fontSize: data.dateLocation.fontSize ? `${data.dateLocation.fontSize}em` : '1.05em'
-                    }}
-                >
-                    <span>
-                        {data.dateLocation.location}
-                        {(data.dateLocation.location && (data.dateLocation.date || data.dateLocation.autoDate)) ? ', ' : ''}
-                        {getFormattedDate(data.dateLocation)}
-                    </span>
-                </div>
-            )}
-            {renderSection('keywords')}
-        </>
-    );
+    let frameRadius = '50%'; 
+    if (photoShape === 'square') frameRadius = '0%';
+    if (photoShape === 'rounded') frameRadius = '12px';
 
     return (
-        <div id="resume-preview" lang="pt-BR" className="bg-white shadow-2xl relative flex flex-col" style={{ ...typographyStyles, width: '210mm', minHeight: '297mm', boxSizing: 'border-box' }}>
-            <style>{`
-                @media print {
-                    @page { size: A4; margin: 0 !important; }
-                    body { margin: 0 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-                }
-                .date-location-fixed {
-                    position: absolute;
-                    bottom: 0;
-                    right: 0;
-                }
-            `}</style>
-
-            {settings.showGuides && (
-                <div className="absolute inset-0 z-50 pointer-events-none page-guide">
-                    <div className="absolute border border-green-600 border-dashed opacity-100" style={{ top: '20mm', bottom: '20mm', left: '15mm', right: '15mm' }}><span className="absolute top-0 right-0 bg-green-600 text-white text-[9px] px-1 font-bold">Margem</span></div>
-                    <div className="absolute border-r border-blue-600 border-dashed h-full opacity-100" style={{ top: '20mm', bottom: '20mm', left: `calc(15mm + ${settings.leftColumnWidth}mm)` }}><span className="absolute top-2 -right-1 translate-x-full bg-blue-100 text-blue-800 text-[9px] px-1 border border-blue-300 rounded font-bold whitespace-nowrap">Competências</span></div>
+        <header className={containerClasses} style={headerStyle}>
+            {isPhotoVisible && (
+                <div className={photoContainerClasses}>
+                    <div 
+                        className={`${dynamicPhotoSize} overflow-hidden bg-gray-100`}
+                        style={{ 
+                            borderRadius: frameRadius,
+                            borderWidth: `${photoBorder || 0}px`,
+                            borderColor: settings.themeColor,
+                            borderStyle: 'solid',
+                            boxShadow: photoShadow ? '0 4px 6px 1px rgba(0, 0, 0, 0.35), 0 2px 4px -1px rgba(0, 0, 0, 0.15)' : 'none'
+                        }}
+                    >
+                        <img src={photo} alt="Foto de Perfil" style={photoStyle} />
+                    </div>
                 </div>
             )}
+            <div className={textContainerClasses}>
+                <h1 className="font-extrabold tracking-wide uppercase leading-none mb-4 break-words" style={{ color: settings.themeColor, fontSize: dynamicTitleSize }}>{data.personal.name}</h1>
+                
+                <div className={`flex flex-wrap gap-x-3 gap-y-1 ${dynamicTextSize} font-medium leading-tight mb-2 ${contactJustify}`}>
+                    {data.personal.email && <span className="flex items-center gap-1"><Mail size={'1em'} className="flex-shrink-0"/> {data.personal.email}</span>}
+                    {data.personal.phone && <span className="flex items-center gap-1 border-l pl-2 border-gray-400"><Phone size={'1em'} className="flex-shrink-0"/> {data.personal.phone}</span>}
+                    {data.personal.location && <span className="flex items-center gap-1 border-l pl-2 border-gray-400"><MapPin size={'1em'} className="flex-shrink-0"/> {data.personal.location}</span>}
+                    
+                    {data.personal.driverLicenses && data.personal.driverLicenses.length > 0 && (
+                        <span className="flex items-center gap-1 border-l pl-2 border-gray-400">
+                            <Car size={'1em'} className="flex-shrink-0"/> 
+                            CNH: {data.personal.driverLicenses.sort().join(' / ')}
+                        </span>
+                    )}
+                </div>
 
-            <table style={{ width: '100%', borderCollapse: 'collapse', borderSpacing: 0, height: '100%' }}>
-                <thead style={{ display: 'table-header-group' }}>
-                    <tr>
-                        <td style={{ padding: 0, height: '20mm', verticalAlign: 'bottom' }}>
-                            <div style={{ marginLeft: '15mm', marginRight: '15mm', height: '2px', backgroundColor: settings.showPageLines ? settings.themeColor : 'transparent' }}></div>
-                            <div style={{ height: '4mm' }}></div>
-                        </td>
-                    </tr>
-                </thead>
-                <tfoot style={{ display: 'table-footer-group' }}>
-                    <tr>
-                        <td style={{ padding: 0, height: '20mm', verticalAlign: 'top' }}>
-                            <div style={{ height: '4mm' }}></div>
-                            <div style={{ marginLeft: '15mm', marginRight: '15mm', height: '2px', backgroundColor: settings.showPageLines ? settings.themeColor : 'transparent' }}></div>
-                        </td>
-                    </tr>
-                </tfoot>
-                <tbody>
-                    <tr>
-                        <td style={{ padding: 0, verticalAlign: 'top' }}>
-                            <div className="content-container" style={{ 
-                                paddingLeft: '15mm', paddingRight: '15mm', width: '100%', boxSizing: 'border-box', 
-                                display: 'flex', flexDirection: 'column', minHeight: 'calc(297mm - 40mm)', position: 'relative'
-                            }}>
-                                {ResumeContent}
-                            </div>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
+                <div className={`flex flex-wrap gap-3 ${dynamicTextSize} font-medium leading-tight ${contactJustify} mb-2`} style={{ color: settings.themeColor }}>
+                    {data.personal.linkedin && (
+                        <a 
+                            href={data.personal.linkedin.startsWith('http') ? data.personal.linkedin : `https://${data.personal.linkedin}`} 
+                            className="flex items-center gap-1 hover:underline"
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                        >
+                            <Linkedin size={'1em'} className="flex-shrink-0"/> {data.personal.linkedin.replace(/^https?:\/\/(www\.)?/, '')}
+                        </a>
+                    )}
+                    
+                    {data.personal.github && (
+                        <a 
+                            href={data.personal.github.startsWith('http') ? data.personal.github : `https://${data.personal.github}`} 
+                            className="flex items-center gap-1 hover:underline"
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                        >
+                            <Github size={'1em'} className="flex-shrink-0"/> {data.personal.github.replace(/^https?:\/\/(www\.)?/, '')}
+                        </a>
+                    )}
+                    
+                    {data.personal.lattes && (
+                        <a 
+                            href={data.personal.lattes.startsWith('http') ? data.personal.lattes : `https://${data.personal.lattes}`}
+                            className="flex items-center gap-1 hover:underline"
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                        >
+                            <FileText size={'1em'} className="flex-shrink-0"/> {data.personal.lattes.replace(/^https?:\/\/(www\.)?/, '')}
+                        </a>
+                    )}
+
+                    {data.personal.youtube && (
+                        <a 
+                            href={data.personal.youtube.startsWith('http') ? data.personal.youtube : `https://${data.personal.youtube}`}
+                            className="flex items-center gap-1 hover:underline"
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                        >
+                            <Youtube size={'1em'} className="flex-shrink-0"/> {data.personal.youtube.replace(/^https?:\/\/(www\.)?/, '')}
+                        </a>
+                    )}
+                </div>
+            </div>
+        </header>
     );
+  };
+
+  const renderSection = (sectionId) => {
+    const containerStyle = {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: getSectionSpacing(sectionId)
+    };
+    
+    const innerListStyle = {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '0.5mm' 
+    };
+    
+    let displayTitle = '';
+    let isCustom = false;
+    let customType = '';
+
+    if (sectionId.startsWith('custom-')) {
+        const sec = customSections.find(s => s.id === sectionId);
+        displayTitle = sec ? sec.title : '';
+        isCustom = true;
+        customType = sec ? sec.type : '';
+    } else {
+        displayTitle = structure[sectionId] ? structure[sectionId].title : '';
+    }
+
+    const usePaginatedWrapper = 
+        ['experience', 'education', 'projects'].includes(sectionId) || 
+        (isCustom && customType === 'detailed') ||
+        (isCustom && customType === 'category-detailed') ||
+        (isCustom && customType === 'category-simple') ||
+        sectionId === 'others' || 
+        sectionId === 'references' ||
+        sectionId === 'skills' || 
+        (isCustom && customType === 'list');
+
+    const Wrapper = usePaginatedWrapper ? PaginatedSectionWrapper : SimpleSectionWrapper;
+
+    if (sectionId.startsWith('custom-')) {
+        const sec = customSections.find(s => s.id === sectionId);
+        if (!sec || !sec.visible) return null;
+        if (sec.type === 'text') { 
+            return (
+                <SimpleSectionWrapper title={displayTitle} sectionId={sectionId}>
+                    <p className="break-words" style={{ textAlign: settings.textAlign, textJustify: 'inter-word', whiteSpace: 'pre-line' }}>{formatText(sec.content)}</p>
+                </SimpleSectionWrapper>
+            ); 
+        }
+        if (sec.type === 'list') { 
+            return (
+                <Wrapper title={displayTitle}>
+                    <ul className="list-outside" style={{...containerStyle, paddingLeft: '1.2em'}}>
+                        {renderListItems(sec.content, sectionId)}
+                    </ul>
+                </Wrapper>
+            ); 
+        }
+        
+        if (sec.type === 'detailed') { 
+            return (
+                <Wrapper title={displayTitle}>
+                    <div style={containerStyle}>
+                        {(Array.isArray(sec.content) ? sec.content : []).map((item, i) => {
+                             const hasContent = item.title?.trim() || item.subtitle?.trim() || (item.description || []).some(d => d.trim());
+                             if (!hasContent) return null;
+
+                             return (
+                                <div key={i} className={pageBreakClass}>
+                                    <div className="flex flex-row items-baseline justify-between flex-row-print">
+                                        <div className="font-bold text-[1.05em] leading-tight break-words flex-1 pr-3">{formatText(item.title)}</div>
+                                        <div className={`text-[0.9em] text-right leading-tight flex-shrink-0 ${rightTextStyle}`} style={{ width: expColWidthCSS, color: rightTextColor }}>{item.location}</div>
+                                    </div>
+                                    <div className="flex flex-row items-baseline justify-between flex-row-print">
+                                        <div className="italic font-medium leading-tight break-words flex-1 pr-3" style={{ color: roleColor }}>{formatText(item.subtitle)}</div>
+                                        <div className={`text-[0.9em] text-right leading-tight flex-shrink-0 ${rightTextStyle}`} style={{ width: expColWidthCSS, color: rightTextColor }}>{item.date}</div>
+                                    </div>
+                                    <div className="mt-1" style={{ paddingRight: expColWidthCSS }}>
+                                        <ul className="list-outside" style={{...innerListStyle, paddingLeft: '1.2em'}}>
+                                            {renderListItems(item.description, sectionId)}
+                                        </ul>
+                                    </div>
+                                </div>
+                             );
+                        })}
+                    </div>
+                </Wrapper>
+            ); 
+        }
+        
+        if (sec.type === 'category-simple') {
+             return (
+                 <Wrapper title={displayTitle}>
+                     <div style={containerStyle}>
+                         {(sec.content || []).map((item, i) => {
+                              const hasContent = item.title?.trim() || (item.description || []).some(d => typeof d === 'string' && d.trim());
+                              if (!hasContent) return null;
+
+                              return (
+                                 <div key={i} className={pageBreakClass}>
+                                     {item.title && <h4 className="font-bold leading-tight mb-0.5" style={{ color: settings.themeColor }}>{item.title}</h4>}
+                                     <ul className="list-outside" style={{...innerListStyle, paddingLeft: '1.2em'}}>
+                                         {renderListItems(item.description, sectionId)}
+                                     </ul>
+                                 </div>
+                             );
+                         })}
+                     </div>
+                 </Wrapper>
+             );
+        }
+
+        if (sec.type === 'category-detailed') {
+            return (
+                <Wrapper title={displayTitle}>
+                    <div style={containerStyle}>
+                        {(sec.content || []).map((item, i) => {
+                             const hasContent = item.title?.trim() || (item.description || []).some(d => {
+                                 if (typeof d === 'string') return d.trim();
+                                 return d.text?.trim() || d.hours?.trim() || d.details?.trim();
+                             });
+                             if (!hasContent) return null;
+
+                             return (
+                                <div key={i} className={pageBreakClass}>
+                                    {item.title && <h4 className="font-bold text-[1.05em] leading-tight mb-0.5" style={{ color: settings.themeColor }}>{item.title}</h4>}
+                                    <ul className="list-outside" style={{...innerListStyle, paddingLeft: '1.2em'}}>
+                                        {(item.description || []).map((descObj, j) => {
+                                            const isString = typeof descObj === 'string';
+                                            const text = isString ? descObj : descObj.text;
+                                            const hours = isString ? '' : descObj.hours;
+                                            const details = isString ? '' : descObj.details;
+
+                                            if (!text?.trim() && !hours?.trim() && !details?.trim()) return null;
+
+                                            const activeStyle = LIST_STYLES[settings.listStyle] || LIST_STYLES['disc'];
+                                            const isWideMarker = ['arrow', 'check', 'dash'].includes(settings.listStyle);
+                                            const bulletClass = activeStyle.cssMain;
+
+                                            let liStyle = { 
+                                                textAlign: settings.textAlign, 
+                                                textJustify: 'inter-word',
+                                                color: settings.listMarkerUseThemeColor ? settings.themeColor : (settings.bodyColor || '#374151'),
+                                                paddingLeft: isWideMarker ? '0.5em' : '0' 
+                                            };
+
+                                            return (
+                                                <li key={j} className={`break-words ${bulletClass} ${settings.listMarkerBold ? 'marker:font-bold' : ''}`} style={liStyle}>
+                                                    <div style={{ color: settings.bodyColor || '#374151', position: 'relative', left: isWideMarker ? '0.3em' : '0' }}>
+                                                        {(text || hours) && (
+                                                            <div className={`leading-tight break-words ${!details ? 'mb-0' : 'mb-0.5'}`} style={{ color: settings.bodyColor }}>
+                                                                {text && <span className="font-bold text-[0.95em]">{formatText(text)}</span>}
+                                                                {hours && (
+                                                                    <span className="font-normal text-[0.9em] opacity-80">
+                                                                        {text ? ' - ' : ''}<strong style={{ color: settings.themeColor }}>CH:</strong> {hours}{!hours.toLowerCase().includes('h') ? ' horas' : ''}
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                        )}
+                                                        {details && (
+                                                            <div className="mt-0">
+                                                                <p className="text-[0.85em] font-normal opacity-75 break-words" style={{ textAlign: settings.textAlign, textJustify: 'inter-word' }}>
+                                                                    {formatText(details)}
+                                                                </p>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </li>
+                                            );
+                                        })}
+                                    </ul>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </Wrapper>
+            );
+        }
+    }
+
+    switch(sectionId) {
+        case 'objective':
+            return structure.objective.visible && data.objective && (
+                <SimpleSectionWrapper title={displayTitle} sectionId={sectionId}>
+                    <p className="break-words" style={{ textAlign: settings.textAlign, textJustify: 'inter-word' }}>{formatText(data.objective)}</p>
+                </SimpleSectionWrapper>
+            );
+        case 'summary':
+            return structure.summary.visible && data.summary && (
+                <SimpleSectionWrapper title={displayTitle} sectionId={sectionId}>
+                    <p className="break-words" style={{ textAlign: settings.textAlign, textJustify: 'inter-word' }}>{formatText(data.summary)}</p>
+                </SimpleSectionWrapper>
+            );
+        case 'skills':
+            return structure.skills.visible && data.skills.length > 0 && (
+                <Wrapper title={displayTitle}>
+                    <div style={containerStyle}>
+                    {data.skills.map((skill, i) => {
+                        const isMultiLine = skill.items && skill.items.includes('\n');
+                        return (
+                            <div key={i} className="flex flex-row items-baseline gap-4" >
+                                <div className="font-bold text-[0.95em] leading-tight break-words flex-shrink-0" style={{ width: `${settings.leftColumnWidth}mm` }}>
+                                    {formatText(skill.category)}
+                                </div>
+                                <div className="break-words leading-tight flex-1" style={{ textAlign: settings.textAlign, textJustify: 'inter-word' }}>
+                                    {isMultiLine ? (
+                                        <ul className="list-outside" style={{...innerListStyle, paddingLeft: '1.2em'}}>
+                                            {renderListItems(skill.items.split('\n').filter(line => line.trim()), sectionId)}
+                                        </ul>
+                                    ) : (
+                                        formatText(skill.items)
+                                    )}
+                                </div>
+                            </div>
+                        );
+                    })}
+                    </div>
+                </Wrapper>
+            );
+        case 'projects':
+            return structure.projects.visible && data.projects.length > 0 && (
+                <Wrapper title={displayTitle}>
+                    <div style={containerStyle}>
+                    {data.projects.map((proj, i) => {
+                        const hasContent = proj.title?.trim() || proj.tech?.trim() || (proj.description || []).some(d => d.trim());
+                        if (!hasContent) return null;
+
+                        return (
+                        <div key={i} className={`${pageBreakClass} flex flex-row items-start gap-8 flex-row-print`}>
+                        <div className="flex-1">
+                            <h4 className="font-bold text-[1.05em] break-words mb-0.5" style={{ color: settings.bodyColor }}>{proj.title}</h4>
+                            {proj.link && (
+                                <a href={proj.link.startsWith('http') ? proj.link : `https://${proj.link}`} target="_blank" rel="noopener noreferrer"
+                                   className="flex items-center gap-1 italic font-medium text-[0.9em] mb-1 hover:underline" style={{ color: roleColor || 'inherit' }}>
+                                    {settings.showLinkIcon !== false && <Link size={12} />}
+                                    <span>{proj.link.replace(/^https?:\/\/(www\.)?/, '')}</span>
+                                </a>
+                            )}
+                            <ul className="list-outside" style={{...innerListStyle, paddingLeft: '1.2em'}}>
+                                {renderListItems(proj.description, sectionId)}
+                            </ul>
+                        </div>
+                        <div className="flex-shrink-0 flex items-start justify-start mt-1" style={{ width: projectsColWidthCSS }}>
+                            <span className={`text-[0.85em] bg-gray-100 px-2 py-1 rounded border border-gray-200 inline-block break-words hyphens-auto block w-full text-center ${settings.rightTextBold ? 'font-bold text-gray-800' : 'font-medium text-gray-600'}`} 
+                                  style={{ hyphens: 'auto', color: rightTextColor, borderColor: rightTextColor ? rightTextColor : undefined }}>
+                                {proj.tech}
+                            </span>
+                        </div>
+                        </div>
+                    )})}
+                    </div>
+                </Wrapper>
+            );
+        case 'experience':
+            return structure.experience.visible && data.experience.length > 0 && (
+                <Wrapper title={displayTitle}>
+                    <div style={containerStyle}>
+                    {data.experience.map((exp, i) => {
+                        const hasContent = exp.company?.trim() || exp.role?.trim() || (exp.description || []).some(d => d.trim());
+                        if (!hasContent) return null;
+
+                        return (
+                        <div key={i} className={pageBreakClass}>
+                        <div className="flex flex-row items-baseline justify-between flex-row-print">
+                            <div className="font-bold text-[1.05em] leading-tight break-words flex-1 pr-4">{exp.company}</div>
+                            <div className={`text-[0.9em] text-right leading-tight flex-shrink-0 ${rightTextStyle}`} style={{ width: expColWidthCSS, color: rightTextColor }}>{exp.location}</div>
+                        </div>
+                        <div className="flex flex-row items-baseline justify-between flex-row-print">
+                            <div className="italic font-medium leading-tight break-words flex-1 pr-4" style={{ color: roleColor }}>{exp.role}</div>
+                            <div className={`text-[0.9em] text-right leading-tight flex-shrink-0 ${rightTextStyle}`} style={{ width: expColWidthCSS, color: rightTextColor }}>{exp.period}</div>
+                        </div>
+                        <div className="mt-0" style={{ paddingRight: expColWidthCSS }}>
+                            <ul className="list-outside" style={{...innerListStyle, paddingLeft: '1.2em'}}>
+                                {renderListItems(exp.description, sectionId)}
+                            </ul>
+                        </div>
+                        </div>
+                    )})}
+                    </div>
+                </Wrapper>
+            );
+        case 'education':
+            return structure.education.visible && data.education.length > 0 && (
+                <Wrapper title={displayTitle}>
+                    <div style={containerStyle}>
+                    {data.education.map((edu, i) => {
+                        const hasContent = edu.institution?.trim() || edu.degree?.trim();
+                        if (!hasContent) return null;
+
+                        return (
+                        <div key={i} className={pageBreakClass}>
+                            <div className="flex flex-row items-baseline justify-between flex-row-print">
+                            <div className="font-bold leading-tight break-words flex-1 pr-4">{edu.degree}</div>
+                            <div className={`text-[0.9em] text-right leading-tight flex-shrink-0 ${rightTextStyle}`} style={{ width: eduColWidthCSS, color: rightTextColor }}>{edu.period}</div>
+                            </div>
+                            <div className="flex flex-row items-baseline justify-between flex-row-print">
+                            <div className="leading-tight break-words flex-1 pr-4" style={{ color: roleColor }}>{edu.institution}</div>
+                            <div className={`text-[0.9em] text-right leading-tight flex-shrink-0 ${rightTextStyle}`} style={{ width: eduColWidthCSS, color: rightTextColor }}>{edu.location}</div>
+                            </div>
+                            {edu.details && (
+                            <div className="mt-0.5" style={{ paddingRight: eduColWidthCSS }}>
+                                <p className="text-[0.9em] opacity-75 italic break-words" style={{ textAlign: settings.textAlign, textJustify: 'inter-word' }}>{formatText(edu.details)}</p>
+                            </div>
+                            )}
+                        </div>
+                            );
+                        })}
+                    </div>
+                </Wrapper>
+            );
+        case 'others':
+            return structure.others.visible && data.others.length > 0 && (
+                <Wrapper title={displayTitle}>
+                    <div style={containerStyle}>
+                        {data.others.map((item, i) => {
+                             const hasContent = item.title?.trim() || (item.description || []).some(d => {
+                                 if (typeof d === 'string') return d.trim();
+                                 return d.text?.trim() || d.hours?.trim() || d.details?.trim();
+                             });
+                             if (!hasContent) return null;
+
+                             return (
+                                <div key={i} className={pageBreakClass}>
+                                    {item.title && <h4 className="font-bold text-[1.05em] leading-tight mb-0.5" style={{ color: settings.themeColor }}>{item.title}</h4>}
+                                    <ul className="list-outside" style={{...innerListStyle, paddingLeft: '1.2em'}}>
+                                        {(item.description || []).map((descObj, j) => {
+                                            const isString = typeof descObj === 'string';
+                                            const text = isString ? descObj : descObj.text;
+                                            const hours = isString ? '' : descObj.hours;
+                                            const details = isString ? '' : descObj.details;
+
+                                            if (!text?.trim() && !hours?.trim() && !details?.trim()) return null;
+
+                                            const activeStyle = LIST_STYLES[settings.listStyle] || LIST_STYLES['disc'];
+                                            const isWideMarker = ['arrow', 'check', 'dash'].includes(settings.listStyle);
+                                            const bulletClass = activeStyle.cssMain;
+
+                                            let liStyle = { 
+                                                textAlign: settings.textAlign, 
+                                                textJustify: 'inter-word',
+                                                color: settings.listMarkerUseThemeColor ? settings.themeColor : (settings.bodyColor || '#374151'),
+                                                paddingLeft: isWideMarker ? '0.5em' : '0' 
+                                            };
+
+                                            return (
+                                                <li key={j} className={`break-words ${bulletClass} ${settings.listMarkerBold ? 'marker:font-bold' : ''}`} style={liStyle}>
+                                                    <div style={{ color: settings.bodyColor || '#374151', position: 'relative', left: isWideMarker ? '0.3em' : '0' }}>
+                                                        {(text || hours) && (
+                                                            <div className={`leading-tight break-words ${!details ? 'mb-0' : 'mb-0.5'}`} style={{ color: settings.bodyColor }}>
+                                                                {text && <span className="font-bold text-[0.95em]">{formatText(text)}</span>}
+                                                                {hours && (
+                                                                    <span className="font-normal text-[0.9em] opacity-80">
+                                                                        {text ? ' | ' : ''}<strong style={{ color: settings.themeColor }}>Carga horária:</strong> {hours}{!hours.toLowerCase().includes('h') ? ' horas' : ''}
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                        )}
+                                                        {details && (
+                                                            <div className="mt-0">
+                                                                <p className="text-[0.85em] font-normal opacity-80 break-words" style={{ textAlign: settings.textAlign, textJustify: 'inter-word' }}>
+                                                                    <strong style={{ color: settings.themeColor }}>Descrição: </strong>{formatText(details)}
+                                                                </p>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </li>
+                                            );
+                                        })}
+                                    </ul>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </Wrapper>
+            );
+        case 'references':
+            return structure.references.visible && data.references && data.references.length > 0 && (
+                <Wrapper title={displayTitle}>
+                    <div className="grid grid-cols-2" style={{ gap: `${settings.itemSpacing}mm` }}>
+                        {data.references.map((ref, i) => {
+                            const iconColor = settings.listMarkerUseThemeColor ? settings.themeColor : 'currentColor';
+                            return (
+                            <div key={i} className="break-inside-avoid min-w-0 pr-2">
+                                <div className="font-bold text-[0.95em] break-words leading-tight" style={{ color: settings.bodyColor }}>{ref.name}</div>
+                                {(ref.role || ref.company) && (
+                                    <div className="text-[0.9em] italic mb-0.5 break-words leading-tight" style={{ color: roleColor }}>
+                                        {ref.role}{ref.role && ref.company ? ' | ' : ''}{ref.company}
+                                    </div>
+                                )}
+                                
+                                <div className="text-[0.85em] flex flex-col gap-0.5 text-gray-600 mt-0.5">
+                                    {ref.email && (
+                                        <div className="flex items-center gap-1.5">
+                                            <div className="flex-shrink-0" style={{ color: iconColor }}>
+                                                <Mail size={10} />
+                                            </div>
+                                            <span className="break-all leading-tight">{ref.email}</span>
+                                        </div>
+                                    )}
+                                    {ref.phone && (
+                                        <div className="flex items-center gap-1.5">
+                                            <div className="flex-shrink-0" style={{ color: iconColor }}>
+                                                <Phone size={10} />
+                                            </div>
+                                            <span className="break-all leading-tight">{ref.phone}</span>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )})}
+                    </div>
+                </Wrapper>
+            );
+
+        case 'keywords':
+            return structure.keywords.visible && data.keywords && (
+                <div 
+                    style={{ 
+                        position: 'absolute',  
+                        bottom: '5mm',         
+                        left: '15mm',          
+                        width: '180mm',        
+                        fontSize: '1px',       
+                        lineHeight: '1px',     
+                        color: '#FFFFFF',      
+                        whiteSpace: 'pre-wrap', 
+                        overflow: 'hidden',    
+                        opacity: 0.01,         
+                        zIndex: -1,            
+                        userSelect: 'none',
+                        pointerEvents: 'none'   
+                    }}
+                    className="ats-camouflage"
+                >
+                    {data.keywords}
+                </div>
+            );
+
+        default: return null;
+    }
+  };
+
+  const ResumeContent = (
+      <>
+        {renderHeader()}
+        
+        {sectionOrder.map(sectionId => {
+            if (sectionId === 'keywords') return null;
+            return renderSection(sectionId);
+        })}
+
+        {/* Lógica unificada da Data. O controle de tamanho funcionará perfeitamente aqui. */}
+        {data.dateLocation && data.dateLocation.visible && (
+             <div 
+                className={`w-full flex justify-end break-inside-avoid ${data.dateLocation.fixedAtBottom ? '' : 'mt-8 mb-2'}`}
+                style={{ 
+                    textAlign: 'right',
+                    color: data.dateLocation.useThemeColor ? settings.themeColor : settings.bodyColor,
+                    fontWeight: data.dateLocation.useBold ? 'bold' : 'normal',
+                    fontSize: data.dateLocation.fontSize ? `${data.dateLocation.fontSize}em` : '1.05em',
+                    /* Se fixa, ganha a propriedade fixed e não clona o elemento */
+                    ...(data.dateLocation.fixedAtBottom ? { position: 'fixed', bottom: '24mm', right: '15mm', zIndex: 9998 } : {})
+                }}
+             >
+                <span>
+                    {data.dateLocation.location}
+                    {(data.dateLocation.location && (data.dateLocation.date || data.dateLocation.autoDate)) ? ', ' : ''}
+                    {getFormattedDate(data.dateLocation)}
+                </span>
+             </div>
+        )}
+
+        {renderSection('keywords')}
+      </>
+  );
+
+  return (
+    <div id="resume-preview" lang="pt-BR" className="bg-white shadow-2xl relative flex flex-col" style={{
+        ...typographyStyles,
+        width: '210mm',
+        minHeight: '297mm',
+        boxSizing: 'border-box',
+        position: 'relative'
+    }}>
+        {/* MAGIA CSS: Força margens no papel impresso para a linha vermelha não colidir */}
+        <style>
+            {`
+                @media print {
+                    @page {
+                        size: A4;
+                        margin: 20mm 0 !important;
+                    }
+                    body {
+                        margin: 0 !important;
+                        -webkit-print-color-adjust: exact;
+                        print-color-adjust: exact;
+                    }
+                    /* Empurra as linhas para a "zona morta" da margem branca de 20mm */
+                    .linha-decorativa-topo {
+                        position: fixed !important;
+                        top: -4mm !important;
+                        left: 15mm !important;
+                        right: 15mm !important;
+                        display: block !important;
+                    }
+                    .linha-decorativa-rodape {
+                        position: fixed !important;
+                        bottom: -4mm !important;
+                        left: 15mm !important;
+                        right: 15mm !important;
+                        display: block !important;
+                    }
+                }
+            `}
+        </style>
+
+        {settings.showGuides && (
+            <div className="absolute inset-0 z-50 pointer-events-none page-guide">
+                <div
+                    className="absolute border border-green-600 border-dashed opacity-100"
+                    style={{ top: '20mm', bottom: '20mm', left: '15mm', right: '15mm' }}
+                >
+                    <span className="absolute top-0 right-0 bg-green-600 text-white text-[9px] px-1 font-bold">Margem</span>
+                </div>
+                <div
+                    className="absolute border-r border-blue-600 border-dashed h-full opacity-100"
+                    style={{ top: '20mm', bottom: '20mm', left: `calc(15mm + ${settings.leftColumnWidth}mm)` }}
+                >
+                    <span className="absolute top-2 -right-1 translate-x-full bg-blue-100 text-blue-800 text-[9px] px-1 border border-blue-300 rounded font-bold whitespace-nowrap">Competências</span>
+                </div>
+                <div className="absolute border-l border-blue-600 border-dotted h-full opacity-100"
+                    style={{ top: '20mm', bottom: '20mm', right: `calc(15mm + ${settings.experienceColumnWidth}mm)` }}>
+                      <span className="absolute top-10 -left-1 -translate-x-full bg-blue-50 text-blue-600 text-[9px] px-1 border border-blue-200 rounded font-bold whitespace-nowrap">Experiências</span>
+                </div>
+                <div className="absolute border-l border-red-500 border-dotted h-full opacity-100"
+                    style={{ top: '20mm', bottom: '20mm', right: `calc(15mm + ${settings.educationColumnWidth}mm)` }}>
+                      <span className="absolute top-16 -left-1 -translate-x-full bg-red-50 text-red-600 text-[9px] px-1 border border-red-200 rounded font-bold whitespace-nowrap">Formação</span>
+                </div>
+                <div className="absolute border-l border-purple-500 border-dotted h-full opacity-100"
+                    style={{ top: '20mm', bottom: '20mm', right: `calc(15mm + ${settings.projectsColumnWidth}mm)` }}>
+                      <span className="absolute top-24 -left-1 -translate-x-full bg-purple-50 text-purple-600 text-[9px] px-1 border border-purple-200 rounded font-bold whitespace-nowrap">Projetos</span>
+                </div>
+            </div>
+        )}
+
+        {/* Linhas decorativas fixadas em posição absoluta */}
+        <div className="linha-decorativa-topo" style={{ position: 'absolute', top: '20mm', left: '15mm', right: '15mm', height: '2px', backgroundColor: settings.showPageLines ? settings.themeColor : 'transparent', zIndex: 9999 }}></div>
+        <div className="linha-decorativa-rodape" style={{ position: 'absolute', bottom: '20mm', left: '15mm', right: '15mm', height: '2px', backgroundColor: settings.showPageLines ? settings.themeColor : 'transparent', zIndex: 9999 }}></div>
+
+        {/* A estrutura Pura de DIVs voltou! Seus espaçamentos estão garantidos. */}
+        <div className="content-wrapper flex flex-col flex-1" style={{ 
+            paddingLeft: '15mm', 
+            paddingRight: '15mm', 
+            paddingTop: '24mm', /* Protege o topo da linha */
+            paddingBottom: '24mm', /* Protege o fundo da linha */
+            width: '100%',
+            boxSizing: 'border-box'
+        }}>
+            <div className="content-container flex flex-col flex-1" style={{ width: '100%', ...typographyStyles }}>
+                {ResumeContent}
+            </div>
+        </div>
+    </div>
+  );
 }
