@@ -784,11 +784,6 @@ if (sec.type === 'category-simple') {
       <>
         {renderHeader()}
         
-        {{sectionOrder.map(sectionId => {
-            if (sectionId === 'keywords') return null;
-            return renderSection(sectionId);
-        })}
-
         {sectionOrder.map(sectionId => {
             if (sectionId === 'keywords') return null;
             return renderSection(sectionId);
