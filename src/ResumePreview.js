@@ -1,5 +1,5 @@
 // src/ResumePreview.js
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { MapPin, Mail, Phone, Linkedin, Github, FileText, Youtube, Link, Car } from 'lucide-react';
 import { LIST_STYLES } from './constants';
 
@@ -7,8 +7,7 @@ const EXIBIR_LOGS = true;
 
 if (EXIBIR_LOGS) {
     console.log("🚀 [ResumePreview.js] Renderizando...");
-    console.log("📄 Listas: Margens ajustadas para impressão (Padding dinâmico).");
-    console.log("👻 ATS: Modo Ghost Text (Absolute 1px White) ativo.");
+    console.log("🛠️ Layout restaurado com Tabela Mestre sem margens duplas.");
 }
 
 const formatText = (text) => {
@@ -50,6 +49,27 @@ const getFormattedDate = (dataObj) => {
 };
 
 export default function ResumePreview({ data, settings }) {
+  const [minPages, setMinPages] = useState(1);
+  const contentRef = useRef(null);
+
+  useEffect(() => {
+      if (!contentRef.current) return;
+      
+      const observer = new ResizeObserver((entries) => {
+          for (let entry of entries) {
+              const heightPx = entry.contentRect.height;
+              // Conversão técnica padrão: 1mm = ~3.779527 pixels a 96 DPI
+              const heightMm = heightPx / 3.779527; 
+              // 297mm é a altura exata da folha A4. Arredonda sempre para cima.
+              const pages = Math.ceil(heightMm / 297); 
+              setMinPages(pages > 0 ? pages : 1);
+          }
+      });
+      
+      observer.observe(contentRef.current);
+      return () => observer.disconnect();
+  }, [data, settings]);
+
   const { structure, customSections, sectionOrder } = data; 
   
   const expColWidthCSS = `${settings.experienceColumnWidth}mm`;
@@ -373,7 +393,13 @@ export default function ResumePreview({ data, settings }) {
 
     const usePaginatedWrapper = 
         ['experience', 'education', 'projects'].includes(sectionId) || 
-        (isCustom && customType === 'detailed');
+        (isCustom && customType === 'detailed') ||
+        (isCustom && customType === 'category-detailed') ||
+        (isCustom && customType === 'category-simple') ||
+        sectionId === 'others' || 
+        sectionId === 'references' ||
+        sectionId === 'skills' || 
+        (isCustom && customType === 'list');
 
     const Wrapper = usePaginatedWrapper ? PaginatedSectionWrapper : SimpleSectionWrapper;
 
@@ -389,17 +415,17 @@ export default function ResumePreview({ data, settings }) {
         }
         if (sec.type === 'list') { 
             return (
-                <PaginatedSectionWrapper title={displayTitle}>
+                <Wrapper title={displayTitle}>
                     <ul className="list-outside" style={{...containerStyle, paddingLeft: '1.2em'}}>
                         {renderListItems(sec.content, sectionId)}
                     </ul>
-                </PaginatedSectionWrapper>
+                </Wrapper>
             ); 
         }
         
         if (sec.type === 'detailed') { 
             return (
-                <PaginatedSectionWrapper title={displayTitle}>
+                <Wrapper title={displayTitle}>
                     <div style={containerStyle}>
                         {(Array.isArray(sec.content) ? sec.content : []).map((item, i) => {
                              const hasContent = item.title?.trim() || item.subtitle?.trim() || (item.description || []).some(d => d.trim());
@@ -424,12 +450,13 @@ export default function ResumePreview({ data, settings }) {
                              );
                         })}
                     </div>
-                </PaginatedSectionWrapper>
+                </Wrapper>
             ); 
         }
-if (sec.type === 'category-simple') {
+        
+        if (sec.type === 'category-simple') {
              return (
-                 <PaginatedSectionWrapper title={displayTitle}>
+                 <Wrapper title={displayTitle}>
                      <div style={containerStyle}>
                          {(sec.content || []).map((item, i) => {
                               const hasContent = item.title?.trim() || (item.description || []).some(d => typeof d === 'string' && d.trim());
@@ -445,13 +472,13 @@ if (sec.type === 'category-simple') {
                              );
                          })}
                      </div>
-                 </PaginatedSectionWrapper>
+                 </Wrapper>
              );
         }
 
         if (sec.type === 'category-detailed') {
             return (
-                <PaginatedSectionWrapper title={displayTitle}>
+                <Wrapper title={displayTitle}>
                     <div style={containerStyle}>
                         {(sec.content || []).map((item, i) => {
                              const hasContent = item.title?.trim() || (item.description || []).some(d => {
@@ -512,7 +539,7 @@ if (sec.type === 'category-simple') {
                             );
                         })}
                     </div>
-                </PaginatedSectionWrapper>
+                </Wrapper>
             );
         }
     }
@@ -532,7 +559,7 @@ if (sec.type === 'category-simple') {
             );
         case 'skills':
             return structure.skills.visible && data.skills.length > 0 && (
-                <PaginatedSectionWrapper title={displayTitle}>
+                <Wrapper title={displayTitle}>
                     <div style={containerStyle}>
                     {data.skills.map((skill, i) => {
                         const isMultiLine = skill.items && skill.items.includes('\n');
@@ -554,11 +581,11 @@ if (sec.type === 'category-simple') {
                         );
                     })}
                     </div>
-                </PaginatedSectionWrapper>
+                </Wrapper>
             );
         case 'projects':
             return structure.projects.visible && data.projects.length > 0 && (
-                <PaginatedSectionWrapper title={displayTitle}>
+                <Wrapper title={displayTitle}>
                     <div style={containerStyle}>
                     {data.projects.map((proj, i) => {
                         const hasContent = proj.title?.trim() || proj.tech?.trim() || (proj.description || []).some(d => d.trim());
@@ -588,11 +615,11 @@ if (sec.type === 'category-simple') {
                         </div>
                     )})}
                     </div>
-                </PaginatedSectionWrapper>
+                </Wrapper>
             );
         case 'experience':
             return structure.experience.visible && data.experience.length > 0 && (
-                <PaginatedSectionWrapper title={displayTitle}>
+                <Wrapper title={displayTitle}>
                     <div style={containerStyle}>
                     {data.experience.map((exp, i) => {
                         const hasContent = exp.company?.trim() || exp.role?.trim() || (exp.description || []).some(d => d.trim());
@@ -616,11 +643,11 @@ if (sec.type === 'category-simple') {
                         </div>
                     )})}
                     </div>
-                </PaginatedSectionWrapper>
+                </Wrapper>
             );
         case 'education':
             return structure.education.visible && data.education.length > 0 && (
-                <PaginatedSectionWrapper title={displayTitle}>
+                <Wrapper title={displayTitle}>
                     <div style={containerStyle}>
                     {data.education.map((edu, i) => {
                         const hasContent = edu.institution?.trim() || edu.degree?.trim();
@@ -645,11 +672,11 @@ if (sec.type === 'category-simple') {
                             );
                         })}
                     </div>
-                </PaginatedSectionWrapper>
+                </Wrapper>
             );
         case 'others':
             return structure.others.visible && data.others.length > 0 && (
-                <PaginatedSectionWrapper title={displayTitle}>
+                <Wrapper title={displayTitle}>
                     <div style={containerStyle}>
                         {data.others.map((item, i) => {
                              const hasContent = item.title?.trim() || (item.description || []).some(d => {
@@ -710,33 +737,35 @@ if (sec.type === 'category-simple') {
                             );
                         })}
                     </div>
-                </PaginatedSectionWrapper>
+                </Wrapper>
             );
         case 'references':
             return structure.references.visible && data.references && data.references.length > 0 && (
-                <SimpleSectionWrapper title={displayTitle} sectionId={sectionId}>
+                <Wrapper title={displayTitle}>
                     <div className="grid grid-cols-2" style={{ gap: `${settings.itemSpacing}mm` }}>
-                        {data.references.map((ref, i) => (
+                        {data.references.map((ref, i) => {
+                            const iconColor = settings.listMarkerUseThemeColor ? settings.themeColor : 'currentColor';
+                            return (
                             <div key={i} className="break-inside-avoid min-w-0 pr-2">
                                 <div className="font-bold text-[0.95em] break-words leading-tight" style={{ color: settings.bodyColor }}>{ref.name}</div>
                                 {(ref.role || ref.company) && (
-                                    <div className="text-[0.9em] italic mb-1 break-words leading-tight" style={{ color: roleColor }}>
+                                    <div className="text-[0.9em] italic mb-0.5 break-words leading-tight" style={{ color: roleColor }}>
                                         {ref.role}{ref.role && ref.company ? ' | ' : ''}{ref.company}
                                     </div>
                                 )}
                                 
-                                <div className="text-[0.85em] space-y-1 text-gray-600">
+                                <div className="text-[0.85em] flex flex-col gap-0.5 text-gray-600 mt-0.5">
                                     {ref.email && (
-                                        <div className="flex items-start gap-2">
-                                            <div className="mt-[3px] flex-shrink-0">
+                                        <div className="flex items-center gap-1.5">
+                                            <div className="flex-shrink-0" style={{ color: iconColor }}>
                                                 <Mail size={10} />
                                             </div>
                                             <span className="break-all leading-tight">{ref.email}</span>
                                         </div>
                                     )}
                                     {ref.phone && (
-                                        <div className="flex items-start gap-2">
-                                            <div className="mt-[3px] flex-shrink-0">
+                                        <div className="flex items-center gap-1.5">
+                                            <div className="flex-shrink-0" style={{ color: iconColor }}>
                                                 <Phone size={10} />
                                             </div>
                                             <span className="break-all leading-tight">{ref.phone}</span>
@@ -744,9 +773,9 @@ if (sec.type === 'category-simple') {
                                     )}
                                 </div>
                             </div>
-                        ))}
+                        )})}
                     </div>
-                </SimpleSectionWrapper>
+                </Wrapper>
             );
 
         case 'keywords':
@@ -777,6 +806,10 @@ if (sec.type === 'category-simple') {
     }
   };
 
+  if (EXIBIR_LOGS) {
+      console.log("✅ [ResumePreview.js] Preparando bloco de data e local com margem superior fixa de 15mm.");
+  }
+
   const ResumeContent = (
       <>
         {renderHeader()}
@@ -786,14 +819,17 @@ if (sec.type === 'category-simple') {
             return renderSection(sectionId);
         })}
 
+        {/* Data: Renderizada no fluxo na tela. Se for fixa no rodapé, esconde apenas na impressão */}
         {data.dateLocation && data.dateLocation.visible && (
              <div 
-                className="w-full flex justify-end mt-8 mb-4 break-inside-avoid"
+                className={`w-full flex justify-end break-inside-avoid ${data.dateLocation.fixedAtBottom ? 'screen-only-date' : ''}`}
                 style={{ 
+                    marginTop: '15mm',
+                    marginBottom: '4mm',
                     textAlign: 'right',
                     color: data.dateLocation.useThemeColor ? settings.themeColor : settings.bodyColor,
                     fontWeight: data.dateLocation.useBold ? 'bold' : 'normal',
-                    fontSize: '0.9em'
+                    fontSize: data.dateLocation.fontSize ? `${data.dateLocation.fontSize}em` : '1.05em'
                 }}
              >
                 <span>
@@ -808,49 +844,97 @@ if (sec.type === 'category-simple') {
       </>
   );
 
+  if (EXIBIR_LOGS) {
+      console.log(`🚀 [ResumePreview.js] Forçando renderização de ${minPages} página(s) A4 (${minPages * 297}mm).`);
+  }
+
   return (
-    <div id="resume-preview" lang="pt-BR" className="bg-white shadow-2xl relative" style={{
+    <div id="resume-preview" lang="pt-BR" className="bg-white shadow-2xl relative flex flex-col preview-container" style={{
         ...typographyStyles,
         width: '210mm',
-        minHeight: '297mm',
+        minHeight: `${minPages * 297}mm`, // Altura engessada em múltiplos exatos de A4
         boxSizing: 'border-box',
         position: 'relative'
     }}>
+        <style>
+            {`
+                @media print {
+                    /* Força a remoção das margens do navegador para a Tabela assumir o controle total */
+                    @page {
+                        size: A4;
+                        margin: 0 !important;
+                    }
+                    body {
+                        margin: 0 !important;
+                        -webkit-print-color-adjust: exact;
+                        print-color-adjust: exact;
+                    }
+                    .screen-line {
+                        display: none !important;
+                    }
+                    .print-line-fixed {
+                        position: fixed !important;
+                        left: 15mm;
+                        right: 15mm;
+                        height: 2px;
+                        background-color: ${settings.showPageLines ? settings.themeColor : 'transparent'} !important;
+                        z-index: 1000;
+                        display: block !important;
+                    }
+                    .print-line-top {
+                        top: 20mm;
+                    }
+                    .print-line-bottom {
+                        bottom: 20mm;
+                    }
+                    .screen-only-date {
+                        display: none !important;
+                    }
+                    .print-only-fixed-date {
+                        position: absolute !important; 
+                        bottom: 22mm !important;
+                        right: 15mm !important;
+                        z-index: 1000;
+                        display: block !important;
+                    }
+                }
+                @media screen {
+                    .print-line-fixed {
+                        display: none !important;
+                    }
+                    .print-only-fixed-date {
+                        display: none !important;
+                    }
+                    /* Força o preview da tela a ignorar os pulos de folha inteira */
+                    .preview-container {
+                        min-height: 297mm !important;
+                    }
+                }
+            `}
+        </style>
+
         {settings.showGuides && (
             <div className="absolute inset-0 z-50 pointer-events-none page-guide">
                 <div
                     className="absolute border border-green-600 border-dashed opacity-100"
-                    style={{
-                        top: '20mm',
-                        bottom: '20mm',
-                        left: '15mm',
-                        right: '15mm'
-                    }}
+                    style={{ top: '20mm', bottom: '20mm', left: '15mm', right: '15mm' }}
                 >
                     <span className="absolute top-0 right-0 bg-green-600 text-white text-[9px] px-1 font-bold">Margem</span>
                 </div>
-
                 <div
                     className="absolute border-r border-blue-600 border-dashed h-full opacity-100"
-                    style={{
-                        top: '20mm',
-                        bottom: '20mm',
-                        left: `calc(15mm + ${settings.leftColumnWidth}mm)`
-                    }}
+                    style={{ top: '20mm', bottom: '20mm', left: `calc(15mm + ${settings.leftColumnWidth}mm)` }}
                 >
                     <span className="absolute top-2 -right-1 translate-x-full bg-blue-100 text-blue-800 text-[9px] px-1 border border-blue-300 rounded font-bold whitespace-nowrap">Competências</span>
                 </div>
-
                 <div className="absolute border-l border-blue-600 border-dotted h-full opacity-100"
                     style={{ top: '20mm', bottom: '20mm', right: `calc(15mm + ${settings.experienceColumnWidth}mm)` }}>
                       <span className="absolute top-10 -left-1 -translate-x-full bg-blue-50 text-blue-600 text-[9px] px-1 border border-blue-200 rounded font-bold whitespace-nowrap">Experiências</span>
                 </div>
-
                 <div className="absolute border-l border-red-500 border-dotted h-full opacity-100"
                     style={{ top: '20mm', bottom: '20mm', right: `calc(15mm + ${settings.educationColumnWidth}mm)` }}>
                       <span className="absolute top-16 -left-1 -translate-x-full bg-red-50 text-red-600 text-[9px] px-1 border border-red-200 rounded font-bold whitespace-nowrap">Formação</span>
                 </div>
-
                 <div className="absolute border-l border-purple-500 border-dotted h-full opacity-100"
                     style={{ top: '20mm', bottom: '20mm', right: `calc(15mm + ${settings.projectsColumnWidth}mm)` }}>
                       <span className="absolute top-24 -left-1 -translate-x-full bg-purple-50 text-purple-600 text-[9px] px-1 border border-purple-200 rounded font-bold whitespace-nowrap">Projetos</span>
@@ -858,38 +942,63 @@ if (sec.type === 'category-simple') {
             </div>
         )}
 
-        <div style={{
-            position: 'fixed',
-            top: '20mm', 
-            left: '15mm',   
-            right: '15mm',  
-            height: '2px',
-            backgroundColor: settings.showPageLines ? settings.themeColor : 'transparent', 
-            zIndex: 9999
-        }}></div>
+        {/* Linhas Fixas para Impressão */}
+        {settings.showPageLines && (
+            <>
+                <div className="print-line-fixed print-line-top"></div>
+                <div className="print-line-fixed print-line-bottom"></div>
+            </>
+        )}
 
-        <div style={{
-            position: 'fixed',
-            bottom: '20mm', 
-            left: '15mm',   
-            right: '15mm',  
-            height: '2px',
-            backgroundColor: settings.showPageLines ? settings.themeColor : 'transparent', 
-            zIndex: 9999
-        }}></div>
-
-        <div className="content-wrapper" style={{ 
-            paddingLeft: '15mm', 
-            paddingRight: '15mm', 
-            paddingTop: '22mm', 
-            paddingBottom: '20mm',
-            width: '100%',
-            boxSizing: 'border-box'
-        }}>
-            <div className="content-container" style={{ width: '100%', ...typographyStyles }}>
-                {ResumeContent}
-            </div>
+        {/* Tabela Mestre encapsulada na div rastreada pelo ResizeObserver */}
+        <div ref={contentRef} style={{ width: '100%' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', borderSpacing: 0 }}>
+                <thead style={{ display: 'table-header-group' }}>
+                    <tr>
+                        <td style={{ padding: 0, height: '24mm', verticalAlign: 'bottom' }}>
+                            <div className="screen-line" style={{ marginLeft: '15mm', marginRight: '15mm', height: '2px', backgroundColor: settings.showPageLines ? settings.themeColor : 'transparent' }}></div>
+                            <div style={{ height: '4mm' }}></div>
+                        </td>
+                    </tr>
+                </thead>
+                <tfoot style={{ display: 'table-footer-group' }}>
+                    <tr>
+                        <td style={{ padding: 0, height: '24mm', verticalAlign: 'top' }}>
+                            <div style={{ height: '4mm' }}></div>
+                            <div className="screen-line" style={{ marginLeft: '15mm', marginRight: '15mm', height: '2px', backgroundColor: settings.showPageLines ? settings.themeColor : 'transparent' }}></div>
+                        </td>
+                    </tr>
+                </tfoot>
+                <tbody>
+                    <tr>
+                        <td style={{ padding: 0 }}>
+                            <div className="content-container" style={{ paddingLeft: '15mm', paddingRight: '15mm', width: '100%', boxSizing: 'border-box', ...typographyStyles }}>
+                                {ResumeContent}
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
+
+        {/* Bloco Renderizado Apenas na Impressão se a Data for Fixa */}
+        {data.dateLocation && data.dateLocation.visible && data.dateLocation.fixedAtBottom && (
+            <div 
+                className="print-only-fixed-date break-inside-avoid"
+                style={{ 
+                    textAlign: 'right',
+                    color: data.dateLocation.useThemeColor ? settings.themeColor : settings.bodyColor,
+                    fontWeight: data.dateLocation.useBold ? 'bold' : 'normal',
+                    fontSize: data.dateLocation.fontSize ? `${data.dateLocation.fontSize}em` : '1.05em'
+                }}
+            >
+                <span>
+                    {data.dateLocation.location}
+                    {(data.dateLocation.location && (data.dateLocation.date || data.dateLocation.autoDate)) ? ', ' : ''}
+                    {getFormattedDate(data.dateLocation)}
+                </span>
+            </div>
+        )}
     </div>
   );
 }
