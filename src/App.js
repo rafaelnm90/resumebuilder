@@ -1208,7 +1208,6 @@ export default function App() {
                     </div>
                 </div>
 
-                {/* Novos controles de Data e Local */}
                 <div className="pt-2 border-t border-slate-200">
                     <div className="flex justify-between items-center mb-1">
                         <span className="text-xs font-bold text-slate-600">Tamanho da Fonte</span>
@@ -1223,12 +1222,6 @@ export default function App() {
                         />
                     </div>
                 </div>
-
-                <div className="flex items-center justify-between pt-2 border-t border-slate-200">
-                    <span className="text-xs font-bold text-slate-600">Fixar no final da página</span>
-                    <ToggleSwitch checked={data.dateLocation.fixedAtBottom} onChange={() => setData(prev => ({ ...prev, dateLocation: { ...prev.dateLocation, fixedAtBottom: !prev.dateLocation.fixedAtBottom } }))} />
-                </div>
-
             </div>
          )}
       </div>
