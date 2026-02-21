@@ -789,14 +789,15 @@ if (sec.type === 'category-simple') {
             return renderSection(sectionId);
         })}
 
-        {data.dateLocation && data.dateLocation.visible && (
+        {/* Se a data NÃO estiver fixa, ela flui naturalmente após o texto aqui */}
+        {data.dateLocation && data.dateLocation.visible && !data.dateLocation.fixedAtBottom && (
              <div 
-                className="w-full flex justify-end mt-10 mb-2 break-inside-avoid"
+                className="w-full flex justify-end mt-8 mb-2 break-inside-avoid"
                 style={{ 
                     textAlign: 'right',
                     color: data.dateLocation.useThemeColor ? settings.themeColor : settings.bodyColor,
                     fontWeight: data.dateLocation.useBold ? 'bold' : 'normal',
-                    fontSize: '1.05em'
+                    fontSize: data.dateLocation.fontSize ? `${data.dateLocation.fontSize}em` : '1.05em'
                 }}
              >
                 <span>
@@ -870,20 +871,46 @@ if (sec.type === 'category-simple') {
             </div>
         )}
 
-        {/* Linhas fixas garantem que o design cole nas bordas do papel */}
+        {/* Linhas fixas: Posicionamento exato nas bordas do papel */}
         <div style={{ position: 'fixed', top: '20mm', left: '15mm', right: '15mm', height: '2px', backgroundColor: settings.showPageLines ? settings.themeColor : 'transparent', zIndex: 9999 }}></div>
         <div style={{ position: 'fixed', bottom: '20mm', left: '15mm', right: '15mm', height: '2px', backgroundColor: settings.showPageLines ? settings.themeColor : 'transparent', zIndex: 9999 }}></div>
 
-        {/* Tabela Mestre: Atua apenas como bloqueador de espaço (Padding) para o texto não atropelar as linhas */}
+        {/* Se a data estiver FIXA, ela é renderizada aqui, ancorada no fundo da página absoluta */}
+        {data.dateLocation && data.dateLocation.visible && data.dateLocation.fixedAtBottom && (
+             <div 
+                className="absolute break-inside-avoid"
+                style={{ 
+                    bottom: '24mm', /* Logo acima da linha vermelha */
+                    right: '15mm', 
+                    textAlign: 'right',
+                    color: data.dateLocation.useThemeColor ? settings.themeColor : settings.bodyColor,
+                    fontWeight: data.dateLocation.useBold ? 'bold' : 'normal',
+                    fontSize: data.dateLocation.fontSize ? `${data.dateLocation.fontSize}em` : '1.05em',
+                    zIndex: 9998
+                }}
+             >
+                <span>
+                    {data.dateLocation.location}
+                    {(data.dateLocation.location && (data.dateLocation.date || data.dateLocation.autoDate)) ? ', ' : ''}
+                    {getFormattedDate(data.dateLocation)}
+                </span>
+             </div>
+        )}
+
+        {/* Tabela Mestre: O bloco invisível com &nbsp; obriga o Chrome a respeitar a margem e não cortar o texto */}
         <table style={{ width: '100%', borderCollapse: 'collapse', ...typographyStyles }}>
             <thead>
                 <tr>
-                    <td style={{ height: '22mm', padding: 0 }}></td>
+                    <td style={{ padding: 0 }}>
+                        <div style={{ height: '23mm', width: '100%' }}>&nbsp;</div>
+                    </td>
                 </tr>
             </thead>
             <tfoot>
                 <tr>
-                    <td style={{ height: '22mm', padding: 0 }}></td>
+                    <td style={{ padding: 0 }}>
+                        <div style={{ height: data.dateLocation?.fixedAtBottom ? '35mm' : '23mm', width: '100%' }}>&nbsp;</div>
+                    </td>
                 </tr>
             </tfoot>
             <tbody>
