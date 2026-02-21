@@ -1207,6 +1207,28 @@ export default function App() {
                          <span className="text-xs font-bold text-slate-600">{t.footerColor}</span>
                     </div>
                 </div>
+
+                {/* Novos controles de Data e Local */}
+                <div className="pt-2 border-t border-slate-200">
+                    <div className="flex justify-between items-center mb-1">
+                        <span className="text-xs font-bold text-slate-600">Tamanho da Fonte</span>
+                        <span className="text-xs font-mono text-slate-500">{data.dateLocation.fontSize || 1.05}em</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <input 
+                            type="range" min="0.7" max="1.5" step="0.05" 
+                            value={data.dateLocation.fontSize || 1.05} 
+                            onChange={e => setData(prev => ({ ...prev, dateLocation: { ...prev.dateLocation, fontSize: parseFloat(e.target.value) } }))} 
+                            className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600" 
+                        />
+                    </div>
+                </div>
+
+                <div className="flex items-center justify-between pt-2 border-t border-slate-200">
+                    <span className="text-xs font-bold text-slate-600">Fixar no final da página</span>
+                    <ToggleSwitch checked={data.dateLocation.fixedAtBottom} onChange={() => setData(prev => ({ ...prev, dateLocation: { ...prev.dateLocation, fixedAtBottom: !prev.dateLocation.fixedAtBottom } }))} />
+                </div>
+
             </div>
          )}
       </div>
