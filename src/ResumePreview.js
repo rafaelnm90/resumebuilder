@@ -794,12 +794,12 @@ export default function ResumePreview({ data, settings }) {
             return renderSection(sectionId);
         })}
 
-        {/* Data: Como no print não existe "fixed bottom last page", usamos margem para empurrar */}
+        {/* Data: Removido controle engessado, utilizando margem fluida (15mm). */}
         {data.dateLocation && data.dateLocation.visible && (
              <div 
                 className="w-full flex justify-end break-inside-avoid"
                 style={{ 
-                    marginTop: data.dateLocation.fixedAtBottom ? '30mm' : '8mm',
+                    marginTop: '15mm',
                     marginBottom: '4mm',
                     textAlign: 'right',
                     color: data.dateLocation.useThemeColor ? settings.themeColor : settings.bodyColor,
@@ -807,6 +807,7 @@ export default function ResumePreview({ data, settings }) {
                     fontSize: data.dateLocation.fontSize ? `${data.dateLocation.fontSize}em` : '1.05em'
                 }}
              >
+                {EXIBIR_LOGS && console.log("✅ [ResumePreview.js] Renderizando bloco de data e local (Margem superior: 15mm).")}
                 <span>
                     {data.dateLocation.location}
                     {(data.dateLocation.location && (data.dateLocation.date || data.dateLocation.autoDate)) ? ', ' : ''}
