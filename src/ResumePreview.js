@@ -789,10 +789,10 @@ if (sec.type === 'category-simple') {
             return renderSection(sectionId);
         })}
 
-        {/* Se a data NÃO estiver fixa, ela flui naturalmente após o texto aqui */}
-        {data.dateLocation && data.dateLocation.visible && !data.dateLocation.fixedAtBottom && (
+        {/* A data agora é renderizada aqui. Se for "fixa", vai para o fundo absoluto do documento (apenas na última página) */}
+        {data.dateLocation && data.dateLocation.visible && (
              <div 
-                className="w-full flex justify-end mt-8 mb-2 break-inside-avoid"
+                className={`w-full flex justify-end break-inside-avoid ${data.dateLocation.fixedAtBottom ? 'absolute bottom-0 right-0' : 'mt-8 mb-2'}`}
                 style={{ 
                     textAlign: 'right',
                     color: data.dateLocation.useThemeColor ? settings.themeColor : settings.bodyColor,
@@ -820,50 +820,28 @@ if (sec.type === 'category-simple') {
         boxSizing: 'border-box',
         position: 'relative'
     }}>
-        {/* Força o navegador a zerar as margens automaticamente na hora de imprimir */}
-        <style>
-            {`
-                @media print {
-                    @page { margin: 0mm; }
-                }
-            `}
-        </style>
-
         {settings.showGuides && (
             <div className="absolute inset-0 z-50 pointer-events-none page-guide">
                 <div
                     className="absolute border border-green-600 border-dashed opacity-100"
-                    style={{
-                        top: '20mm',
-                        bottom: '20mm',
-                        left: '15mm',
-                        right: '15mm'
-                    }}
+                    style={{ top: '20mm', bottom: '20mm', left: '15mm', right: '15mm' }}
                 >
                     <span className="absolute top-0 right-0 bg-green-600 text-white text-[9px] px-1 font-bold">Margem</span>
                 </div>
-
                 <div
                     className="absolute border-r border-blue-600 border-dashed h-full opacity-100"
-                    style={{
-                        top: '20mm',
-                        bottom: '20mm',
-                        left: `calc(15mm + ${settings.leftColumnWidth}mm)`
-                    }}
+                    style={{ top: '20mm', bottom: '20mm', left: `calc(15mm + ${settings.leftColumnWidth}mm)` }}
                 >
                     <span className="absolute top-2 -right-1 translate-x-full bg-blue-100 text-blue-800 text-[9px] px-1 border border-blue-300 rounded font-bold whitespace-nowrap">Competências</span>
                 </div>
-
                 <div className="absolute border-l border-blue-600 border-dotted h-full opacity-100"
                     style={{ top: '20mm', bottom: '20mm', right: `calc(15mm + ${settings.experienceColumnWidth}mm)` }}>
                       <span className="absolute top-10 -left-1 -translate-x-full bg-blue-50 text-blue-600 text-[9px] px-1 border border-blue-200 rounded font-bold whitespace-nowrap">Experiências</span>
                 </div>
-
                 <div className="absolute border-l border-red-500 border-dotted h-full opacity-100"
                     style={{ top: '20mm', bottom: '20mm', right: `calc(15mm + ${settings.educationColumnWidth}mm)` }}>
                       <span className="absolute top-16 -left-1 -translate-x-full bg-red-50 text-red-600 text-[9px] px-1 border border-red-200 rounded font-bold whitespace-nowrap">Formação</span>
                 </div>
-
                 <div className="absolute border-l border-purple-500 border-dotted h-full opacity-100"
                     style={{ top: '20mm', bottom: '20mm', right: `calc(15mm + ${settings.projectsColumnWidth}mm)` }}>
                       <span className="absolute top-24 -left-1 -translate-x-full bg-purple-50 text-purple-600 text-[9px] px-1 border border-purple-200 rounded font-bold whitespace-nowrap">Projetos</span>
@@ -871,52 +849,30 @@ if (sec.type === 'category-simple') {
             </div>
         )}
 
-        {/* Linhas fixas: Posicionamento exato nas bordas do papel */}
-        <div style={{ position: 'fixed', top: '20mm', left: '15mm', right: '15mm', height: '2px', backgroundColor: settings.showPageLines ? settings.themeColor : 'transparent', zIndex: 9999 }}></div>
-        <div style={{ position: 'fixed', bottom: '20mm', left: '15mm', right: '15mm', height: '2px', backgroundColor: settings.showPageLines ? settings.themeColor : 'transparent', zIndex: 9999 }}></div>
-
-        {/* DATA FIXA NO RODAPÉ DA PÁGINA (Aparece em todas as folhas como um rodapé oficial) */}
-        {data.dateLocation && data.dateLocation.visible && data.dateLocation.fixedAtBottom && (
-             <div 
-                style={{ 
-                    position: 'fixed',
-                    bottom: '23mm', /* Fica logo acima da linha decorativa de 20mm */
-                    right: '15mm', 
-                    textAlign: 'right',
-                    color: data.dateLocation.useThemeColor ? settings.themeColor : settings.bodyColor,
-                    fontWeight: data.dateLocation.useBold ? 'bold' : 'normal',
-                    fontSize: data.dateLocation.fontSize ? `${data.dateLocation.fontSize}em` : '1.05em',
-                    zIndex: 9998
-                }}
-             >
-                <span>
-                    {data.dateLocation.location}
-                    {(data.dateLocation.location && (data.dateLocation.date || data.dateLocation.autoDate)) ? ', ' : ''}
-                    {getFormattedDate(data.dateLocation)}
-                </span>
-             </div>
-        )}
-
-        {/* Tabela Mestre: O bloco invisível com &nbsp; garante o espaço do rodapé e impede que o texto atropele a data */}
+        {/* Tabela Mestre: Gerencia perfeitamente as linhas de topo e rodapé e evita colisão de texto */}
         <table style={{ width: '100%', borderCollapse: 'collapse', ...typographyStyles }}>
-            <thead>
+            <thead style={{ display: 'table-header-group' }}>
                 <tr>
-                    <td style={{ padding: 0 }}>
-                        <div style={{ height: '23mm', width: '100%' }}>&nbsp;</div>
+                    <td style={{ padding: 0, paddingLeft: '15mm', paddingRight: '15mm' }}>
+                        <div style={{ width: '100%', height: '2px', backgroundColor: settings.showPageLines ? settings.themeColor : 'transparent' }}></div>
+                        <div style={{ height: '4mm' }}></div> {/* Distância entre a linha e o texto */}
                     </td>
                 </tr>
             </thead>
-            <tfoot>
+            <tfoot style={{ display: 'table-footer-group' }}>
                 <tr>
-                    <td style={{ padding: 0 }}>
-                        <div style={{ height: data.dateLocation?.fixedAtBottom ? '33mm' : '23mm', width: '100%' }}>&nbsp;</div>
+                    <td style={{ padding: 0, paddingLeft: '15mm', paddingRight: '15mm' }}>
+                        {/* Se a data for fixa, damos mais espaço invisível na tabela para o texto não atropelar ela */}
+                        <div style={{ height: data.dateLocation?.fixedAtBottom ? '14mm' : '4mm' }}></div> 
+                        <div style={{ width: '100%', height: '2px', backgroundColor: settings.showPageLines ? settings.themeColor : 'transparent' }}></div>
                     </td>
                 </tr>
             </tfoot>
             <tbody>
                 <tr>
-                    <td style={{ verticalAlign: 'top', paddingLeft: '15mm', paddingRight: '15mm' }}>
-                        <div className="content-container" style={{ width: '100%', ...typographyStyles }}>
+                    <td style={{ verticalAlign: 'top', padding: 0, paddingLeft: '15mm', paddingRight: '15mm' }}>
+                        {/* Container com position: relative para a data absoluta colar APENAS no final dele (Última Página) */}
+                        <div className="content-container" style={{ width: '100%', position: 'relative', minHeight: '250mm', ...typographyStyles }}>
                             {ResumeContent}
                         </div>
                     </td>
