@@ -389,11 +389,11 @@ export default function ResumePreview({ data, settings }) {
         }
         if (sec.type === 'list') { 
             return (
-                <SimpleSectionWrapper title={displayTitle} sectionId={sectionId}>
+                <PaginatedSectionWrapper title={displayTitle}>
                     <ul className="list-outside" style={{...containerStyle, paddingLeft: '1.2em'}}>
                         {renderListItems(sec.content, sectionId)}
                     </ul>
-                </SimpleSectionWrapper>
+                </PaginatedSectionWrapper>
             ); 
         }
         
@@ -429,7 +429,7 @@ export default function ResumePreview({ data, settings }) {
         }
 if (sec.type === 'category-simple') {
              return (
-                 <SimpleSectionWrapper title={displayTitle} sectionId={sectionId}>
+                 <PaginatedSectionWrapper title={displayTitle}>
                      <div style={containerStyle}>
                          {(sec.content || []).map((item, i) => {
                               const hasContent = item.title?.trim() || (item.description || []).some(d => typeof d === 'string' && d.trim());
@@ -445,13 +445,13 @@ if (sec.type === 'category-simple') {
                              );
                          })}
                      </div>
-                 </SimpleSectionWrapper>
+                 </PaginatedSectionWrapper>
              );
         }
 
         if (sec.type === 'category-detailed') {
             return (
-                <SimpleSectionWrapper title={displayTitle} sectionId={sectionId}>
+                <PaginatedSectionWrapper title={displayTitle}>
                     <div style={containerStyle}>
                         {(sec.content || []).map((item, i) => {
                              const hasContent = item.title?.trim() || (item.description || []).some(d => {
@@ -512,7 +512,7 @@ if (sec.type === 'category-simple') {
                             );
                         })}
                     </div>
-                </SimpleSectionWrapper>
+                </PaginatedSectionWrapper>
             );
         }
     }
@@ -532,7 +532,7 @@ if (sec.type === 'category-simple') {
             );
         case 'skills':
             return structure.skills.visible && data.skills.length > 0 && (
-                <SimpleSectionWrapper title={displayTitle} sectionId={sectionId}>
+                <PaginatedSectionWrapper title={displayTitle}>
                     <div style={containerStyle}>
                     {data.skills.map((skill, i) => {
                         const isMultiLine = skill.items && skill.items.includes('\n');
@@ -554,7 +554,7 @@ if (sec.type === 'category-simple') {
                         );
                     })}
                     </div>
-                </SimpleSectionWrapper>
+                </PaginatedSectionWrapper>
             );
         case 'projects':
             return structure.projects.visible && data.projects.length > 0 && (
@@ -642,13 +642,14 @@ if (sec.type === 'category-simple') {
                             </div>
                             )}
                         </div>
-                    )})}
+                            );
+                        })}
                     </div>
                 </PaginatedSectionWrapper>
             );
         case 'others':
             return structure.others.visible && data.others.length > 0 && (
-                <SimpleSectionWrapper title={displayTitle} sectionId={sectionId}>
+                <PaginatedSectionWrapper title={displayTitle}>
                     <div style={containerStyle}>
                         {data.others.map((item, i) => {
                              const hasContent = item.title?.trim() || (item.description || []).some(d => {
@@ -709,7 +710,7 @@ if (sec.type === 'category-simple') {
                             );
                         })}
                     </div>
-                </SimpleSectionWrapper>
+                </PaginatedSectionWrapper>
             );
         case 'references':
             return structure.references.visible && data.references && data.references.length > 0 && (
