@@ -789,15 +789,17 @@ if (sec.type === 'category-simple') {
             return renderSection(sectionId);
         })}
 
-        {/* A data agora é renderizada aqui. Se for "fixa", vai para o fundo absoluto do documento (apenas na última página) */}
+        {/* Data com lógica limpa: Se fixa, vira um rodapé (fixed). Se não, flui com o texto. */}
         {data.dateLocation && data.dateLocation.visible && (
              <div 
-                className={`w-full flex justify-end break-inside-avoid ${data.dateLocation.fixedAtBottom ? 'absolute bottom-0 right-0' : 'mt-8 mb-2'}`}
+                className={`w-full flex justify-end break-inside-avoid ${data.dateLocation.fixedAtBottom ? '' : 'mt-8 mb-2'}`}
                 style={{ 
                     textAlign: 'right',
                     color: data.dateLocation.useThemeColor ? settings.themeColor : settings.bodyColor,
                     fontWeight: data.dateLocation.useBold ? 'bold' : 'normal',
-                    fontSize: data.dateLocation.fontSize ? `${data.dateLocation.fontSize}em` : '1.05em'
+                    fontSize: data.dateLocation.fontSize ? `${data.dateLocation.fontSize}em` : '1.05em',
+                    /* Se o botão Fixar estiver ativo, a data cola no rodapé do papel */
+                    ...(data.dateLocation.fixedAtBottom ? { position: 'fixed', bottom: '23mm', right: '15mm', zIndex: 9998 } : {})
                 }}
              >
                 <span>
@@ -849,36 +851,23 @@ if (sec.type === 'category-simple') {
             </div>
         )}
 
-        {/* Tabela Mestre: Gerencia perfeitamente as linhas de topo e rodapé e evita colisão de texto */}
-        <table style={{ width: '100%', borderCollapse: 'collapse', ...typographyStyles }}>
-            <thead style={{ display: 'table-header-group' }}>
-                <tr>
-                    <td style={{ padding: 0, paddingLeft: '15mm', paddingRight: '15mm' }}>
-                        <div style={{ width: '100%', height: '2px', backgroundColor: settings.showPageLines ? settings.themeColor : 'transparent' }}></div>
-                        <div style={{ height: '4mm' }}></div> {/* Distância entre a linha e o texto */}
-                    </td>
-                </tr>
-            </thead>
-            <tfoot style={{ display: 'table-footer-group' }}>
-                <tr>
-                    <td style={{ padding: 0, paddingLeft: '15mm', paddingRight: '15mm' }}>
-                        {/* Se a data for fixa, damos mais espaço invisível na tabela para o texto não atropelar ela */}
-                        <div style={{ height: data.dateLocation?.fixedAtBottom ? '14mm' : '4mm' }}></div> 
-                        <div style={{ width: '100%', height: '2px', backgroundColor: settings.showPageLines ? settings.themeColor : 'transparent' }}></div>
-                    </td>
-                </tr>
-            </tfoot>
-            <tbody>
-                <tr>
-                    <td style={{ verticalAlign: 'top', padding: 0, paddingLeft: '15mm', paddingRight: '15mm' }}>
-                        {/* Container com position: relative para a data absoluta colar APENAS no final dele (Última Página) */}
-                        <div className="content-container" style={{ width: '100%', position: 'relative', minHeight: '250mm', ...typographyStyles }}>
-                            {ResumeContent}
-                        </div>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
+        {/* Linhas decorativas (Restauradas) */}
+        <div style={{ position: 'fixed', top: '20mm', left: '15mm', right: '15mm', height: '2px', backgroundColor: settings.showPageLines ? settings.themeColor : 'transparent', zIndex: 9999 }}></div>
+        <div style={{ position: 'fixed', bottom: '20mm', left: '15mm', right: '15mm', height: '2px', backgroundColor: settings.showPageLines ? settings.themeColor : 'transparent', zIndex: 9999 }}></div>
+
+        {/* Estrutura original de DIV restaurada. Isso conserta o espaçamento! */}
+        <div className="content-wrapper" style={{ 
+            paddingLeft: '15mm', 
+            paddingRight: '15mm', 
+            paddingTop: '24mm', /* Padding força o texto a ficar abaixo da linha do topo */
+            paddingBottom: '26mm', /* Padding força o texto a ficar acima da linha de baixo */
+            width: '100%',
+            boxSizing: 'border-box'
+        }}>
+            <div className="content-container" style={{ width: '100%', ...typographyStyles }}>
+                {ResumeContent}
+            </div>
+        </div>
     </div>
   );
 }
