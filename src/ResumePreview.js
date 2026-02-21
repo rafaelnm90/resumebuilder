@@ -861,38 +861,32 @@ if (sec.type === 'category-simple') {
             </div>
         )}
 
-        <div style={{
-            position: 'fixed',
-            top: '20mm', 
-            left: '15mm',   
-            right: '15mm',  
-            height: '2px',
-            backgroundColor: settings.showPageLines ? settings.themeColor : 'transparent', 
-            zIndex: 9999
-        }}></div>
-
-        <div style={{
-            position: 'fixed',
-            bottom: '20mm', 
-            left: '15mm',   
-            right: '15mm',  
-            height: '2px',
-            backgroundColor: settings.showPageLines ? settings.themeColor : 'transparent', 
-            zIndex: 9999
-        }}></div>
-
-        <div className="content-wrapper" style={{ 
-            paddingLeft: '15mm', 
-            paddingRight: '15mm', 
-            paddingTop: '22mm', 
-            paddingBottom: '20mm',
-            width: '100%',
-            boxSizing: 'border-box'
-        }}>
-            <div className="content-container" style={{ width: '100%', ...typographyStyles }}>
-                {ResumeContent}
-            </div>
-        </div>
+        {/* Tabela Mestre: Gerencia margens e linhas decorativas de forma segura para impressão */}
+        <table style={{ width: '100%', borderCollapse: 'collapse', ...typographyStyles }}>
+            <thead>
+                <tr>
+                    <td style={{ paddingTop: '20mm', paddingBottom: '2mm', paddingLeft: '15mm', paddingRight: '15mm' }}>
+                        <div style={{ width: '100%', height: '2px', backgroundColor: settings.showPageLines ? settings.themeColor : 'transparent' }}></div>
+                    </td>
+                </tr>
+            </thead>
+            <tfoot>
+                <tr>
+                    <td style={{ height: '20mm', padding: 0, paddingLeft: '15mm', paddingRight: '15mm', verticalAlign: 'top', paddingTop: '2mm' }}>
+                        <div style={{ width: '100%', height: '2px', backgroundColor: settings.showPageLines ? settings.themeColor : 'transparent' }}></div>
+                    </td>
+                </tr>
+            </tfoot>
+            <tbody>
+                <tr>
+                    <td style={{ verticalAlign: 'top', paddingLeft: '15mm', paddingRight: '15mm' }}>
+                        <div className="content-container" style={{ width: '100%', ...typographyStyles }}>
+                            {ResumeContent}
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
     </div>
   );
 }
