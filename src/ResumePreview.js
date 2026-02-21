@@ -128,25 +128,35 @@ export default function ResumePreview({ data, settings }) {
                 </div>
             </div>
 
-            <table style={{ width: '100%', borderCollapse: 'collapse', ...typographyStyles }}>
-                <thead style={{ display: 'table-header-group' }}>
-                    <tr style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}>
-                        <td style={{ padding: 0, border: 'none' }}>
-                            <div style={getHeaderStyle(false)}>
-                                {title} <span style={{ fontSize: '0.65em', fontWeight: 'normal', opacity: 0.7, textTransform: 'none' }}>(Continuação)</span>
-                            </div>
-                            <div style={{ height: '1mm' }}></div> 
-                        </td>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td style={{ padding: 0, border: 'none', verticalAlign: 'top' }}>
-                            {children}
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+            {/* Tabela Mestre: Gerencia perfeitamente as margens de 20mm e as linhas repetidas sem espremer o texto */}
+        <table style={{ width: '100%', borderCollapse: 'collapse', borderSpacing: 0, height: '100%' }}>
+            <thead style={{ display: 'table-header-group' }}>
+                <tr>
+                    <td style={{ padding: 0, height: '24mm', verticalAlign: 'bottom' }}>
+                        <div style={{ marginLeft: '15mm', marginRight: '15mm', height: '2px', backgroundColor: settings.showPageLines ? settings.themeColor : 'transparent' }}></div>
+                        <div style={{ height: '4mm' }}></div> {/* Distância entre a linha e o texto */}
+                    </td>
+                </tr>
+            </thead>
+            <tfoot style={{ display: 'table-footer-group' }}>
+                <tr>
+                    <td style={{ padding: 0, height: '24mm', verticalAlign: 'top' }}>
+                        <div style={{ height: '4mm' }}></div> {/* Distância entre o texto e a linha */}
+                        <div style={{ marginLeft: '15mm', marginRight: '15mm', height: '2px', backgroundColor: settings.showPageLines ? settings.themeColor : 'transparent' }}></div>
+                    </td>
+                </tr>
+            </tfoot>
+            <tbody>
+                <tr>
+                    <td style={{ padding: 0, height: '100%', verticalAlign: 'top' }}>
+                        {/* O Padding lateral é aplicado apenas aqui para não duplicar e espremer o layout */}
+                        <div className="content-container flex flex-col" style={{ paddingLeft: '15mm', paddingRight: '15mm', width: '100%', minHeight: '100%', boxSizing: 'border-box', ...typographyStyles }}>
+                            {ResumeContent}
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
         </div>
     );
   };
@@ -795,17 +805,17 @@ export default function ResumePreview({ data, settings }) {
             return renderSection(sectionId);
         })}
 
-        {/* Lógica unificada da Data. O controle de tamanho funcionará perfeitamente aqui. */}
+        {/* Data: Solução dinâmica empurrando para o final do flex container */}
         {data.dateLocation && data.dateLocation.visible && (
              <div 
-                className={`w-full flex justify-end break-inside-avoid ${data.dateLocation.fixedAtBottom ? '' : 'mt-8 mb-2'}`}
+                className="w-full flex justify-end break-inside-avoid"
                 style={{ 
+                    marginTop: data.dateLocation.fixedAtBottom ? 'auto' : '8mm',
+                    marginBottom: '4mm',
                     textAlign: 'right',
                     color: data.dateLocation.useThemeColor ? settings.themeColor : settings.bodyColor,
                     fontWeight: data.dateLocation.useBold ? 'bold' : 'normal',
-                    fontSize: data.dateLocation.fontSize ? `${data.dateLocation.fontSize}em` : '1.05em',
-                    /* Se fixa, ganha a propriedade fixed e não clona o elemento */
-                    ...(data.dateLocation.fixedAtBottom ? { position: 'fixed', bottom: '24mm', right: '15mm', zIndex: 9998 } : {})
+                    fontSize: data.dateLocation.fontSize ? `${data.dateLocation.fontSize}em` : '1.05em'
                 }}
              >
                 <span>
