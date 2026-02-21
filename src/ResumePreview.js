@@ -7,8 +7,8 @@ const EXIBIR_LOGS = true;
 
 if (EXIBIR_LOGS) {
     console.log("🚀 [ResumePreview.js] Renderizando...");
-    console.log("📄 Listas: Margens ajustadas para impressão (Padding dinâmico).");
-    console.log("👻 ATS: Modo Ghost Text (Absolute 1px White) ativo.");
+    console.log("📄 Layout Original Restaurado (Sem Tabelas Globais).");
+    console.log("🛡️ Margens e Linhas Blindadas via CSS Print.");
 }
 
 const formatText = (text) => {
@@ -373,7 +373,13 @@ export default function ResumePreview({ data, settings }) {
 
     const usePaginatedWrapper = 
         ['experience', 'education', 'projects'].includes(sectionId) || 
-        (isCustom && customType === 'detailed');
+        (isCustom && customType === 'detailed') ||
+        (isCustom && customType === 'category-detailed') ||
+        (isCustom && customType === 'category-simple') ||
+        sectionId === 'others' || 
+        sectionId === 'references' ||
+        sectionId === 'skills' || 
+        (isCustom && customType === 'list');
 
     const Wrapper = usePaginatedWrapper ? PaginatedSectionWrapper : SimpleSectionWrapper;
 
@@ -389,17 +395,17 @@ export default function ResumePreview({ data, settings }) {
         }
         if (sec.type === 'list') { 
             return (
-                <PaginatedSectionWrapper title={displayTitle}>
+                <Wrapper title={displayTitle}>
                     <ul className="list-outside" style={{...containerStyle, paddingLeft: '1.2em'}}>
                         {renderListItems(sec.content, sectionId)}
                     </ul>
-                </PaginatedSectionWrapper>
+                </Wrapper>
             ); 
         }
         
         if (sec.type === 'detailed') { 
             return (
-                <PaginatedSectionWrapper title={displayTitle}>
+                <Wrapper title={displayTitle}>
                     <div style={containerStyle}>
                         {(Array.isArray(sec.content) ? sec.content : []).map((item, i) => {
                              const hasContent = item.title?.trim() || item.subtitle?.trim() || (item.description || []).some(d => d.trim());
@@ -424,12 +430,13 @@ export default function ResumePreview({ data, settings }) {
                              );
                         })}
                     </div>
-                </PaginatedSectionWrapper>
+                </Wrapper>
             ); 
         }
-if (sec.type === 'category-simple') {
+        
+        if (sec.type === 'category-simple') {
              return (
-                 <PaginatedSectionWrapper title={displayTitle}>
+                 <Wrapper title={displayTitle}>
                      <div style={containerStyle}>
                          {(sec.content || []).map((item, i) => {
                               const hasContent = item.title?.trim() || (item.description || []).some(d => typeof d === 'string' && d.trim());
@@ -445,13 +452,13 @@ if (sec.type === 'category-simple') {
                              );
                          })}
                      </div>
-                 </PaginatedSectionWrapper>
+                 </Wrapper>
              );
         }
 
         if (sec.type === 'category-detailed') {
             return (
-                <PaginatedSectionWrapper title={displayTitle}>
+                <Wrapper title={displayTitle}>
                     <div style={containerStyle}>
                         {(sec.content || []).map((item, i) => {
                              const hasContent = item.title?.trim() || (item.description || []).some(d => {
@@ -512,7 +519,7 @@ if (sec.type === 'category-simple') {
                             );
                         })}
                     </div>
-                </PaginatedSectionWrapper>
+                </Wrapper>
             );
         }
     }
@@ -532,7 +539,7 @@ if (sec.type === 'category-simple') {
             );
         case 'skills':
             return structure.skills.visible && data.skills.length > 0 && (
-                <PaginatedSectionWrapper title={displayTitle}>
+                <Wrapper title={displayTitle}>
                     <div style={containerStyle}>
                     {data.skills.map((skill, i) => {
                         const isMultiLine = skill.items && skill.items.includes('\n');
@@ -554,11 +561,11 @@ if (sec.type === 'category-simple') {
                         );
                     })}
                     </div>
-                </PaginatedSectionWrapper>
+                </Wrapper>
             );
         case 'projects':
             return structure.projects.visible && data.projects.length > 0 && (
-                <PaginatedSectionWrapper title={displayTitle}>
+                <Wrapper title={displayTitle}>
                     <div style={containerStyle}>
                     {data.projects.map((proj, i) => {
                         const hasContent = proj.title?.trim() || proj.tech?.trim() || (proj.description || []).some(d => d.trim());
@@ -588,11 +595,11 @@ if (sec.type === 'category-simple') {
                         </div>
                     )})}
                     </div>
-                </PaginatedSectionWrapper>
+                </Wrapper>
             );
         case 'experience':
             return structure.experience.visible && data.experience.length > 0 && (
-                <PaginatedSectionWrapper title={displayTitle}>
+                <Wrapper title={displayTitle}>
                     <div style={containerStyle}>
                     {data.experience.map((exp, i) => {
                         const hasContent = exp.company?.trim() || exp.role?.trim() || (exp.description || []).some(d => d.trim());
@@ -616,11 +623,11 @@ if (sec.type === 'category-simple') {
                         </div>
                     )})}
                     </div>
-                </PaginatedSectionWrapper>
+                </Wrapper>
             );
         case 'education':
             return structure.education.visible && data.education.length > 0 && (
-                <PaginatedSectionWrapper title={displayTitle}>
+                <Wrapper title={displayTitle}>
                     <div style={containerStyle}>
                     {data.education.map((edu, i) => {
                         const hasContent = edu.institution?.trim() || edu.degree?.trim();
@@ -645,11 +652,11 @@ if (sec.type === 'category-simple') {
                             );
                         })}
                     </div>
-                </PaginatedSectionWrapper>
+                </Wrapper>
             );
         case 'others':
             return structure.others.visible && data.others.length > 0 && (
-                <PaginatedSectionWrapper title={displayTitle}>
+                <Wrapper title={displayTitle}>
                     <div style={containerStyle}>
                         {data.others.map((item, i) => {
                              const hasContent = item.title?.trim() || (item.description || []).some(d => {
@@ -710,12 +717,11 @@ if (sec.type === 'category-simple') {
                             );
                         })}
                     </div>
-                </PaginatedSectionWrapper>
+                </Wrapper>
             );
         case 'references':
             return structure.references.visible && data.references && data.references.length > 0 && (
-                <PaginatedSectionWrapper title={displayTitle}>
-                    {/* Grid de 2 colunas fixo para impressão */}
+                <Wrapper title={displayTitle}>
                     <div className="grid grid-cols-2" style={{ gap: `${settings.itemSpacing}mm` }}>
                         {data.references.map((ref, i) => {
                             const iconColor = settings.listMarkerUseThemeColor ? settings.themeColor : 'currentColor';
@@ -749,7 +755,7 @@ if (sec.type === 'category-simple') {
                             </div>
                         )})}
                     </div>
-                </PaginatedSectionWrapper>
+                </Wrapper>
             );
 
         case 'keywords':
@@ -789,17 +795,15 @@ if (sec.type === 'category-simple') {
             return renderSection(sectionId);
         })}
 
-        {/* Data com lógica limpa: Se fixa, vira um rodapé (fixed). Se não, flui com o texto. */}
+        {/* Data com lógica limpa: Se fixa, ganha uma margem muito grande (mt-20) para empurrar pro final da ultima página */}
         {data.dateLocation && data.dateLocation.visible && (
              <div 
-                className={`w-full flex justify-end break-inside-avoid ${data.dateLocation.fixedAtBottom ? '' : 'mt-8 mb-2'}`}
+                className={`w-full flex justify-end break-inside-avoid ${data.dateLocation.fixedAtBottom ? 'mt-20 pt-4 mb-2' : 'mt-8 mb-2'}`}
                 style={{ 
                     textAlign: 'right',
                     color: data.dateLocation.useThemeColor ? settings.themeColor : settings.bodyColor,
                     fontWeight: data.dateLocation.useBold ? 'bold' : 'normal',
-                    fontSize: data.dateLocation.fontSize ? `${data.dateLocation.fontSize}em` : '1.05em',
-                    /* Se o botão Fixar estiver ativo, a data cola no rodapé do papel */
-                    ...(data.dateLocation.fixedAtBottom ? { position: 'fixed', bottom: '23mm', right: '15mm', zIndex: 9998 } : {})
+                    fontSize: data.dateLocation.fontSize ? `${data.dateLocation.fontSize}em` : '1.05em'
                 }}
              >
                 <span>
@@ -815,13 +819,46 @@ if (sec.type === 'category-simple') {
   );
 
   return (
-    <div id="resume-preview" lang="pt-BR" className="bg-white shadow-2xl relative" style={{
+    <div id="resume-preview" lang="pt-BR" className="bg-white shadow-2xl relative flex flex-col" style={{
         ...typographyStyles,
         width: '210mm',
         minHeight: '297mm',
         boxSizing: 'border-box',
         position: 'relative'
     }}>
+        {/* MAGIA CSS: Resolve as margens e a linha vermelha sem usar tabelas */}
+        <style>
+            {`
+                @media print {
+                    /* Força a margem física de 20mm no papel, independente do que o usuário escolher na tela de impressão */
+                    @page {
+                        size: A4;
+                        margin: 20mm 0 !important;
+                    }
+                    body {
+                        margin: 0 !important;
+                        -webkit-print-color-adjust: exact;
+                        print-color-adjust: exact;
+                    }
+                    /* As linhas ficam fixas, mas deslocadas para FORA do texto (-4mm para dentro da margem branca do papel), não deixando cortar as palavras */
+                    .linha-decorativa-topo {
+                        position: fixed !important;
+                        top: -4mm !important;
+                        left: 15mm !important;
+                        right: 15mm !important;
+                        display: block !important;
+                    }
+                    .linha-decorativa-rodape {
+                        position: fixed !important;
+                        bottom: -4mm !important;
+                        left: 15mm !important;
+                        right: 15mm !important;
+                        display: block !important;
+                    }
+                }
+            `}
+        </style>
+
         {settings.showGuides && (
             <div className="absolute inset-0 z-50 pointer-events-none page-guide">
                 <div
@@ -851,20 +888,20 @@ if (sec.type === 'category-simple') {
             </div>
         )}
 
-        {/* Linhas decorativas (Restauradas) */}
-        <div style={{ position: 'fixed', top: '20mm', left: '15mm', right: '15mm', height: '2px', backgroundColor: settings.showPageLines ? settings.themeColor : 'transparent', zIndex: 9999 }}></div>
-        <div style={{ position: 'fixed', bottom: '20mm', left: '15mm', right: '15mm', height: '2px', backgroundColor: settings.showPageLines ? settings.themeColor : 'transparent', zIndex: 9999 }}></div>
+        {/* Linhas decorativas com as classes mágicas para impressão */}
+        <div className="linha-decorativa-topo" style={{ position: 'absolute', top: '20mm', left: '15mm', right: '15mm', height: '2px', backgroundColor: settings.showPageLines ? settings.themeColor : 'transparent', zIndex: 9999 }}></div>
+        <div className="linha-decorativa-rodape" style={{ position: 'absolute', bottom: '20mm', left: '15mm', right: '15mm', height: '2px', backgroundColor: settings.showPageLines ? settings.themeColor : 'transparent', zIndex: 9999 }}></div>
 
-        {/* Estrutura original de DIV restaurada. Isso conserta o espaçamento! */}
-        <div className="content-wrapper" style={{ 
+        {/* O layout limpo original voltou. O padding protege as linhas na tela, e o CSS acima as protege na impressão! */}
+        <div className="content-wrapper flex flex-col flex-1" style={{ 
             paddingLeft: '15mm', 
             paddingRight: '15mm', 
-            paddingTop: '24mm', /* Padding força o texto a ficar abaixo da linha do topo */
-            paddingBottom: '26mm', /* Padding força o texto a ficar acima da linha de baixo */
+            paddingTop: '24mm', 
+            paddingBottom: '24mm', 
             width: '100%',
             boxSizing: 'border-box'
         }}>
-            <div className="content-container" style={{ width: '100%', ...typographyStyles }}>
+            <div className="content-container flex flex-col flex-1" style={{ width: '100%', ...typographyStyles }}>
                 {ResumeContent}
             </div>
         </div>
