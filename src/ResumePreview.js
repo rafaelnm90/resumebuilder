@@ -714,7 +714,7 @@ if (sec.type === 'category-simple') {
             );
         case 'references':
             return structure.references.visible && data.references && data.references.length > 0 && (
-                <SimpleSectionWrapper title={displayTitle} sectionId={sectionId}>
+                <PaginatedSectionWrapper title={displayTitle}>
                     {/* Grid de 2 colunas fixo para impressão */}
                     <div className="grid grid-cols-2" style={{ gap: `${settings.itemSpacing}mm` }}>
                         {data.references.map((ref, i) => {
@@ -749,7 +749,7 @@ if (sec.type === 'category-simple') {
                             </div>
                         )})}
                     </div>
-                </SimpleSectionWrapper>
+                </PaginatedSectionWrapper>
             );
 
         case 'keywords':
