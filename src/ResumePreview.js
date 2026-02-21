@@ -7,8 +7,7 @@ const EXIBIR_LOGS = true;
 
 if (EXIBIR_LOGS) {
     console.log("🚀 [ResumePreview.js] Renderizando...");
-    console.log("✅ Layout original Restaurado (Divs limpas).");
-    console.log("✅ Data Unificada com Slider Funcional em ambos os modos.");
+    console.log("🛠️ Layout restaurado com Tabela Mestre sem margens duplas.");
 }
 
 const formatText = (text) => {
@@ -795,17 +794,17 @@ export default function ResumePreview({ data, settings }) {
             return renderSection(sectionId);
         })}
 
-        {/* Lógica unificada da Data. O controle de tamanho funcionará perfeitamente aqui. */}
+        {/* Data: Como no print não existe "fixed bottom last page", usamos margem para empurrar */}
         {data.dateLocation && data.dateLocation.visible && (
              <div 
-                className={`w-full flex justify-end break-inside-avoid ${data.dateLocation.fixedAtBottom ? '' : 'mt-8 mb-2'}`}
+                className="w-full flex justify-end break-inside-avoid"
                 style={{ 
+                    marginTop: data.dateLocation.fixedAtBottom ? '30mm' : '8mm',
+                    marginBottom: '4mm',
                     textAlign: 'right',
                     color: data.dateLocation.useThemeColor ? settings.themeColor : settings.bodyColor,
                     fontWeight: data.dateLocation.useBold ? 'bold' : 'normal',
-                    fontSize: data.dateLocation.fontSize ? `${data.dateLocation.fontSize}em` : '1.05em',
-                    /* Se fixa, ganha a propriedade fixed e não clona o elemento */
-                    ...(data.dateLocation.fixedAtBottom ? { position: 'fixed', bottom: '24mm', right: '15mm', zIndex: 9998 } : {})
+                    fontSize: data.dateLocation.fontSize ? `${data.dateLocation.fontSize}em` : '1.05em'
                 }}
              >
                 <span>
@@ -828,33 +827,18 @@ export default function ResumePreview({ data, settings }) {
         boxSizing: 'border-box',
         position: 'relative'
     }}>
-        {/* MAGIA CSS: Força margens no papel impresso para a linha vermelha não colidir */}
         <style>
             {`
                 @media print {
+                    /* Força a remoção das margens do navegador para a Tabela assumir o controle total */
                     @page {
                         size: A4;
-                        margin: 20mm 0 !important;
+                        margin: 0 !important;
                     }
                     body {
                         margin: 0 !important;
                         -webkit-print-color-adjust: exact;
                         print-color-adjust: exact;
-                    }
-                    /* Empurra as linhas para a "zona morta" da margem branca de 20mm */
-                    .linha-decorativa-topo {
-                        position: fixed !important;
-                        top: -4mm !important;
-                        left: 15mm !important;
-                        right: 15mm !important;
-                        display: block !important;
-                    }
-                    .linha-decorativa-rodape {
-                        position: fixed !important;
-                        bottom: -4mm !important;
-                        left: 15mm !important;
-                        right: 15mm !important;
-                        display: block !important;
                     }
                 }
             `}
@@ -889,23 +873,35 @@ export default function ResumePreview({ data, settings }) {
             </div>
         )}
 
-        {/* Linhas decorativas fixadas em posição absoluta */}
-        <div className="linha-decorativa-topo" style={{ position: 'absolute', top: '20mm', left: '15mm', right: '15mm', height: '2px', backgroundColor: settings.showPageLines ? settings.themeColor : 'transparent', zIndex: 9999 }}></div>
-        <div className="linha-decorativa-rodape" style={{ position: 'absolute', bottom: '20mm', left: '15mm', right: '15mm', height: '2px', backgroundColor: settings.showPageLines ? settings.themeColor : 'transparent', zIndex: 9999 }}></div>
-
-        {/* A estrutura Pura de DIVs voltou! Seus espaçamentos estão garantidos. */}
-        <div className="content-wrapper flex flex-col flex-1" style={{ 
-            paddingLeft: '15mm', 
-            paddingRight: '15mm', 
-            paddingTop: '24mm', /* Protege o topo da linha */
-            paddingBottom: '24mm', /* Protege o fundo da linha */
-            width: '100%',
-            boxSizing: 'border-box'
-        }}>
-            <div className="content-container flex flex-col flex-1" style={{ width: '100%', ...typographyStyles }}>
-                {ResumeContent}
-            </div>
-        </div>
+        {/* Tabela Mestre: Gerencia perfeitamente as margens de 20mm e as linhas repetidas sem espremer o texto */}
+        <table style={{ width: '100%', borderCollapse: 'collapse', borderSpacing: 0 }}>
+            <thead style={{ display: 'table-header-group' }}>
+                <tr>
+                    <td style={{ padding: 0, height: '24mm', verticalAlign: 'bottom' }}>
+                        <div style={{ marginLeft: '15mm', marginRight: '15mm', height: '2px', backgroundColor: settings.showPageLines ? settings.themeColor : 'transparent' }}></div>
+                        <div style={{ height: '4mm' }}></div> {/* Distância entre a linha e o texto */}
+                    </td>
+                </tr>
+            </thead>
+            <tfoot style={{ display: 'table-footer-group' }}>
+                <tr>
+                    <td style={{ padding: 0, height: '24mm', verticalAlign: 'top' }}>
+                        <div style={{ height: '4mm' }}></div> {/* Distância entre o texto e a linha */}
+                        <div style={{ marginLeft: '15mm', marginRight: '15mm', height: '2px', backgroundColor: settings.showPageLines ? settings.themeColor : 'transparent' }}></div>
+                    </td>
+                </tr>
+            </tfoot>
+            <tbody>
+                <tr>
+                    <td style={{ padding: 0 }}>
+                        {/* O Padding lateral é aplicado apenas aqui para não duplicar e espremer o layout */}
+                        <div className="content-container" style={{ paddingLeft: '15mm', paddingRight: '15mm', width: '100%', boxSizing: 'border-box', ...typographyStyles }}>
+                            {ResumeContent}
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
     </div>
   );
 }
