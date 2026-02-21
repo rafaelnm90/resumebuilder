@@ -26,8 +26,6 @@ const SECTION_ICONS = {
   keywords: EyeOff 
 };
 
-// --- COMPONENTES AUXILIARES ---
-
 const ToggleSwitch = ({ checked, onChange, title }) => (
     <button 
         onClick={onChange}
@@ -52,7 +50,6 @@ const insertFormatting = (ref, type) => {
   return newText;
 };
 
-// Helper para formatação direta em campos de texto simples
 const handleFormatText = (ref, type, currentVal, setVal) => {
     const newVal = insertFormatting(ref, type);
     if (newVal !== undefined) setVal(newVal);
@@ -69,7 +66,6 @@ const handleFormatList = (ref, type, currentVal, setVal) => {
     setVal(newText);
 };
 
-// Botão grande tracejado para adicionar no topo
 const AddItemButton = ({ onClick, label }) => (
   <button 
     onClick={onClick}
@@ -216,14 +212,55 @@ const DraggableDescriptionList = ({ items, sectionId, itemIndex, onUpdate, onRem
   );
 };
 
+const DraggableOthersList = ({ items, sectionId, itemIndex, onUpdate, onRemove, onAdd, onExpandRequest, t }) => {
+  const droppableId = `desc-${sectionId}-${itemIndex}`;
+  return (
+    <Droppable droppableId={droppableId} type="DESCRIPTION_ITEM">
+      {(provided) => (
+        <div {...provided.droppableProps} ref={provided.innerRef} className="space-y-3 mt-2">
+          {(items || []).map((itemObj, index) => {
+            const isString = typeof itemObj === 'string';
+            const currentText = isString ? itemObj : (itemObj.text || '');
+            const currentHours = isString ? '' : (itemObj.hours || '');
+            const currentDetails = isString ? '' : (itemObj.details || '');
+
+            return (
+            <Draggable key={`${droppableId}-${index}`} draggableId={`${droppableId}-${index}`} index={index}>
+              {(provided, snapshot) => (
+                <div ref={provided.innerRef} {...provided.draggableProps} className={`p-3 bg-white border rounded shadow-sm relative ${snapshot.isDragging ? 'opacity-70 border-blue-500' : 'border-gray-200'}`}>
+                    <div className="flex gap-2 mb-2 items-center">
+                        <div {...provided.dragHandleProps} className="text-gray-300 hover:text-gray-500 cursor-grab"><GripVertical size={14} /></div>
+                        <div className="flex-1 grid grid-cols-4 gap-2">
+                            <div className="col-span-3">
+                                <Input label="Item / Curso / Idioma" value={currentText} onChange={(val) => onUpdate(sectionId, itemIndex, 'description', index, { text: val, hours: currentHours, details: currentDetails })} onExpandRequest={onExpandRequest} expandDisableRich={true}/>
+                            </div>
+                            <div className="col-span-1">
+                                <Input label="Carga / Nível" value={currentHours} onChange={(val) => onUpdate(sectionId, itemIndex, 'description', index, { text: currentText, hours: val, details: currentDetails })} onExpandRequest={onExpandRequest} expandDisableRich={true}/>
+                            </div>
+                        </div>
+                        <button onClick={() => onRemove(sectionId, itemIndex, 'description', index)} className="text-red-400 hover:text-red-600 p-1 mb-2"><Trash2 size={16}/></button>
+                    </div>
+                    <div className="pl-6">
+                        <Input label="Descrição Opcional" value={currentDetails} onChange={(val) => onUpdate(sectionId, itemIndex, 'description', index, { text: currentText, hours: currentHours, details: val })} onExpandRequest={onExpandRequest} enableRich={true}/>
+                    </div>
+                </div>
+              )}
+            </Draggable>
+          )})}
+          {provided.placeholder}
+          <button onClick={() => onAdd(sectionId, itemIndex, 'description', { text: '', hours: '', details: '' })} className="text-xs text-blue-600 flex items-center mt-2 ml-1"><Plus size={12} className="mr-1"/> {t.addItem}</button>
+        </div>
+      )}
+    </Droppable>
+  );
+};
+
 const DraggableSection = ({ sectionId, title, items, onAdd, onRemove, renderItem, isVisible, onToggle, t, renderHeader }) => (
   <div className="space-y-4">
-    {/* Use renderHeader passed as prop to allow editable titles */}
     {renderHeader(sectionId, title)}
 
     <div className={`transition-opacity duration-300 ${isVisible ? 'opacity-100' : 'opacity-60 pointer-events-none grayscale'}`}>
         
-        {/* BOTÃO ADICIONADO AQUI NO TOPO */}
         {onAdd && <AddItemButton onClick={onAdd} label={t.addNewItem} />}
 
         <Droppable droppableId={sectionId} type="SECTION_ITEM">
@@ -267,7 +304,6 @@ const ExpandedModal = ({ isOpen, onClose, title, value, onSave, disableFormattin
     if (newValue !== undefined) setLocalValue(newValue);
   };
 
-  // DETECTA SE ESTÁ EM MODO LISTA
   const isListMode = localValue && localValue.includes('\n');
 
   return (
@@ -278,7 +314,6 @@ const ExpandedModal = ({ isOpen, onClose, title, value, onSave, disableFormattin
           <button onClick={onClose} className="text-gray-500 hover:text-gray-700"><X size={24}/></button>
         </div>
         
-        {/* BARRA DE FERRAMENTAS + AVISO DE LISTA */}
         <div className="p-2 bg-gray-50 border-b flex justify-between items-center">
             {!disableFormatting ? (
                 <div className="flex gap-2">
@@ -287,7 +322,6 @@ const ExpandedModal = ({ isOpen, onClose, title, value, onSave, disableFormattin
                 </div>
             ) : <div></div>}
 
-            {/* AVISO VISUAL DE MODO LISTA DENTRO DO MODAL */}
             {isListMode && (
                 <div className="flex items-center gap-2 text-xs text-blue-700 font-semibold bg-blue-50 px-2 py-1 rounded border border-blue-200 animate-in fade-in">
                     <ListIcon size={12}/>
@@ -312,8 +346,6 @@ const ExpandedModal = ({ isOpen, onClose, title, value, onSave, disableFormattin
     </div>
   );
 };
-
-// --- FIM DOS COMPONENTES AUXILIARES ---
 
 export default function App() {
   const [data, setData] = useState(INITIAL_DATA);
@@ -393,10 +425,8 @@ export default function App() {
       window.removeEventListener('mousemove', resize);
       window.removeEventListener('mouseup', stopResizing);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isResizing]);
 
-  // --- CORREÇÃO DA IMPRESSÃO (PDF) ---
   const handlePrint = () => {
     const resumeContent = document.getElementById('resume-preview');
     if (!resumeContent) return alert("Erro ao gerar PDF.");
@@ -407,7 +437,6 @@ export default function App() {
     const guides = contentClone.querySelectorAll('.page-guide');
     guides.forEach(g => g.remove());
     
-    // Remove transformações de zoom para impressão
     contentClone.style.transform = 'none';
     contentClone.style.zoom = '1';
     contentClone.style.margin = '0'; 
@@ -420,15 +449,11 @@ export default function App() {
           ${FONTS[settings.font].url ? `<link href="${FONTS[settings.font].url}" rel="stylesheet">` : ''}
           <script src="https://cdn.tailwindcss.com"></script>
           <style>
-            /* CSS RESET HARDCORE PARA IMPRESSÃO - CORRIGIDO */
             *, *::before, *::after { box-sizing: border-box !important; }
             
-            /* CSS DE IMPRESSÃO CORRIGIDO PARA LISTAS */
-            /* Removemos o 'padding: 0' agressivo que causava o problema de margem */
             ul, ol {
                 margin-top: 0 !important;
                 margin-bottom: 0 !important;
-                /* IMPORTANTE: Garante padding para os bullets não sumirem da página */
                 padding-left: 1.2em !important; 
             }
             li {
@@ -436,7 +461,6 @@ export default function App() {
                 padding: 0 !important;
             }
 
-            /* Regras de quebra de página e hifenização */
             .keep-together { page-break-inside: avoid !important; break-inside: avoid !important; display: block !important; }
             h3, .dynamic-title { page-break-after: avoid !important; break-after: avoid !important; }
             html, body, p, li, div, span { 
@@ -447,9 +471,10 @@ export default function App() {
             }
             
             @media print {
-              @page { size: A4; margin: 0; }
+              @page { size: A4; margin: 20mm 0; }
               body { margin: 0; background-color: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
               #resume-preview { width: 100% !important; height: auto !important; margin: 0 !important; border: none !important; box-shadow: none !important; transform: none !important; overflow: visible !important; }
+              .content-wrapper { padding-top: 2mm !important; padding-bottom: 0 !important; }
               .flex-row-print { display: flex !important; flex-direction: row !important; }
               .dynamic-title { color: ${settings.themeColor} !important; }
               .content-container { width: 100% !important; margin: 0 !important; }
@@ -465,7 +490,6 @@ export default function App() {
         <body>
             ${contentClone.outerHTML}
             <script>
-                // Aumentei o timeout para garantir o load das fontes e Tailwind
                 setTimeout(() => { 
                     window.print(); 
                     window.close(); 
@@ -519,9 +543,48 @@ export default function App() {
             const parsed = JSON.parse(event.target.result);
             if (parsed.data && parsed.settings) {
                 if (window.confirm("Isso substituirá todos os dados atuais pelos dados do backup. Deseja continuar?")) {
-                    setData(parsed.data);
-                    setSettings(parsed.settings);
-                    if (typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS) console.log("✅ [App.js] Dados restaurados com sucesso.");
+                    
+                    // --- LÓGICA DE MESCLAGEM INTELIGENTE (FORWARD COMPATIBILITY) ---
+                    const safeData = { ...INITIAL_DATA };
+                    Object.keys(INITIAL_DATA).forEach(key => {
+                        if (parsed.data[key] !== undefined) {
+                            if (key === 'structure') {
+                                // Tratamento especial profundo para a estrutura de seções
+                                const newStructure = { ...INITIAL_DATA.structure };
+                                Object.keys(INITIAL_DATA.structure).forEach(structKey => {
+                                    if (parsed.data.structure[structKey]) {
+                                        newStructure[structKey] = { ...INITIAL_DATA.structure[structKey], ...parsed.data.structure[structKey] };
+                                    }
+                                });
+                                safeData[key] = newStructure;
+                            }
+                            else if (typeof INITIAL_DATA[key] === 'object' && !Array.isArray(INITIAL_DATA[key]) && INITIAL_DATA[key] !== null) {
+                                // Mescla objetos aninhados (ex: personal, dateLocation) preservando chaves novas
+                                safeData[key] = { ...INITIAL_DATA[key], ...parsed.data[key] };
+                            } 
+                            else {
+                                // Primitivos ou Arrays são substituídos diretamente pelo backup
+                                safeData[key] = parsed.data[key];
+                            }
+                        }
+                    });
+
+                    const safeSettings = { ...INITIAL_SETTINGS };
+                    Object.keys(INITIAL_SETTINGS).forEach(key => {
+                        if (parsed.settings[key] !== undefined) {
+                            if (typeof INITIAL_SETTINGS[key] === 'object' && !Array.isArray(INITIAL_SETTINGS[key]) && INITIAL_SETTINGS[key] !== null) {
+                                safeSettings[key] = { ...INITIAL_SETTINGS[key], ...parsed.settings[key] };
+                            } else {
+                                safeSettings[key] = parsed.settings[key];
+                            }
+                        }
+                    });
+
+                    // Aplica os estados higienizados
+                    setData(safeData);
+                    setSettings(safeSettings);
+                    
+                    if (typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS) console.log("✅ [App.js] Dados restaurados com sucesso e compatibilizados com a nova versão.");
                 }
             } else {
                 alert("Erro: O arquivo JSON não parece ser um backup válido deste aplicativo.");
@@ -566,6 +629,28 @@ export default function App() {
       const sectionId = parts[1];
       const itemIdx = parseInt(parts[2]);
 
+      if (sectionId.startsWith('custom-')) {
+          const customSecs = Array.from(data.customSections);
+          const targetSectionIdx = customSecs.findIndex(s => s.id === sectionId);
+          if (targetSectionIdx > -1) {
+              const targetSection = { ...customSecs[targetSectionIdx] };
+              const sectionItems = Array.from(targetSection.content);
+              const targetItem = { ...sectionItems[itemIdx] };
+              const currentDescriptions = Array.from(targetItem.description);
+
+              const [reorderedDesc] = currentDescriptions.splice(source.index, 1);
+              currentDescriptions.splice(destination.index, 0, reorderedDesc);
+
+              targetItem.description = currentDescriptions;
+              sectionItems[itemIdx] = targetItem;
+              targetSection.content = sectionItems;
+              customSecs[targetSectionIdx] = targetSection;
+
+              setData(prev => ({ ...prev, customSections: customSecs }));
+          }
+          return;
+      }
+
       const sectionItems = Array.from(data[sectionId]);
       const targetItem = { ...sectionItems[itemIdx] };
       const currentDescriptions = Array.from(targetItem.description);
@@ -589,19 +674,25 @@ export default function App() {
   
   const addItem = (s, item) => setData(p => ({ ...p, [s]: [...p[s], item] }));
   
-  // NOVA FUNÇÃO: Adiciona item no INÍCIO da lista (Topo)
   const addItemTop = (s, item) => setData(p => ({ ...p, [s]: [item, ...p[s]] }));
   
   const removeItem = (s, idx) => setData(p => ({ ...p, [s]: p[s].filter((_, i) => i !== idx) }));
   const updateItem = (s, idx, f, v) => setData(p => ({ ...p, [s]: p[s].map((it, i) => i === idx ? { ...it, [f]: v } : it) }));
   
   const updateArrayItem = (s, iIdx, arrF, arrI, v) => setData(p => ({ ...p, [s]: p[s].map((it, i) => i !== iIdx ? it : { ...it, [arrF]: [...it[arrF]].map((val, k) => k === arrI ? v : val) }) }));
-  const addArrayItemToItem = (s, iIdx, arrF) => setData(p => ({ ...p, [s]: p[s].map((it, i) => i === iIdx ? { ...it, [arrF]: [...it[arrF], ""] } : it) }));
+  const addArrayItemToItem = (s, iIdx, arrF, defaultVal = "") => setData(p => ({ ...p, [s]: p[s].map((it, i) => i === iIdx ? { ...it, [arrF]: [...it[arrF], defaultVal] } : it) }));
   const removeArrayItemFromItem = (s, iIdx, arrF, arrI) => setData(p => ({ ...p, [s]: p[s].map((it, i) => i === iIdx ? { ...it, [arrF]: it[arrF].filter((_, k) => k !== arrI) } : it) }));
 
   const addCustomSection = (type) => {
     const id = `custom-${Date.now()}`;
-    const newSection = { id: id, title: t.addSection, type: type, content: type === 'text' ? '' : [], visible: true };
+    let initialContent;
+    if (type === 'text') initialContent = '';
+    else if (type === 'list') initialContent = [];
+    else if (type === 'detailed') initialContent = [];
+    else if (type === 'category-detailed') initialContent = [{ title: 'Nova Categoria', description: [{ text: '', hours: '', details: '' }] }];
+    else if (type === 'category-simple') initialContent = [{ title: 'Nova Categoria', description: [''] }];
+
+    const newSection = { id: id, title: t.addSection, type: type, content: initialContent, visible: true };
     setData(prev => ({ ...prev, customSections: [...prev.customSections, newSection], sectionOrder: [...prev.sectionOrder, id] }));
     setActiveTab(id);
   };
@@ -614,7 +705,6 @@ export default function App() {
   };
   const addDetailedItem = (sid) => setData(p => ({ ...p, customSections: p.customSections.map(s => s.id === sid ? { ...s, content: [...s.content, { title: '', subtitle: '', date: '', location: '', description: [''] }] } : s) }));
   
-  // NOVA FUNÇÃO: Adiciona item detalhado customizado no INÍCIO
   const addDetailedItemTop = (sid) => setData(p => ({ 
       ...p, 
       customSections: p.customSections.map(s => s.id === sid ? { 
@@ -651,6 +741,45 @@ export default function App() {
   
   const addDetailedItemDescLine = (sid, idx) => setData(p => ({ ...p, customSections: p.customSections.map(s => s.id === sid ? { ...s, content: s.content.map((item, i) => i === idx ? { ...item, description: [...item.description, ""] } : item) } : s) }));
   const removeDetailedItemDescLine = (sid, idx, di) => setData(p => ({ ...p, customSections: p.customSections.map(s => s.id === sid ? { ...s, content: s.content.map((item, i) => i === idx ? { ...item, description: item.description.filter((_, k) => k !== di) } : item) } : s) }));
+   const addCustomCategoryTop = (sid, type) => setData(p => ({
+      ...p,
+      customSections: p.customSections.map(s => s.id === sid ? {
+          ...s,
+          content: [{ title: 'Nova Categoria', description: type === 'category-detailed' ? [{ text: '', hours: '', details: '' }] : [''] }, ...s.content]
+      } : s)
+  }));
+  const removeCustomCategory = (sid, idx) => setData(p => ({
+      ...p,
+      customSections: p.customSections.map(s => s.id === sid ? { ...s, content: s.content.filter((_, i) => i !== idx) } : s)
+  }));
+  const updateCustomCategory = (sid, idx, f, v) => setData(p => ({
+      ...p,
+      customSections: p.customSections.map(s => s.id === sid ? { ...s, content: s.content.map((cat, i) => i === idx ? { ...cat, [f]: v } : cat) } : s)
+  }));
+  const updateCustomCategoryDesc = (sid, catIdx, ignoredField, descIdx, v) => setData(p => ({
+      ...p,
+      customSections: p.customSections.map(s => s.id === sid ? {
+          ...s,
+          content: s.content.map((cat, i) => i === catIdx ? {
+              ...cat,
+              description: cat.description.map((d, k) => k === descIdx ? v : d)
+          } : cat)
+      } : s)
+  }));
+  const addCustomCategoryDescLine = (sid, catIdx, type) => setData(p => ({
+      ...p,
+      customSections: p.customSections.map(s => s.id === sid ? {
+          ...s,
+          content: s.content.map((cat, i) => i === catIdx ? { ...cat, description: [...cat.description, type === 'category-detailed' ? { text: '', hours: '', details: '' } : ''] } : cat)
+      } : s)
+  }));
+  const removeCustomCategoryDescLine = (sid, catIdx, ignoredField, descIdx) => setData(p => ({
+      ...p,
+      customSections: p.customSections.map(s => s.id === sid ? {
+          ...s,
+          content: s.content.map((cat, i) => i === catIdx ? { ...cat, description: cat.description.filter((_, k) => k !== descIdx) } : cat)
+      } : s)
+  }));
   
   const updateSectionSpacing = (sectionId, value) => {
       setSettings(prev => ({
@@ -691,7 +820,6 @@ export default function App() {
 
     return (
         <div className={containerClasses}>
-            {/* LINHA 1: Ícone e Título */}
             <div className="flex items-center gap-3 mb-3">
                 <div className={iconBgClasses}>
                     <Icon size={22}/> 
@@ -705,7 +833,6 @@ export default function App() {
                 />
             </div>
 
-            {/* LINHA 2: Controle de Visibilidade */}
             <div className="flex justify-end items-center">
                 <div className={`flex items-center gap-3 bg-white px-3 py-1.5 rounded-lg border shadow-sm ${isAtsSection ? 'border-red-100' : 'border-blue-100'}`}>
                      <span className={`text-[10px] font-bold uppercase mr-1 ${isAtsSection ? 'text-red-800/60' : 'text-blue-800/60'}`}>Exibir no Currículo:</span>
@@ -1021,7 +1148,6 @@ export default function App() {
         </div>
       </div>
 
-       {/* NOVO PAINEL: RODAPÉ (DATA E LOCAL) - ATUALIZADO COM FORMATO */}
       <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 space-y-4 shadow-sm">
          <label className="flex items-center justify-between text-sm font-bold text-slate-700 uppercase border-b border-slate-200 pb-1 mb-2">
             <span className="flex items-center"><MapPin size={16} className="mr-2"/> {t.footerSettings}</span>
@@ -1032,7 +1158,6 @@ export default function App() {
             <div className="space-y-3 animate-in fade-in slide-in-from-top-2">
                 <Input label={t.footerLocation} value={data.dateLocation.location} onChange={v => setData(prev => ({ ...prev, dateLocation: { ...prev.dateLocation, location: v } }))} />
                 
-                {/* SEÇÃO DATA */}
                 <div className="space-y-2 pt-2 border-t border-slate-200">
                     <div className="flex justify-between items-center mb-1">
                         <label className="text-xs font-semibold text-gray-500 uppercase">{t.footerDate}</label>
@@ -1042,7 +1167,6 @@ export default function App() {
                         </div>
                     </div>
                     
-                    {/* INPUT DA DATA */}
                     <input 
                         type="text" 
                         className={`p-2 border rounded-md outline-none text-sm w-full mb-2 ${data.dateLocation.autoDate ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'focus:border-blue-500 focus:ring-1'}`}
@@ -1052,7 +1176,6 @@ export default function App() {
                         placeholder="Ex: 31/01/2026"
                     />
 
-                    {/* NOVO: SELETOR DE FORMATO (NUMÉRICO / EXTENSO) */}
                     <div className="bg-white p-2 rounded border border-gray-200 flex flex-col gap-2">
                         <span className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">
                             <Calendar size={12}/> {t.footerFormat}
@@ -1091,7 +1214,6 @@ export default function App() {
     </div>
   );
   
-  // (Mantido igual ao original)
   const renderSectionManagementForm = () => (
     <div className="space-y-6">
       <h2 className="text-xl font-bold text-gray-800 border-b pb-2 flex items-center"><Layers className="mr-2" size={20}/> {t.sectionsTab}</h2>
@@ -1099,6 +1221,8 @@ export default function App() {
         <button onClick={() => addCustomSection('text')} className="flex items-center justify-center p-3 bg-blue-50 text-blue-700 rounded border border-blue-200 hover:bg-blue-100 transition-colors"><FileText size={16} className="mr-2"/> {t.text}</button>
         <button onClick={() => addCustomSection('list')} className="flex items-center justify-center p-3 bg-blue-50 text-blue-700 rounded border border-blue-200 hover:bg-blue-100 transition-colors"><List size={16} className="mr-2"/> {t.list}</button>
         <button onClick={() => addCustomSection('detailed')} className="flex items-center justify-center p-3 bg-blue-50 text-blue-700 rounded border border-blue-200 hover:bg-blue-100 transition-colors col-span-2"><Grid size={16} className="mr-2"/> {t.detailed}</button>
+        <button onClick={() => addCustomSection('category-detailed')} className="flex items-center justify-center p-3 bg-indigo-50 text-indigo-700 rounded border border-indigo-200 hover:bg-indigo-100 transition-colors col-span-2"><ListIcon size={16} className="mr-2"/> Categoria (Com Carga Horária)</button>
+        <button onClick={() => addCustomSection('category-simple')} className="flex items-center justify-center p-3 bg-gray-50 text-gray-700 rounded border border-gray-200 hover:bg-gray-100 transition-colors col-span-2"><ListIcon size={16} className="mr-2"/> Categoria (Sem Carga Horária)</button>
       </div>
       <Droppable droppableId="section-ordering" type="MAIN_SECTION_ORDER">
         {(provided) => (
@@ -1136,7 +1260,6 @@ export default function App() {
   );
 
   const renderCustomTabForm = (sectionId) => { 
-      // (Mantido igual ao original)
       const section = data.customSections.find(s => s.id === sectionId); 
       if (!section) return <div>Seção não encontrada</div>; 
       return (
@@ -1198,7 +1321,6 @@ export default function App() {
                 
                 {section.type === 'detailed' && (
                 <div className="space-y-4">
-                    {/* BOTÃO ADICIONAR ITEM NO TOPO */}
                     <AddItemButton onClick={() => addDetailedItemTop(section.id)} label={t.addNewItem} />
                     
                     {section.content.map((item, i) => (
@@ -1227,6 +1349,46 @@ export default function App() {
                     ))}
                 </div>
                 )}
+                   {(section.type === 'category-detailed' || section.type === 'category-simple') && (
+                <div className="space-y-4">
+                    <AddItemButton onClick={() => addCustomCategoryTop(section.id, section.type)} label="Adicionar Categoria" />
+                    
+                    {section.content.map((cat, i) => (
+                    <div key={i} className="bg-gray-50 p-3 rounded relative border border-gray-200">
+                        <button onClick={() => removeCustomCategory(section.id, i)} className="absolute top-2 right-2 text-red-400 hover:text-red-600"><Trash2 size={16}/></button>
+                        <div className="mb-2 pr-6">
+                            <Input label={t.catTitle} value={cat.title} onChange={v => updateCustomCategory(section.id, i, 'title', v)} onExpandRequest={handleOpenExpand}/>
+                        </div>
+                        <div className="space-y-1">
+                            <label className="text-xs font-semibold text-gray-500 uppercase">Itens da Categoria</label>
+                            {section.type === 'category-detailed' ? (
+                                <DraggableOthersList 
+                                    items={cat.description} 
+                                    sectionId={section.id} 
+                                    itemIndex={i} 
+                                    onUpdate={updateCustomCategoryDesc} 
+                                    onRemove={removeCustomCategoryDescLine} 
+                                    onAdd={() => addCustomCategoryDescLine(section.id, i, 'category-detailed')} 
+                                    onExpandRequest={handleOpenExpand}
+                                    t={t}
+                                />
+                            ) : (
+                                <DraggableDescriptionList 
+                                    items={cat.description} 
+                                    sectionId={section.id} 
+                                    itemIndex={i} 
+                                    onUpdate={updateCustomCategoryDesc} 
+                                    onRemove={removeCustomCategoryDescLine} 
+                                    onAdd={() => addCustomCategoryDescLine(section.id, i, 'category-simple')} 
+                                    onExpandRequest={handleOpenExpand}
+                                    t={t}
+                                />
+                            )}
+                        </div>
+                    </div>
+                    ))}
+                </div>
+                )}
             </div>
           </div>
       );
@@ -1237,7 +1399,6 @@ export default function App() {
       <h2 className="text-xl font-bold border-b pb-2">{t.personalTab}</h2>
       
       <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 mb-4">
-        {/* ... (mantido código da foto) ... */}
         <label className="flex items-center text-sm font-bold text-gray-800 mb-2">
             <ImageIcon size={16} className="mr-2"/> {t.photoSettings}
         </label>
@@ -1389,7 +1550,6 @@ export default function App() {
         <Input label={t.lattes} value={data.personal.lattes || ''} onChange={v=>updateField('personal','lattes',v)} onExpandRequest={handleOpenExpand}/>
         <Input label={t.youtube} value={data.personal.youtube || ''} onChange={v=>updateField('personal','youtube',v)} onExpandRequest={handleOpenExpand}/>
 
-        {/* NOVA SEÇÃO: CNH (Checkboxes) - Atualizada com ACC e Linha Única */}
         <div className="col-span-2 bg-gray-50 p-3 rounded border border-gray-200 mt-2">
             <label className="text-xs font-semibold text-gray-500 uppercase mb-2 block">{t.driverLicenses}</label>
             <div className="flex flex-row justify-between items-center">
@@ -1417,15 +1577,12 @@ export default function App() {
     </div>
   );
   
-  // (Mantive os renders das outras seções (Objective, Summary, Skills, etc) iguais ao original para economizar linhas na resposta, já que não foram alterados logicamente, apenas o renderHeader foi atualizado lá em cima)
-
   const renderActiveSection = () => {
     if (activeTab.startsWith('custom-')) { return renderCustomTabForm(activeTab); }
     switch(activeTab) {
       case 'settings': return renderSettingsForm();
       case 'sections': return renderSectionManagementForm();
       case 'personal': return renderPersonalForm();
-      // ... mapeamentos mantidos ...
       case 'objective': return renderObjectiveForm(); 
       case 'summary': return renderSummaryForm();
       case 'skills': return renderSkillsForm();
@@ -1611,7 +1768,7 @@ export default function App() {
       sectionId="others" 
       title={t.sections?.others || "Outros"}
       items={data.others} 
-      onAdd={() => addItemTop('others', {title: 'Nova Categoria', description: ['']})} 
+      onAdd={() => addItemTop('others', {title: 'Nova Categoria', description: [{ text: '', hours: '', details: '' }]})} 
       onRemove={(idx) => removeItem('others', idx)}
       renderHeader={renderSectionHeader}
       isVisible={data.structure.others.visible}
@@ -1622,7 +1779,7 @@ export default function App() {
           <div className="mb-2">
             <Input label={t.catTitle} value={item.title} onChange={v=>updateItem('others', i, 'title', v)} onExpandRequest={handleOpenExpand}/>
           </div>
-          <DraggableDescriptionList 
+          <DraggableOthersList 
             items={item.description}
             sectionId="others"
             itemIndex={i}
@@ -1649,23 +1806,19 @@ export default function App() {
       onToggle={() => updateStructure('references', 'visible', !data.structure.references.visible)}
       t={t}
       renderItem={(item, i) => (
-        <div className="space-y-3"> {/* Aumentei um pouco o espaçamento vertical */}
-            {/* Linha 1: Nome e Empresa */}
+        <div className="space-y-3"> 
             <div className="grid grid-cols-2 gap-3">
                 <Input label={t.refName} value={item.name} onChange={v=>updateItem('references', i, 'name', v)} onExpandRequest={handleOpenExpand}/>
                 <Input label={t.refCompany} value={item.company} onChange={v=>updateItem('references', i, 'company', v)} onExpandRequest={handleOpenExpand}/>
             </div>
             
-            {/* Linha 2: Cargo e Email (Mudei de 3 colunas para 2 para evitar quebra) */}
             <div className="grid grid-cols-2 gap-3">
                 <Input label={t.refRole} value={item.role} onChange={v=>updateItem('references', i, 'role', v)} onExpandRequest={handleOpenExpand}/>
                 <Input label={t.refEmail} value={item.email} onChange={v=>updateItem('references', i, 'email', v)} onExpandRequest={handleOpenExpand}/>
             </div>
 
-            {/* Linha 3: Telefone (Sozinho ou em grid se quiser adicionar mais coisas depois) */}
             <div className="grid grid-cols-2 gap-3">
                  <Input label={t.refPhone} value={item.phone} onChange={v=>updateItem('references', i, 'phone', v)} onExpandRequest={handleOpenExpand}/>
-                 {/* Espaço vazio ou futuro campo */}
             </div>
         </div>
       )}
@@ -1778,7 +1931,6 @@ export default function App() {
                 if (isActive) {
                     btnClasses += 'bg-blue-100 text-blue-900 shadow-md font-bold transform scale-[1.02] ';
                 } else if (isSettings) {
-                    // Destaque para settings inativo
                     btnClasses += 'bg-slate-800/50 border border-slate-700 text-blue-200 hover:bg-slate-800 hover:text-white ';
                 } else {
                     btnClasses += 'hover:bg-slate-800 ';
@@ -1821,7 +1973,6 @@ export default function App() {
           </div>
           
           <div className="p-6 mt-auto border-t border-slate-700 space-y-3">
-            {/* ...botões de export/import mantidos... */}
             <div className="grid grid-cols-2 gap-2">
                 <button 
                     onClick={handleExportJson} 
@@ -1866,7 +2017,6 @@ export default function App() {
             className="flex-shrink-0 bg-white border-r border-gray-200 relative h-full flex flex-col overflow-y-scroll"
             style={{ width: isSidebarOpen ? (window.innerWidth < 768 ? '100%' : `${sidebarWidth}px`) : '0px', transition: isResizing ? 'none' : 'width 0.3s' }}
         >
-             {/* BANNER GEMINI AI */}
              <a 
                 href="https://gemini.google.com/gem/1GUqkZDYhpAHlO_mr7kmtKKhcYPrr-ptV?usp=sharing"
                 target="_blank" 
@@ -1881,7 +2031,6 @@ export default function App() {
                     <Sparkles size={20} />
                 </div>
                 
-                {/* min-w-0 permite que o flex-item encolha para quebrar o texto */}
                 <div className="flex-1 z-10 min-w-0">
                     <h3 className="text-xs font-bold text-indigo-900 uppercase tracking-wide mb-0.5 flex items-center gap-1 whitespace-nowrap">
                         Assistente de Conteúdo IA
