@@ -794,17 +794,98 @@ export default function ResumePreview({ data, settings }) {
             return renderSection(sectionId);
         })}
 
-        {/* Data: Como no print não existe "fixed bottom last page", usamos margem para empurrar */}
+        {/* Espaçador mecânico: garante que o conteúdo da última página não atropele o rodapé absoluto */}
+        {data.dateLocation && data.dateLocation.visible && (
+             <div style={{ height: '12mm', width: '100%', breakInside: 'avoid' }}></div>
+        )}
+
+        {renderSection('keywords')}
+      </>
+  );
+
+  return (
+    <div id="resume-preview" lang="pt-BR" className="bg-white shadow-2xl relative" style={{
+        ...typographyStyles,
+        width: '210mm',
+        minHeight: '297mm',
+        boxSizing: 'border-box',
+        position: 'relative'
+    }}>
+        {settings.showGuides && (
+            <div className="absolute inset-0 z-50 pointer-events-none page-guide">
+                <div
+                    className="absolute border border-green-600 border-dashed opacity-100"
+                    style={{
+                        top: '20mm',
+                        bottom: '20mm',
+                        left: '15mm',
+                        right: '15mm'
+                    }}
+                >
+                    <span className="absolute top-0 right-0 bg-green-600 text-white text-[9px] px-1 font-bold">Margem</span>
+                </div>
+
+                <div
+                    className="absolute border-r border-blue-600 border-dashed h-full opacity-100"
+                    style={{
+                        top: '20mm',
+                        bottom: '20mm',
+                        left: `calc(15mm + ${settings.leftColumnWidth}mm)`
+                    }}
+                >
+                    <span className="absolute top-2 -right-1 translate-x-full bg-blue-100 text-blue-800 text-[9px] px-1 border border-blue-300 rounded font-bold whitespace-nowrap">Competências</span>
+                </div>
+
+                <div className="absolute border-l border-blue-600 border-dotted h-full opacity-100"
+                    style={{ top: '20mm', bottom: '20mm', right: `calc(15mm + ${settings.experienceColumnWidth}mm)` }}>
+                      <span className="absolute top-10 -left-1 -translate-x-full bg-blue-50 text-blue-600 text-[9px] px-1 border border-blue-200 rounded font-bold whitespace-nowrap">Experiências</span>
+                </div>
+
+                <div className="absolute border-l border-red-500 border-dotted h-full opacity-100"
+                    style={{ top: '20mm', bottom: '20mm', right: `calc(15mm + ${settings.educationColumnWidth}mm)` }}>
+                      <span className="absolute top-16 -left-1 -translate-x-full bg-red-50 text-red-600 text-[9px] px-1 border border-red-200 rounded font-bold whitespace-nowrap">Formação</span>
+                </div>
+
+                <div className="absolute border-l border-purple-500 border-dotted h-full opacity-100"
+                    style={{ top: '20mm', bottom: '20mm', right: `calc(15mm + ${settings.projectsColumnWidth}mm)` }}>
+                      <span className="absolute top-24 -left-1 -translate-x-full bg-purple-50 text-purple-600 text-[9px] px-1 border border-purple-200 rounded font-bold whitespace-nowrap">Projetos</span>
+                </div>
+            </div>
+        )}
+
+        <div style={{
+            position: 'fixed',
+            top: '20mm', 
+            left: '15mm',   
+            right: '15mm',  
+            height: '2px',
+            backgroundColor: settings.showPageLines ? settings.themeColor : 'transparent', 
+            zIndex: 9999
+        }}></div>
+
+        <div style={{
+            position: 'fixed',
+            bottom: '20mm', 
+            left: '15mm',   
+            right: '15mm',  
+            height: '2px',
+            backgroundColor: settings.showPageLines ? settings.themeColor : 'transparent', 
+            zIndex: 9999
+        }}></div>
+
+        {/* RODAPÉ ABSOLUTO: Desacoplado do fluxo para renderizar sempre no rodapé da última página */}
         {data.dateLocation && data.dateLocation.visible && (
              <div 
-                className="w-full flex justify-end break-inside-avoid"
+                className="break-inside-avoid"
                 style={{ 
-                    marginTop: data.dateLocation.fixedAtBottom ? '30mm' : '8mm',
-                    marginBottom: '4mm',
+                    position: 'absolute',
+                    bottom: '22mm',
+                    right: '15mm',
                     textAlign: 'right',
                     color: data.dateLocation.useThemeColor ? settings.themeColor : settings.bodyColor,
                     fontWeight: data.dateLocation.useBold ? 'bold' : 'normal',
-                    fontSize: data.dateLocation.fontSize ? `${data.dateLocation.fontSize}em` : '1.05em'
+                    fontSize: '0.9em',
+                    zIndex: 40
                 }}
              >
                 <span>
@@ -815,93 +896,18 @@ export default function ResumePreview({ data, settings }) {
              </div>
         )}
 
-        {renderSection('keywords')}
-      </>
-  );
-
-  return (
-    <div id="resume-preview" lang="pt-BR" className="bg-white shadow-2xl relative flex flex-col" style={{
-        ...typographyStyles,
-        width: '210mm',
-        minHeight: '297mm',
-        boxSizing: 'border-box',
-        position: 'relative'
-    }}>
-        <style>
-            {`
-                @media print {
-                    /* Força a remoção das margens do navegador para a Tabela assumir o controle total */
-                    @page {
-                        size: A4;
-                        margin: 0 !important;
-                    }
-                    body {
-                        margin: 0 !important;
-                        -webkit-print-color-adjust: exact;
-                        print-color-adjust: exact;
-                    }
-                }
-            `}
-        </style>
-
-        {settings.showGuides && (
-            <div className="absolute inset-0 z-50 pointer-events-none page-guide">
-                <div
-                    className="absolute border border-green-600 border-dashed opacity-100"
-                    style={{ top: '20mm', bottom: '20mm', left: '15mm', right: '15mm' }}
-                >
-                    <span className="absolute top-0 right-0 bg-green-600 text-white text-[9px] px-1 font-bold">Margem</span>
-                </div>
-                <div
-                    className="absolute border-r border-blue-600 border-dashed h-full opacity-100"
-                    style={{ top: '20mm', bottom: '20mm', left: `calc(15mm + ${settings.leftColumnWidth}mm)` }}
-                >
-                    <span className="absolute top-2 -right-1 translate-x-full bg-blue-100 text-blue-800 text-[9px] px-1 border border-blue-300 rounded font-bold whitespace-nowrap">Competências</span>
-                </div>
-                <div className="absolute border-l border-blue-600 border-dotted h-full opacity-100"
-                    style={{ top: '20mm', bottom: '20mm', right: `calc(15mm + ${settings.experienceColumnWidth}mm)` }}>
-                      <span className="absolute top-10 -left-1 -translate-x-full bg-blue-50 text-blue-600 text-[9px] px-1 border border-blue-200 rounded font-bold whitespace-nowrap">Experiências</span>
-                </div>
-                <div className="absolute border-l border-red-500 border-dotted h-full opacity-100"
-                    style={{ top: '20mm', bottom: '20mm', right: `calc(15mm + ${settings.educationColumnWidth}mm)` }}>
-                      <span className="absolute top-16 -left-1 -translate-x-full bg-red-50 text-red-600 text-[9px] px-1 border border-red-200 rounded font-bold whitespace-nowrap">Formação</span>
-                </div>
-                <div className="absolute border-l border-purple-500 border-dotted h-full opacity-100"
-                    style={{ top: '20mm', bottom: '20mm', right: `calc(15mm + ${settings.projectsColumnWidth}mm)` }}>
-                      <span className="absolute top-24 -left-1 -translate-x-full bg-purple-50 text-purple-600 text-[9px] px-1 border border-purple-200 rounded font-bold whitespace-nowrap">Projetos</span>
-                </div>
+        <div className="content-wrapper" style={{ 
+            paddingLeft: '15mm', 
+            paddingRight: '15mm', 
+            paddingTop: '22mm', 
+            paddingBottom: '20mm',
+            width: '100%',
+            boxSizing: 'border-box'
+        }}>
+            <div className="content-container" style={{ width: '100%', ...typographyStyles }}>
+                {ResumeContent}
             </div>
-        )}
-
-        {/* Tabela Mestre: Gerencia perfeitamente as margens de 20mm e as linhas repetidas sem espremer o texto */}
-        <table style={{ width: '100%', borderCollapse: 'collapse', borderSpacing: 0 }}>
-            <thead style={{ display: 'table-header-group' }}>
-                <tr>
-                    <td style={{ padding: 0, height: '24mm', verticalAlign: 'bottom' }}>
-                        <div style={{ marginLeft: '15mm', marginRight: '15mm', height: '2px', backgroundColor: settings.showPageLines ? settings.themeColor : 'transparent' }}></div>
-                        <div style={{ height: '4mm' }}></div> {/* Distância entre a linha e o texto */}
-                    </td>
-                </tr>
-            </thead>
-            <tfoot style={{ display: 'table-footer-group' }}>
-                <tr>
-                    <td style={{ padding: 0, height: '24mm', verticalAlign: 'top' }}>
-                        <div style={{ height: '4mm' }}></div> {/* Distância entre o texto e a linha */}
-                        <div style={{ marginLeft: '15mm', marginRight: '15mm', height: '2px', backgroundColor: settings.showPageLines ? settings.themeColor : 'transparent' }}></div>
-                    </td>
-                </tr>
-            </tfoot>
-            <tbody>
-                <tr>
-                    <td style={{ padding: 0 }}>
-                        {/* O Padding lateral é aplicado apenas aqui para não duplicar e espremer o layout */}
-                        <div className="content-container" style={{ paddingLeft: '15mm', paddingRight: '15mm', width: '100%', boxSizing: 'border-box', ...typographyStyles }}>
-                            {ResumeContent}
-                        </div>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
+        </div>
     </div>
   );
 }
