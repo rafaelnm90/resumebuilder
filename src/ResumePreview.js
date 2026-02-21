@@ -861,7 +861,6 @@ if (sec.type === 'category-simple') {
             </div>
         )}
 
-        {/* Tabela Mestre: Gerencia margens e linhas decorativas de forma segura para impressão */}
         <table style={{ width: '100%', borderCollapse: 'collapse', ...typographyStyles }}>
             <thead>
                 <tr>
