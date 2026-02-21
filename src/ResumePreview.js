@@ -784,6 +784,11 @@ if (sec.type === 'category-simple') {
       <>
         {renderHeader()}
         
+        {{sectionOrder.map(sectionId => {
+            if (sectionId === 'keywords') return null;
+            return renderSection(sectionId);
+        })}
+
         {sectionOrder.map(sectionId => {
             if (sectionId === 'keywords') return null;
             return renderSection(sectionId);
@@ -875,12 +880,12 @@ if (sec.type === 'category-simple') {
         <div style={{ position: 'fixed', top: '20mm', left: '15mm', right: '15mm', height: '2px', backgroundColor: settings.showPageLines ? settings.themeColor : 'transparent', zIndex: 9999 }}></div>
         <div style={{ position: 'fixed', bottom: '20mm', left: '15mm', right: '15mm', height: '2px', backgroundColor: settings.showPageLines ? settings.themeColor : 'transparent', zIndex: 9999 }}></div>
 
-        {/* Se a data estiver FIXA, ela é renderizada aqui, ancorada no fundo da página absoluta */}
+        {/* DATA FIXA NO RODAPÉ DA PÁGINA (Aparece em todas as folhas como um rodapé oficial) */}
         {data.dateLocation && data.dateLocation.visible && data.dateLocation.fixedAtBottom && (
              <div 
-                className="absolute break-inside-avoid"
                 style={{ 
-                    bottom: '24mm', /* Logo acima da linha vermelha */
+                    position: 'fixed',
+                    bottom: '23mm', /* Fica logo acima da linha decorativa de 20mm */
                     right: '15mm', 
                     textAlign: 'right',
                     color: data.dateLocation.useThemeColor ? settings.themeColor : settings.bodyColor,
@@ -897,7 +902,7 @@ if (sec.type === 'category-simple') {
              </div>
         )}
 
-        {/* Tabela Mestre: O bloco invisível com &nbsp; obriga o Chrome a respeitar a margem e não cortar o texto */}
+        {/* Tabela Mestre: O bloco invisível com &nbsp; garante o espaço do rodapé e impede que o texto atropele a data */}
         <table style={{ width: '100%', borderCollapse: 'collapse', ...typographyStyles }}>
             <thead>
                 <tr>
@@ -909,7 +914,7 @@ if (sec.type === 'category-simple') {
             <tfoot>
                 <tr>
                     <td style={{ padding: 0 }}>
-                        <div style={{ height: data.dateLocation?.fixedAtBottom ? '35mm' : '23mm', width: '100%' }}>&nbsp;</div>
+                        <div style={{ height: data.dateLocation?.fixedAtBottom ? '33mm' : '23mm', width: '100%' }}>&nbsp;</div>
                     </td>
                 </tr>
             </tfoot>
