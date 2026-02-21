@@ -354,7 +354,7 @@ export const INITIAL_DATA = {
   
   // ESTRUTURA PARA RODAPÉ (DATA/LOCAL)
   dateLocation: {
-    visible: true,
+    visible: false,
     location: "Uberlândia, MG", 
     date: "",
     autoDate: true,
@@ -370,7 +370,7 @@ export const INITIAL_DATA = {
     location: "Lavras, MG",
     linkedin: "https://www.linkedin.com/in/rafaelnovaism/",
     github: "https://github.com/rafaelnm90",
-    youtube: "https://www.youtube.com/@rafaelnm", 
+    youtube: "", 
     lattes: "http://lattes.cnpq.br/6450189926093594", 
     website: "",
     photo: "", 
@@ -516,23 +516,26 @@ export const INITIAL_DATA = {
   others: [
     {
       title: "Idiomas",
-      description: ["Português (Nativo)", "Inglês (Avançado - Fluente em leitura técnica e comunicação)"]
+      description: [
+        { text: "Português (Nativo)", hours: "", details: "" },
+        { text: "Inglês (Avançado - Fluente em leitura técnica e comunicação)", hours: "", details: "" }
+      ]
     },
     {
       title: "Certificações Técnicas",
       description: [
-        "Google Data Analytics Professional Certificate (Google, 2023)",
-        "Linux para Bioinformática (Infraestrutura/Shell Script) (2022)",
-        "SQL e Bancos de Dados (Conquer, 2022)",
-        "Business Intelligence com Power BI (Conquer, 2022)"
+        { text: "Google Data Analytics Professional Certificate (Google, 2023)", hours: "180h", details: "Foco prático em Python, R, SQL e Tableau." },
+        { text: "Linux para Bioinformática (Infraestrutura/Shell Script) (2022)", hours: "", details: "" },
+        { text: "SQL e Bancos de Dados (Conquer, 2022)", hours: "", details: "" },
+        { text: "Business Intelligence com Power BI (Conquer, 2022)", hours: "", details: "" }
       ]
     },
     {
       title: "Competências Transversais",
       description: [
-        "Comunicação de Alto Impacto e Oratória (Conquer)",
-        "Gestão de Tempo e Produtividade",
-        "Trabalho em Equipe e Liderança Ágil"
+        { text: "Comunicação de Alto Impacto e Oratória (Conquer)", hours: "", details: "" },
+        { text: "Gestão de Tempo e Produtividade", hours: "", details: "" },
+        { text: "Trabalho em Equipe e Liderança Ágil", hours: "", details: "" }
       ]
     }
   ],
