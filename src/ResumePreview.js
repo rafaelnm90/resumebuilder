@@ -7,8 +7,7 @@ const EXIBIR_LOGS = true;
 
 if (EXIBIR_LOGS) {
     console.log("🚀 [ResumePreview.js] Renderizando...");
-    console.log("📄 Layout Original Restaurado (Sem Tabelas Globais).");
-    console.log("🛡️ Margens e Linhas Blindadas via CSS Print.");
+    console.log("🛠️ Layout restaurado com Tabela Mestre sem margens duplas.");
 }
 
 const formatText = (text) => {
@@ -795,11 +794,13 @@ export default function ResumePreview({ data, settings }) {
             return renderSection(sectionId);
         })}
 
-        {/* Data com lógica limpa: Se fixa, ganha uma margem muito grande (mt-20) para empurrar pro final da ultima página */}
+        {/* Data: Como no print não existe "fixed bottom last page", usamos margem para empurrar */}
         {data.dateLocation && data.dateLocation.visible && (
              <div 
-                className={`w-full flex justify-end break-inside-avoid ${data.dateLocation.fixedAtBottom ? 'mt-20 pt-4 mb-2' : 'mt-8 mb-2'}`}
+                className="w-full flex justify-end break-inside-avoid"
                 style={{ 
+                    marginTop: data.dateLocation.fixedAtBottom ? '30mm' : '8mm',
+                    marginBottom: '4mm',
                     textAlign: 'right',
                     color: data.dateLocation.useThemeColor ? settings.themeColor : settings.bodyColor,
                     fontWeight: data.dateLocation.useBold ? 'bold' : 'normal',
@@ -826,34 +827,18 @@ export default function ResumePreview({ data, settings }) {
         boxSizing: 'border-box',
         position: 'relative'
     }}>
-        {/* MAGIA CSS: Resolve as margens e a linha vermelha sem usar tabelas */}
         <style>
             {`
                 @media print {
-                    /* Força a margem física de 20mm no papel, independente do que o usuário escolher na tela de impressão */
+                    /* Força a remoção das margens do navegador para a Tabela assumir o controle total */
                     @page {
                         size: A4;
-                        margin: 20mm 0 !important;
+                        margin: 0 !important;
                     }
                     body {
                         margin: 0 !important;
                         -webkit-print-color-adjust: exact;
                         print-color-adjust: exact;
-                    }
-                    /* As linhas ficam fixas, mas deslocadas para FORA do texto (-4mm para dentro da margem branca do papel), não deixando cortar as palavras */
-                    .linha-decorativa-topo {
-                        position: fixed !important;
-                        top: -4mm !important;
-                        left: 15mm !important;
-                        right: 15mm !important;
-                        display: block !important;
-                    }
-                    .linha-decorativa-rodape {
-                        position: fixed !important;
-                        bottom: -4mm !important;
-                        left: 15mm !important;
-                        right: 15mm !important;
-                        display: block !important;
                     }
                 }
             `}
@@ -888,23 +873,35 @@ export default function ResumePreview({ data, settings }) {
             </div>
         )}
 
-        {/* Linhas decorativas com as classes mágicas para impressão */}
-        <div className="linha-decorativa-topo" style={{ position: 'absolute', top: '20mm', left: '15mm', right: '15mm', height: '2px', backgroundColor: settings.showPageLines ? settings.themeColor : 'transparent', zIndex: 9999 }}></div>
-        <div className="linha-decorativa-rodape" style={{ position: 'absolute', bottom: '20mm', left: '15mm', right: '15mm', height: '2px', backgroundColor: settings.showPageLines ? settings.themeColor : 'transparent', zIndex: 9999 }}></div>
-
-        {/* O layout limpo original voltou. O padding protege as linhas na tela, e o CSS acima as protege na impressão! */}
-        <div className="content-wrapper flex flex-col flex-1" style={{ 
-            paddingLeft: '15mm', 
-            paddingRight: '15mm', 
-            paddingTop: '24mm', 
-            paddingBottom: '24mm', 
-            width: '100%',
-            boxSizing: 'border-box'
-        }}>
-            <div className="content-container flex flex-col flex-1" style={{ width: '100%', ...typographyStyles }}>
-                {ResumeContent}
-            </div>
-        </div>
+        {/* Tabela Mestre: Gerencia perfeitamente as margens de 20mm e as linhas repetidas sem espremer o texto */}
+        <table style={{ width: '100%', borderCollapse: 'collapse', borderSpacing: 0 }}>
+            <thead style={{ display: 'table-header-group' }}>
+                <tr>
+                    <td style={{ padding: 0, height: '24mm', verticalAlign: 'bottom' }}>
+                        <div style={{ marginLeft: '15mm', marginRight: '15mm', height: '2px', backgroundColor: settings.showPageLines ? settings.themeColor : 'transparent' }}></div>
+                        <div style={{ height: '4mm' }}></div> {/* Distância entre a linha e o texto */}
+                    </td>
+                </tr>
+            </thead>
+            <tfoot style={{ display: 'table-footer-group' }}>
+                <tr>
+                    <td style={{ padding: 0, height: '24mm', verticalAlign: 'top' }}>
+                        <div style={{ height: '4mm' }}></div> {/* Distância entre o texto e a linha */}
+                        <div style={{ marginLeft: '15mm', marginRight: '15mm', height: '2px', backgroundColor: settings.showPageLines ? settings.themeColor : 'transparent' }}></div>
+                    </td>
+                </tr>
+            </tfoot>
+            <tbody>
+                <tr>
+                    <td style={{ padding: 0 }}>
+                        {/* O Padding lateral é aplicado apenas aqui para não duplicar e espremer o layout */}
+                        <div className="content-container" style={{ paddingLeft: '15mm', paddingRight: '15mm', width: '100%', boxSizing: 'border-box', ...typographyStyles }}>
+                            {ResumeContent}
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
     </div>
   );
 }
