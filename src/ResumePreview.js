@@ -28,35 +28,26 @@ const formatText = (text) => {
 const getFormattedDate = (dataObj) => {
     let dateToUse = dataObj.date;
 
-    // Se for automático, pega a data de hoje
     if (dataObj.autoDate) {
         const today = new Date();
-        // Se formato for numérico
         if (dataObj.format !== 'long') {
             return today.toLocaleDateString('pt-BR');
         }
-        // Se formato for extenso
         return today.toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' });
     }
 
-    // Se for manual e o usuário quer extenso
     if (dataObj.format === 'long' && dateToUse) {
-        // Tenta detectar formato DD/MM/YYYY ou DD-MM-YYYY
         const match = dateToUse.match(/^(\d{1,2})[\/\.-](\d{1,2})[\/\.-](\d{4})$/);
         if (match) {
-            // Cria data (Mês é 0-indexed)
             const d = new Date(match[3], match[2] - 1, match[1]);
-            // Verifica se é data válida
             if (!isNaN(d.getTime())) {
                 return d.toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' });
             }
         }
     }
 
-    // Retorna como está se não for possível converter ou se for numérico
     return dateToUse;
 };
-
 
 export default function ResumePreview({ data, settings }) {
   const { structure, customSections, sectionOrder } = data; 
@@ -174,14 +165,10 @@ export default function ResumePreview({ data, settings }) {
         let bulletClass = activeStyle.cssMain;
         let extraClasses = '';
         
-        // CORREÇÃO CRÍTICA PARA IMPRESSÃO:
-        // Marcadores largos (check, arrow) precisam de padding extra no LI.
-        // Removemos margins fixas (ml-4) em favor de padding controlado.
         let liStyle = { 
             textAlign: settings.textAlign, 
             textJustify: 'inter-word',
             color: settings.listMarkerUseThemeColor ? settings.themeColor : (settings.bodyColor || '#374151'),
-            // Se for largo, dá mais espaço. Se não, usa o padrão do UL (que definimos no App.js como 1.2em)
             paddingLeft: isWideMarker ? '0.5em' : '0' 
         };
 
@@ -194,7 +181,6 @@ export default function ResumePreview({ data, settings }) {
         } else if (isSub) {
             text = item.slice(3);
             bulletClass = activeStyle.cssSub;
-            // Para subtópicos, aumentamos a margem esquerda visualmente
             extraClasses = 'ml-6'; 
         }
 
@@ -204,7 +190,6 @@ export default function ResumePreview({ data, settings }) {
                 className={`break-words ${bulletClass} ${extraClasses} ${settings.listMarkerBold ? 'marker:font-bold' : ''}`} 
                 style={liStyle}
             >
-                {/* Pequeno ajuste relativo para afastar o texto do marcador largo */}
                 <span style={{ color: settings.bodyColor || '#374151', position: 'relative', left: isWideMarker ? '0.3em' : '0' }}>
                     {formatText(text)}
                 </span>
@@ -297,13 +282,11 @@ export default function ResumePreview({ data, settings }) {
             <div className={textContainerClasses}>
                 <h1 className="font-extrabold tracking-wide uppercase leading-none mb-4 break-words" style={{ color: settings.themeColor, fontSize: dynamicTitleSize }}>{data.personal.name}</h1>
                 
-                {/* LINHA 1: CONTATOS (Email, Tel, Local E CNH) */}
                 <div className={`flex flex-wrap gap-x-3 gap-y-1 ${dynamicTextSize} font-medium leading-tight mb-2 ${contactJustify}`}>
                     {data.personal.email && <span className="flex items-center gap-1"><Mail size={'1em'} className="flex-shrink-0"/> {data.personal.email}</span>}
                     {data.personal.phone && <span className="flex items-center gap-1 border-l pl-2 border-gray-400"><Phone size={'1em'} className="flex-shrink-0"/> {data.personal.phone}</span>}
                     {data.personal.location && <span className="flex items-center gap-1 border-l pl-2 border-gray-400"><MapPin size={'1em'} className="flex-shrink-0"/> {data.personal.location}</span>}
                     
-                    {/* CNH AQUI - INLINE COM DADOS */}
                     {data.personal.driverLicenses && data.personal.driverLicenses.length > 0 && (
                         <span className="flex items-center gap-1 border-l pl-2 border-gray-400">
                             <Car size={'1em'} className="flex-shrink-0"/> 
@@ -312,7 +295,6 @@ export default function ResumePreview({ data, settings }) {
                     )}
                 </div>
 
-                {/* LINHA 2: LINKS SOCIAIS */}
                 <div className={`flex flex-wrap gap-3 ${dynamicTextSize} font-medium leading-tight ${contactJustify} mb-2`} style={{ color: settings.themeColor }}>
                     {data.personal.linkedin && (
                         <a 
@@ -405,7 +387,6 @@ export default function ResumePreview({ data, settings }) {
                 </SimpleSectionWrapper>
             ); 
         }
-        // AQUI ESTÁ A CORREÇÃO PRINCIPAL DE PADDING
         if (sec.type === 'list') { 
             return (
                 <SimpleSectionWrapper title={displayTitle} sectionId={sectionId}>
@@ -435,7 +416,6 @@ export default function ResumePreview({ data, settings }) {
                                         <div className={`text-[0.9em] text-right leading-tight flex-shrink-0 ${rightTextStyle}`} style={{ width: expColWidthCSS, color: rightTextColor }}>{item.date}</div>
                                     </div>
                                     <div className="mt-1" style={{ paddingRight: expColWidthCSS }}>
-                                        {/* REPLICAÇÃO DO PADDING NO SUB-CONTAINER */}
                                         <ul className="list-outside" style={{...innerListStyle, paddingLeft: '1.2em'}}>
                                             {renderListItems(item.description, sectionId)}
                                         </ul>
@@ -446,6 +426,94 @@ export default function ResumePreview({ data, settings }) {
                     </div>
                 </PaginatedSectionWrapper>
             ); 
+        }
+if (sec.type === 'category-simple') {
+             return (
+                 <SimpleSectionWrapper title={displayTitle} sectionId={sectionId}>
+                     <div style={containerStyle}>
+                         {(sec.content || []).map((item, i) => {
+                              const hasContent = item.title?.trim() || (item.description || []).some(d => typeof d === 'string' && d.trim());
+                              if (!hasContent) return null;
+
+                              return (
+                                 <div key={i} className={pageBreakClass}>
+                                     {item.title && <h4 className="font-bold leading-tight mb-0.5" style={{ color: settings.themeColor }}>{item.title}</h4>}
+                                     <ul className="list-outside" style={{...innerListStyle, paddingLeft: '1.2em'}}>
+                                         {renderListItems(item.description, sectionId)}
+                                     </ul>
+                                 </div>
+                             );
+                         })}
+                     </div>
+                 </SimpleSectionWrapper>
+             );
+        }
+
+        if (sec.type === 'category-detailed') {
+            return (
+                <SimpleSectionWrapper title={displayTitle} sectionId={sectionId}>
+                    <div style={containerStyle}>
+                        {(sec.content || []).map((item, i) => {
+                             const hasContent = item.title?.trim() || (item.description || []).some(d => {
+                                 if (typeof d === 'string') return d.trim();
+                                 return d.text?.trim() || d.hours?.trim() || d.details?.trim();
+                             });
+                             if (!hasContent) return null;
+
+                             return (
+                                <div key={i} className={pageBreakClass}>
+                                    {item.title && <h4 className="font-bold text-[1.05em] leading-tight mb-0.5" style={{ color: settings.themeColor }}>{item.title}</h4>}
+                                    <ul className="list-outside" style={{...innerListStyle, paddingLeft: '1.2em'}}>
+                                        {(item.description || []).map((descObj, j) => {
+                                            const isString = typeof descObj === 'string';
+                                            const text = isString ? descObj : descObj.text;
+                                            const hours = isString ? '' : descObj.hours;
+                                            const details = isString ? '' : descObj.details;
+
+                                            if (!text?.trim() && !hours?.trim() && !details?.trim()) return null;
+
+                                            const activeStyle = LIST_STYLES[settings.listStyle] || LIST_STYLES['disc'];
+                                            const isWideMarker = ['arrow', 'check', 'dash'].includes(settings.listStyle);
+                                            const bulletClass = activeStyle.cssMain;
+
+                                            let liStyle = { 
+                                                textAlign: settings.textAlign, 
+                                                textJustify: 'inter-word',
+                                                color: settings.listMarkerUseThemeColor ? settings.themeColor : (settings.bodyColor || '#374151'),
+                                                paddingLeft: isWideMarker ? '0.5em' : '0' 
+                                            };
+
+                                            return (
+                                                <li key={j} className={`break-words ${bulletClass} ${settings.listMarkerBold ? 'marker:font-bold' : ''}`} style={liStyle}>
+                                                    <div style={{ color: settings.bodyColor || '#374151', position: 'relative', left: isWideMarker ? '0.3em' : '0' }}>
+                                                        {(text || hours) && (
+                                                            <div className={`leading-tight break-words ${!details ? 'mb-0' : 'mb-0.5'}`} style={{ color: settings.bodyColor }}>
+                                                                {text && <span className="font-bold text-[0.95em]">{formatText(text)}</span>}
+                                                                {hours && (
+                                                                    <span className="font-normal text-[0.9em] opacity-80">
+                                                                        {text ? ' - ' : ''}<strong style={{ color: settings.themeColor }}>CH:</strong> {hours}{!hours.toLowerCase().includes('h') ? ' horas' : ''}
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                        )}
+                                                        {details && (
+                                                            <div className="mt-0">
+                                                                <p className="text-[0.85em] font-normal opacity-75 break-words" style={{ textAlign: settings.textAlign, textJustify: 'inter-word' }}>
+                                                                    {formatText(details)}
+                                                                </p>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </li>
+                                            );
+                                        })}
+                                    </ul>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </SimpleSectionWrapper>
+            );
         }
     }
 
@@ -581,16 +649,61 @@ export default function ResumePreview({ data, settings }) {
         case 'others':
             return structure.others.visible && data.others.length > 0 && (
                 <SimpleSectionWrapper title={displayTitle} sectionId={sectionId}>
-                    <div style={{ paddingRight: expColWidthCSS, ...containerStyle }}>
+                    <div style={containerStyle}>
                         {data.others.map((item, i) => {
-                             const hasContent = item.title?.trim() || (item.description || []).some(d => d.trim());
+                             const hasContent = item.title?.trim() || (item.description || []).some(d => {
+                                 if (typeof d === 'string') return d.trim();
+                                 return d.text?.trim() || d.hours?.trim() || d.details?.trim();
+                             });
                              if (!hasContent) return null;
 
                              return (
                                 <div key={i} className={pageBreakClass}>
-                                    {item.title && <h4 className="font-bold text-[0.95em] mb-1">{item.title}</h4>}
+                                    {item.title && <h4 className="font-bold text-[1.05em] leading-tight mb-0.5" style={{ color: settings.themeColor }}>{item.title}</h4>}
                                     <ul className="list-outside" style={{...innerListStyle, paddingLeft: '1.2em'}}>
-                                        {renderListItems(item.description, sectionId)}
+                                        {(item.description || []).map((descObj, j) => {
+                                            const isString = typeof descObj === 'string';
+                                            const text = isString ? descObj : descObj.text;
+                                            const hours = isString ? '' : descObj.hours;
+                                            const details = isString ? '' : descObj.details;
+
+                                            if (!text?.trim() && !hours?.trim() && !details?.trim()) return null;
+
+                                            const activeStyle = LIST_STYLES[settings.listStyle] || LIST_STYLES['disc'];
+                                            const isWideMarker = ['arrow', 'check', 'dash'].includes(settings.listStyle);
+                                            const bulletClass = activeStyle.cssMain;
+
+                                            let liStyle = { 
+                                                textAlign: settings.textAlign, 
+                                                textJustify: 'inter-word',
+                                                color: settings.listMarkerUseThemeColor ? settings.themeColor : (settings.bodyColor || '#374151'),
+                                                paddingLeft: isWideMarker ? '0.5em' : '0' 
+                                            };
+
+                                            return (
+                                                <li key={j} className={`break-words ${bulletClass} ${settings.listMarkerBold ? 'marker:font-bold' : ''}`} style={liStyle}>
+                                                    <div style={{ color: settings.bodyColor || '#374151', position: 'relative', left: isWideMarker ? '0.3em' : '0' }}>
+                                                        {(text || hours) && (
+                                                            <div className={`leading-tight break-words ${!details ? 'mb-0' : 'mb-0.5'}`} style={{ color: settings.bodyColor }}>
+                                                                {text && <span className="font-bold text-[0.95em]">{formatText(text)}</span>}
+                                                                {hours && (
+                                                                    <span className="font-normal text-[0.9em] opacity-80">
+                                                                        {text ? ' | ' : ''}<strong style={{ color: settings.themeColor }}>Carga horária:</strong> {hours}{!hours.toLowerCase().includes('h') ? ' horas' : ''}
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                        )}
+                                                        {details && (
+                                                            <div className="mt-0">
+                                                                <p className="text-[0.85em] font-normal opacity-80 break-words" style={{ textAlign: settings.textAlign, textJustify: 'inter-word' }}>
+                                                                    <strong style={{ color: settings.themeColor }}>Descrição: </strong>{formatText(details)}
+                                                                </p>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </li>
+                                            );
+                                        })}
                                     </ul>
                                 </div>
                             );
@@ -601,7 +714,6 @@ export default function ResumePreview({ data, settings }) {
         case 'references':
             return structure.references.visible && data.references && data.references.length > 0 && (
                 <SimpleSectionWrapper title={displayTitle} sectionId={sectionId}>
-                    {/* Grid de 2 colunas fixo para impressão */}
                     <div className="grid grid-cols-2" style={{ gap: `${settings.itemSpacing}mm` }}>
                         {data.references.map((ref, i) => (
                             <div key={i} className="break-inside-avoid min-w-0 pr-2">
@@ -614,12 +726,10 @@ export default function ResumePreview({ data, settings }) {
                                 
                                 <div className="text-[0.85em] space-y-1 text-gray-600">
                                     {ref.email && (
-                                        /* items-start: Alinha ícone no topo. flex-shrink-0: Impede ícone de esmagar */
                                         <div className="flex items-start gap-2">
                                             <div className="mt-[3px] flex-shrink-0">
                                                 <Mail size={10} />
                                             </div>
-                                            {/* break-all: Força quebra de linha em emails gigantes */}
                                             <span className="break-all leading-tight">{ref.email}</span>
                                         </div>
                                     )}
@@ -639,37 +749,22 @@ export default function ResumePreview({ data, settings }) {
             );
 
         case 'keywords':
-            // ----------------------------------------------------------------------------------
-            // ESTRATÉGIA "GHOST TEXT" (SEO BLACK HAT / CAMUFLAGEM)
-            // ----------------------------------------------------------------------------------
-            // 1. position: 'absolute' -> Tira o texto do fluxo normal do documento.
-            //    Isso IMPEDE que ele empurre conteúdo ou crie páginas em branco extras.
-            // 2. bottom/left -> Fixa no rodapé da página.
-            // 3. color: '#FFFFFF' -> Texto branco em fundo branco (invisível ao olho humano).
-            // 4. fontSize: '1px' -> Minimiza a chance de ser notado como "sujeira" se selecionado.
-            // 5. opacity: 0.01 -> Quase transparente, mas tecnicamente "existe" para o robô.
-            // 6. zIndex: -1 -> Fica atrás de tudo, evitando bloquear cliques em links do rodapé.
-            // 7. userSelect: 'none' -> Dificulta a seleção acidental pelo mouse do usuário.
-            // ----------------------------------------------------------------------------------
             return structure.keywords.visible && data.keywords && (
                 <div 
                     style={{ 
                         position: 'absolute',  
                         bottom: '5mm',         
                         left: '15mm',          
-                        width: '180mm',        // Ocupa a largura da margem para fluir
-                        
+                        width: '180mm',        
                         fontSize: '1px',       
                         lineHeight: '1px',     
                         color: '#FFFFFF',      
-                        
-                        whiteSpace: 'pre-wrap', // Permite quebra de linha se necessário
+                        whiteSpace: 'pre-wrap', 
                         overflow: 'hidden',    
-                        
                         opacity: 0.01,         
                         zIndex: -1,            
                         userSelect: 'none',
-                        pointerEvents: 'none'   // Garante que não interfira em cliques
+                        pointerEvents: 'none'   
                     }}
                     className="ats-camouflage"
                 >
@@ -690,7 +785,6 @@ export default function ResumePreview({ data, settings }) {
             return renderSection(sectionId);
         })}
 
-        {/* RODAPÉ (DATA E LOCAL) */}
         {data.dateLocation && data.dateLocation.visible && (
              <div 
                 className="w-full flex justify-end mt-8 mb-4 break-inside-avoid"
@@ -709,16 +803,9 @@ export default function ResumePreview({ data, settings }) {
              </div>
         )}
 
-        {/* ATS (Inserido no final para ficar "em cima/em baixo" do rodapé via absolute) */}
         {renderSection('keywords')}
       </>
   );
-
-  const lineStyle = { 
-    width: '100%',
-    height: '2px', 
-    backgroundColor: settings.showPageLines ? settings.themeColor : 'transparent', 
-  };
 
   return (
     <div id="resume-preview" lang="pt-BR" className="bg-white shadow-2xl relative" style={{
@@ -772,6 +859,16 @@ export default function ResumePreview({ data, settings }) {
 
         <div style={{
             position: 'fixed',
+            top: '20mm', 
+            left: '15mm',   
+            right: '15mm',  
+            height: '2px',
+            backgroundColor: settings.showPageLines ? settings.themeColor : 'transparent', 
+            zIndex: 9999
+        }}></div>
+
+        <div style={{
+            position: 'fixed',
             bottom: '20mm', 
             left: '15mm',   
             right: '15mm',  
@@ -780,29 +877,18 @@ export default function ResumePreview({ data, settings }) {
             zIndex: 9999
         }}></div>
 
-        <table style={{ width: '100%', borderCollapse: 'collapse', ...typographyStyles }}>
-            <thead>
-                <tr>
-                    <td style={{ paddingTop: '20mm', paddingBottom: '2mm', paddingLeft: '15mm', paddingRight: '15mm' }}>
-                        <div className="preview-line" style={lineStyle}></div>
-                    </td>
-                </tr>
-            </thead>
-            <tfoot>
-                <tr>
-                    <td style={{ height: '20mm', padding: 0 }}></td>
-                </tr>
-            </tfoot>
-            <tbody>
-                <tr>
-                    <td style={{ verticalAlign: 'top', paddingLeft: '15mm', paddingRight: '15mm' }}>
-                        <div className="content-container" style={{ width: '100%', ...typographyStyles }}>
-                            {ResumeContent}
-                        </div>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
+        <div className="content-wrapper" style={{ 
+            paddingLeft: '15mm', 
+            paddingRight: '15mm', 
+            paddingTop: '22mm', 
+            paddingBottom: '20mm',
+            width: '100%',
+            boxSizing: 'border-box'
+        }}>
+            <div className="content-container" style={{ width: '100%', ...typographyStyles }}>
+                {ResumeContent}
+            </div>
+        </div>
     </div>
   );
 }
