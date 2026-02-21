@@ -1208,7 +1208,12 @@ export default function App() {
                     </div>
                 </div>
 
-                {/* Novos controles de Data e Local */}
+                {/* NOVO: Toggle para fixar a data no rodapé */}
+                <div className="flex items-center gap-2 pt-2 border-t border-slate-200 bg-blue-50/50 p-2 rounded">
+                     <ToggleSwitch checked={data.dateLocation.fixedAtBottom || false} onChange={() => setData(prev => ({ ...prev, dateLocation: { ...prev.dateLocation, fixedAtBottom: !prev.dateLocation.fixedAtBottom } }))} />
+                     <span className="text-xs font-bold text-blue-800">Fixar no fim da página (em cima da linha)</span>
+                </div>
+
                 <div className="pt-2 border-t border-slate-200">
                     <div className="flex justify-between items-center mb-1">
                         <span className="text-xs font-bold text-slate-600">Tamanho da Fonte</span>
@@ -1223,12 +1228,6 @@ export default function App() {
                         />
                     </div>
                 </div>
-
-                <div className="flex items-center justify-between pt-2 border-t border-slate-200">
-                    <span className="text-xs font-bold text-slate-600">Fixar no final da página</span>
-                    <ToggleSwitch checked={data.dateLocation.fixedAtBottom} onChange={() => setData(prev => ({ ...prev, dateLocation: { ...prev.dateLocation, fixedAtBottom: !prev.dateLocation.fixedAtBottom } }))} />
-                </div>
-
             </div>
          )}
       </div>
