@@ -110,12 +110,20 @@ const Input = ({ label, value, onChange, onExpandRequest, enableRich = false, ex
           />
         )}
       </div>
-      <input 
-        ref={inputRef}
-        type="text" 
-        className={`p-2 border rounded-md outline-none text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 w-full ${enableRich || onExpandRequest ? 'rounded-tr-none' : ''}`}
-        value={value || ''} 
-        onChange={e => onChange(e.target.value)} 
+      <textarea
+          ref={inputRef}
+          className={`p-2 border rounded-md outline-none text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 w-full resize-none overflow-hidden ${enableRich || onExpandRequest ? 'rounded-tr-none' : ''}`}
+          value={value || ''}
+          onChange={e => {
+              onChange(e.target.value);
+              e.target.style.height = 'auto';
+              e.target.style.height = e.target.scrollHeight + 'px';
+          }}
+          onFocus={(e) => {
+              e.target.style.height = 'auto';
+              e.target.style.height = e.target.scrollHeight + 'px';
+          }}
+          rows={1}
       />
     </div>
   );
@@ -151,6 +159,10 @@ const DraggableListItemInput = ({ value, onChange, onRemove, dragHandleProps, on
   const isHeader = value.startsWith('## ');
   const isSub = value.startsWith('>> ');
 
+  if (typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS) {
+      console.log("🚀 [App.js] Renderizando DraggableListItemInput...");
+  }
+
   return (
     <div className="flex flex-col w-full group">
         <div className={`self-end transition-opacity ${isFocused ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'} h-6 mb-0.5`}>
@@ -161,16 +173,28 @@ const DraggableListItemInput = ({ value, onChange, onRemove, dragHandleProps, on
         </div>
         
         <div className="flex gap-2 items-center relative">
-            <div {...dragHandleProps} className="text-gray-300 hover:text-gray-500 cursor-grab"><GripVertical size={14} /></div>
+            {dragHandleProps && (
+                <div {...dragHandleProps} className="text-gray-300 hover:text-gray-500 cursor-grab"><GripVertical size={14} /></div>
+            )}
             <div className="flex-1 relative">
-                <input 
+                <textarea 
                     ref={inputRef}
-                    className={`w-full p-2 border rounded text-xs focus:border-blue-500 outline-none ${isHeader ? 'font-bold text-gray-800 bg-gray-50' : ''}`}
+                    className={`w-full p-2 border rounded text-xs focus:border-blue-500 outline-none resize-none overflow-hidden ${isHeader ? 'font-bold text-gray-800 bg-gray-50' : ''}`}
+                    style={{ minHeight: '52px' }}
                     value={value || ''} 
-                    onChange={e => onChange(e.target.value)} 
-                    placeholder={isHeader ? "Título do Tópico..." : ""}
-                    onFocus={() => setIsFocused(true)}
+                    onChange={e => {
+                        onChange(e.target.value);
+                        e.target.style.height = 'auto';
+                        e.target.style.height = e.target.scrollHeight + 'px';
+                    }} 
+                    placeholder={isHeader ? "Título do Tópico..." : "Descreva a atividade ou conquista..."}
+                    onFocus={(e) => {
+                        setIsFocused(true);
+                        e.target.style.height = 'auto';
+                        e.target.style.height = e.target.scrollHeight + 'px';
+                    }}
                     onBlur={() => setTimeout(() => setIsFocused(false), 200)}
+                    rows={1}
                 />
             </div>
             
@@ -232,7 +256,7 @@ const DraggableOthersList = ({ items, sectionId, itemIndex, onUpdate, onRemove, 
                         <div {...provided.dragHandleProps} className="text-gray-300 hover:text-gray-500 cursor-grab"><GripVertical size={14} /></div>
                         <div className="flex-1 grid grid-cols-4 gap-2">
                             <div className="col-span-3">
-                                <Input label="Item / Curso / Idioma" value={currentText} onChange={(val) => onUpdate(sectionId, itemIndex, 'description', index, { text: val, hours: currentHours, details: currentDetails })} onExpandRequest={onExpandRequest} expandDisableRich={true}/>
+                                <Input label="Item / Curso / Idioma" value={currentText} onChange={(val) => onUpdate(sectionId, itemIndex, 'description', index, { text: val, hours: currentHours, details: currentDetails })} onExpandRequest={onExpandRequest} expandDisableRich={true} multiline={true} />
                             </div>
                             <div className="col-span-1">
                                 <Input label="Carga / Nível" value={currentHours} onChange={(val) => onUpdate(sectionId, itemIndex, 'description', index, { text: currentText, hours: val, details: currentDetails })} onExpandRequest={onExpandRequest} expandDisableRich={true}/>
@@ -241,7 +265,7 @@ const DraggableOthersList = ({ items, sectionId, itemIndex, onUpdate, onRemove, 
                         <button onClick={() => onRemove(sectionId, itemIndex, 'description', index)} className="text-red-400 hover:text-red-600 p-1 mb-2"><Trash2 size={16}/></button>
                     </div>
                     <div className="pl-6">
-                        <Input label="Descrição Opcional" value={currentDetails} onChange={(val) => onUpdate(sectionId, itemIndex, 'description', index, { text: currentText, hours: currentHours, details: val })} onExpandRequest={onExpandRequest} enableRich={true}/>
+                        <Input label="Descrição Opcional" value={currentDetails} onChange={(val) => onUpdate(sectionId, itemIndex, 'description', index, { text: currentText, hours: currentHours, details: val })} onExpandRequest={onExpandRequest} enableRich={true} multiline={true} />
                     </div>
                 </div>
               )}
@@ -249,6 +273,96 @@ const DraggableOthersList = ({ items, sectionId, itemIndex, onUpdate, onRemove, 
           )})}
           {provided.placeholder}
           <button onClick={() => onAdd(sectionId, itemIndex, 'description', { text: '', hours: '', details: '' })} className="text-xs text-blue-600 flex items-center mt-2 ml-1"><Plus size={12} className="mr-1"/> {t.addItem}</button>
+        </div>
+      )}
+    </Droppable>
+  );
+};
+
+const DraggableExperienceList = ({ items, sectionId, itemIndex, onUpdate, onRemove, onAdd, onExpandRequest, t }) => {
+  const droppableId = `desc-${sectionId}-${itemIndex}`;
+  
+  const PREFIX_OPTIONS = [
+    { value: '', label: '(Vazio)' },
+    { value: 'Atividades', label: 'Atividades' },
+    { value: 'Responsabilidades', label: 'Responsabilidades' },
+    { value: 'Resultados', label: 'Resultados' },
+    { value: 'Projetos Realizados', label: 'Projetos Realizados' },
+    { value: 'Tecnologias Utilizadas', label: 'Tecnologias Utilizadas' },
+    { value: 'Soluções Desenvolvidas', label: 'Soluções Desenvolvidas' },
+    { value: 'Impacto Gerado', label: 'Impacto Gerado' },
+    { value: 'manual', label: 'Outro (Manual)...' }
+  ];
+
+  if (typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS) {
+      console.log(`🚀 [App.js] Renderizando DraggableExperienceList para a seção de experiência...`);
+  }
+
+  return (
+    <Droppable droppableId={droppableId} type="DESCRIPTION_ITEM">
+      {(provided) => (
+        <div {...provided.droppableProps} ref={provided.innerRef} className="space-y-2 mt-3">
+          {(items || []).map((itemObj, index) => {
+            const isString = typeof itemObj === 'string';
+            const currentText = isString ? itemObj : (itemObj.text || '');
+            const currentPrefix = isString ? '' : (itemObj.prefix || '');
+
+            return (
+              <Draggable key={`${droppableId}-${index}`} draggableId={`${droppableId}-${index}`} index={index}>
+                {(provided, snapshot) => (
+                  <div 
+                    ref={provided.innerRef} 
+                    {...provided.draggableProps} 
+                    className={`flex flex-col gap-1.5 p-2.5 bg-gray-50 border rounded-md relative ${snapshot.isDragging ? 'opacity-70 border-blue-500 shadow-xl z-50' : 'border-gray-200 hover:border-blue-200 transition-colors'}`}
+                  >
+                      <div className="flex items-start gap-2 pl-6 pr-1 pt-1">
+                          <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mt-2">Prefixo:</span>
+                          <div className="flex-1 flex flex-col gap-2">
+                            <select 
+                                value={PREFIX_OPTIONS.some(opt => opt.value === currentPrefix) ? currentPrefix : (currentPrefix ? 'manual' : '')} 
+                                onChange={(e) => {
+                                    const val = e.target.value;
+                                    if (val === 'manual') {
+                                        if (EXIBIR_LOGS) console.log("🚀 [App.js] Habilitando entrada manual de prefixo...");
+                                        onUpdate(sectionId, itemIndex, 'description', index, { prefix: 'Novo Prefixo', text: currentText });
+                                    } else {
+                                        onUpdate(sectionId, itemIndex, 'description', index, { prefix: val, text: currentText });
+                                    }
+                                }}
+                                className="w-full md:w-48 p-1.5 text-[11px] font-bold uppercase border border-gray-300 rounded bg-white text-gray-700 focus:border-blue-500 outline-none shadow-sm cursor-pointer hover:bg-gray-50 transition-colors"
+                            >
+                                {PREFIX_OPTIONS.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+                            </select>
+                            
+                            {(!PREFIX_OPTIONS.some(opt => opt.value === currentPrefix) || currentPrefix === 'manual') && (
+                                <input 
+                                    type="text"
+                                    value={currentPrefix === 'manual' ? '' : currentPrefix}
+                                    onChange={(e) => onUpdate(sectionId, itemIndex, 'description', index, { prefix: e.target.value, text: currentText })}
+                                    className="w-full p-1.5 text-[11px] font-bold uppercase border border-blue-300 rounded bg-blue-50 focus:border-blue-500 outline-none"
+                                    placeholder="Digite o prefixo..."
+                                />
+                            )}
+                          </div>
+                      </div>
+
+                      <div className="flex-1 w-full">
+                          <DraggableListItemInput 
+                              value={currentText}
+                              onChange={(val) => onUpdate(sectionId, itemIndex, 'description', index, { prefix: currentPrefix, text: val })}
+                              onRemove={() => onRemove(sectionId, itemIndex, 'description', index)}
+                              dragHandleProps={provided.dragHandleProps}
+                              onExpandRequest={onExpandRequest}
+                              labelForModal={`Item ${index + 1}`}
+                          />
+                      </div>
+                  </div>
+                )}
+              </Draggable>
+            )
+          })}
+          {provided.placeholder}
+          <button onClick={() => onAdd(sectionId, itemIndex, 'description', { prefix: '', text: '' })} className="text-xs text-blue-600 font-bold flex items-center mt-2 ml-1 hover:text-blue-800 transition-colors"><Plus size={14} className="mr-1"/> {t.addItem}</button>
         </div>
       )}
     </Droppable>
@@ -269,11 +383,19 @@ const DraggableSection = ({ sectionId, title, items, onAdd, onRemove, renderItem
             {items.map((item, index) => (
                 <Draggable key={`${sectionId}-${index}`} draggableId={`${sectionId}-${index}`} index={index}>
                 {(provided, snapshot) => (
-                    <div ref={provided.innerRef} {...provided.draggableProps} className={`bg-gray-50 p-3 rounded relative border ${snapshot.isDragging ? 'border-blue-500 shadow-lg z-50' : 'border-gray-200'}`}>
-                    <div className="flex gap-2">
+                    <div ref={provided.innerRef} {...provided.draggableProps} className={`bg-white p-4 rounded-xl relative border-2 ${snapshot.isDragging ? 'border-blue-500 shadow-2xl z-50' : 'border-gray-100 hover:border-blue-100 shadow-sm'} transition-all mb-4`}>
+                    <button 
+                        onClick={() => {
+                            if (typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS) console.log("🗑️ [App.js] Removendo item da seção...");
+                            onRemove(index);
+                        }} 
+                        className="absolute -top-2 -right-2 bg-white text-red-400 p-1.5 rounded-full shadow-md border border-red-100 z-20 hover:text-red-600 hover:scale-110 transition-transform"
+                    >
+                        <Trash2 size={14}/>
+                    </button>
+                    <div className="flex gap-3">
                         <div {...provided.dragHandleProps} className="flex-shrink-0 mt-2 text-gray-400 cursor-grab hover:text-gray-700"><GripVertical size={20} /></div>
                         <div className="flex-1">
-                        <button onClick={() => onRemove(index)} className="absolute top-2 right-2 text-red-400 z-10 hover:text-red-600"><Trash2 size={16}/></button>
                         {renderItem(item, index)}
                         </div>
                     </div>
@@ -357,7 +479,11 @@ export default function App() {
   const [language, setLanguage] = useState('pt');
   const t = TRANSLATIONS[language].ui;
 
-  const [sidebarWidth, setSidebarWidth] = useState(380);
+  const [sidebarWidth, setSidebarWidth] = useState(480);
+  if (typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS) {
+      console.log("⚙️ [App.js] Definindo largura inicial da barra lateral para 480px.");
+  }
+
   const [isResizing, setIsResizing] = useState(false);
   const [expandedField, setExpandedField] = useState(null);
   const [isSpacingAdvancedOpen, setIsSpacingAdvancedOpen] = useState(false);
@@ -1099,34 +1225,47 @@ export default function App() {
              </select>
         </div>
 
-        <div className="space-y-2 pt-2 border-t border-gray-100 mt-2">
-            <span className="text-xs font-bold text-gray-600 block">{t.themeOptions}</span>
-            <div className="grid grid-cols-2 gap-2">
-                <button
-                    onClick={() => setSettings({...settings, roleUseThemeColor: !settings.roleUseThemeColor})}
-                    className={`px-3 py-2 border rounded transition-colors flex items-center justify-center gap-2 text-xs font-medium ${settings.roleUseThemeColor ? 'bg-blue-50 text-blue-700 border-blue-200 ring-1 ring-blue-200' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'}`}
-                    title={t.colorRoles}
-                >
-                    <Palette size={14} /> {t.colorRoles}
-                </button>
-                <button
-                    onClick={() => setSettings({...settings, rightTextUseThemeColor: !settings.rightTextUseThemeColor})}
-                    className={`px-3 py-2 border rounded transition-colors flex items-center justify-center gap-2 text-xs font-medium ${settings.rightTextUseThemeColor ? 'bg-blue-50 text-blue-700 border-blue-200 ring-1 ring-blue-200' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'}`}
-                    title={t.colorDates}
-                >
-                    <Palette size={14} /> {t.colorDates}
-                </button>
+        <div className="space-y-3 pt-4 border-t border-gray-200 mt-4">
+            <span className="text-xs font-bold text-gray-600 block uppercase tracking-wider">{t.themeOptions}</span>
+            
+            <div className="flex items-center justify-between pt-1">
+                <div className="flex flex-col pr-4">
+                    <span className="text-xs font-medium text-gray-700">{t.colorRoles}</span>
+                    <span className="text-[9px] text-gray-400 leading-tight mt-0.5">Colore cargos (ex: Analista), nomes de faculdades e links.</span>
+                </div>
+                <ToggleSwitch checked={settings.roleUseThemeColor} onChange={() => setSettings({...settings, roleUseThemeColor: !settings.roleUseThemeColor})} />
             </div>
-        </div>
 
-        <div className="flex items-center justify-between pt-2 border-t border-gray-100 mt-2">
-            <span className="text-xs font-bold text-gray-600">{t.boldDates}</span>
-            <ToggleSwitch checked={settings.rightTextBold} onChange={() => setSettings({...settings, rightTextBold: !settings.rightTextBold})} />
-        </div>
+            <div className="flex items-center justify-between border-t border-gray-100 pt-3">
+                <div className="flex flex-col pr-4">
+                    <span className="text-xs font-medium text-gray-700">{t.colorDates}</span>
+                    <span className="text-[9px] text-gray-400 leading-tight mt-0.5">Colore as datas, cidades e a coluna direita de tecnologias.</span>
+                </div>
+                <ToggleSwitch checked={settings.rightTextUseThemeColor} onChange={() => setSettings({...settings, rightTextUseThemeColor: !settings.rightTextUseThemeColor})} />
+            </div>
 
-        <div className="flex items-center justify-between pt-2 border-t border-gray-100 mt-2">
-            <span className="text-xs font-bold text-gray-600">{t.linkIcon}</span>
-            <ToggleSwitch checked={settings.showLinkIcon} onChange={() => setSettings({...settings, showLinkIcon: !settings.showLinkIcon})} />
+            <div className="flex items-center justify-between border-t border-gray-100 pt-3">
+                <span className="text-xs font-medium text-gray-700">{t.boldDates}</span>
+                <ToggleSwitch checked={settings.rightTextBold} onChange={() => setSettings({...settings, rightTextBold: !settings.rightTextBold})} />
+            </div>
+
+            <div className="flex items-center justify-between border-t border-gray-100 pt-3">
+                <span className="text-xs font-medium text-gray-700">Prefixo em Negrito (Experiência)</span>
+                <ToggleSwitch checked={settings.prefixBold !== false} onChange={() => setSettings({...settings, prefixBold: settings.prefixBold === false ? true : false})} />
+            </div>
+
+            <div className="flex items-center justify-between border-t border-gray-100 pt-3">
+                <div className="flex flex-col">
+                    <span className="text-xs font-medium text-gray-700">Cor do Prefixo (Experiência)</span>
+                    <span className="text-[9px] text-gray-400">{settings.prefixUseThemeColor !== false ? 'Usar cor do tema' : 'Preto padrão'}</span>
+                </div>
+                <ToggleSwitch checked={settings.prefixUseThemeColor !== false} onChange={() => setSettings({...settings, prefixUseThemeColor: settings.prefixUseThemeColor === false ? true : false})} />
+            </div>
+
+            <div className="flex items-center justify-between border-t border-gray-100 pt-3">
+                <span className="text-xs font-medium text-gray-700">{t.linkIcon}</span>
+                <ToggleSwitch checked={settings.showLinkIcon} onChange={() => setSettings({...settings, showLinkIcon: !settings.showLinkIcon})} />
+            </div>
         </div>
 
         <div className="grid grid-cols-2 gap-4 pt-2">
@@ -1239,11 +1378,11 @@ export default function App() {
     <div className="space-y-6">
       <h2 className="text-xl font-bold text-gray-800 border-b pb-2 flex items-center"><Layers className="mr-2" size={20}/> {t.sectionsTab}</h2>
       <div className="grid grid-cols-2 gap-2 mb-4">
-        <button onClick={() => addCustomSection('text')} className="flex items-center justify-center p-3 bg-blue-50 text-blue-700 rounded border border-blue-200 hover:bg-blue-100 transition-colors"><FileText size={16} className="mr-2"/> {t.text}</button>
-        <button onClick={() => addCustomSection('list')} className="flex items-center justify-center p-3 bg-blue-50 text-blue-700 rounded border border-blue-200 hover:bg-blue-100 transition-colors"><List size={16} className="mr-2"/> {t.list}</button>
-        <button onClick={() => addCustomSection('detailed')} className="flex items-center justify-center p-3 bg-blue-50 text-blue-700 rounded border border-blue-200 hover:bg-blue-100 transition-colors col-span-2"><Grid size={16} className="mr-2"/> {t.detailed}</button>
+        <button onClick={() => addCustomSection('text')} className="flex items-center justify-center p-3 bg-indigo-50 text-indigo-700 rounded border border-indigo-200 hover:bg-indigo-100 transition-colors"><FileText size={16} className="mr-2"/> {t.text}</button>
+        <button onClick={() => addCustomSection('list')} className="flex items-center justify-center p-3 bg-indigo-50 text-indigo-700 rounded border border-indigo-200 hover:bg-indigo-100 transition-colors"><List size={16} className="mr-2"/> {t.list}</button>
+        <button onClick={() => addCustomSection('detailed')} className="flex items-center justify-center p-3 bg-indigo-50 text-indigo-700 rounded border border-indigo-200 hover:bg-indigo-100 transition-colors col-span-2"><Grid size={16} className="mr-2"/> {t.detailed}</button>
         <button onClick={() => addCustomSection('category-detailed')} className="flex items-center justify-center p-3 bg-indigo-50 text-indigo-700 rounded border border-indigo-200 hover:bg-indigo-100 transition-colors col-span-2"><ListIcon size={16} className="mr-2"/> Categoria (Com Carga Horária)</button>
-        <button onClick={() => addCustomSection('category-simple')} className="flex items-center justify-center p-3 bg-gray-50 text-gray-700 rounded border border-gray-200 hover:bg-gray-100 transition-colors col-span-2"><ListIcon size={16} className="mr-2"/> Categoria (Sem Carga Horária)</button>
+        <button onClick={() => addCustomSection('category-simple')} className="flex items-center justify-center p-3 bg-indigo-50 text-indigo-700 rounded border border-indigo-200 hover:bg-indigo-100 transition-colors col-span-2"><ListIcon size={16} className="mr-2"/> Categoria (Sem Carga Horária)</button>
       </div>
       <Droppable droppableId="section-ordering" type="MAIN_SECTION_ORDER">
         {(provided) => (
@@ -1734,30 +1873,45 @@ export default function App() {
     />
   );
 
-  const renderExperienceForm = () => (
-    <DraggableSection 
-      sectionId="experience" 
-      title={t.sections?.experience || "Experiência"} 
-      items={data.experience} 
-      onAdd={() => addItemTop('experience', {company:'', role:'', period:'', location:'', description:['']})} 
-      onRemove={(idx) => removeItem('experience', idx)} 
-      renderHeader={renderSectionHeader}
-      isVisible={data.structure.experience.visible}
-      onToggle={() => updateStructure('experience', 'visible', !data.structure.experience.visible)}
-      t={t}
-      renderItem={(ex, i) => (
-        <>
-            <div className="grid grid-cols-2 gap-2 mb-2">
-                <Input label={t.company} value={ex.company} onChange={v=>updateItem('experience', i, 'company', v)} onExpandRequest={handleOpenExpand}/>
-                <Input label={t.role} value={ex.role} onChange={v=>updateItem('experience', i, 'role', v)} onExpandRequest={handleOpenExpand}/>
-                <Input label={t.period} value={ex.period} onChange={v=>updateItem('experience', i, 'period', v)} onExpandRequest={handleOpenExpand}/>
-                <Input label={t.location} value={ex.location} onChange={v=>updateItem('experience', i, 'location', v)} onExpandRequest={handleOpenExpand}/>
-            </div>
-            <DraggableDescriptionList items={ex.description} sectionId="experience" itemIndex={i} onUpdate={updateArrayItem} onRemove={removeArrayItemFromItem} onAdd={addArrayItemToItem} onExpandRequest={handleOpenExpand} t={t} />
-        </>
-      )}
-    />
-  );
+  const renderExperienceForm = () => {
+    if (typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS) {
+        console.log("🚀 [App.js] Iniciando renderização da seção de Experiência Profissional...");
+    }
+
+    return (
+        <DraggableSection 
+            sectionId="experience" 
+            title={t.sections?.experience || "Experiência"} 
+            items={data.experience} 
+            onAdd={() => {
+                if (EXIBIR_LOGS) console.log("➕ [App.js] Adicionando novo bloco de experiência profissional...");
+                addItemTop('experience', {company:'', role:'', period:'', location:'', description:[{prefix: '', text: ''}]});
+            }} 
+            onRemove={(idx) => {
+                if (EXIBIR_LOGS) console.log(`🗑️ [App.js] Removendo item de experiência no índice: ${idx}`);
+                removeItem('experience', idx);
+            }} 
+            renderHeader={renderSectionHeader}
+            isVisible={data.structure.experience.visible}
+            onToggle={() => updateStructure('experience', 'visible', !data.structure.experience.visible)}
+            t={t}
+            renderItem={(ex, i) => (
+                <div className="flex flex-col gap-4">
+                    <div className="grid grid-cols-2 gap-x-4 gap-y-3 mb-2">
+                        <Input label={t.company} value={ex.company} onChange={v=>updateItem('experience', i, 'company', v)} onExpandRequest={handleOpenExpand}/>
+                        <Input label={t.role} value={ex.role} onChange={v=>updateItem('experience', i, 'role', v)} onExpandRequest={handleOpenExpand}/>
+                        <Input label={t.period} value={ex.period} onChange={v=>updateItem('experience', i, 'period', v)} onExpandRequest={handleOpenExpand}/>
+                        <Input label={t.location} value={ex.location} onChange={v=>updateItem('experience', i, 'location', v)} onExpandRequest={handleOpenExpand}/>
+                    </div>
+                    <div className="pt-2 border-t border-gray-200">
+                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-2">Detalhamento de Atividades</label>
+                        <DraggableExperienceList items={ex.description} sectionId="experience" itemIndex={i} onUpdate={updateArrayItem} onRemove={removeArrayItemFromItem} onAdd={addArrayItemToItem} onExpandRequest={handleOpenExpand} t={t} />
+                    </div>
+                </div>
+            )}
+        />
+    );
+  };
 
   const renderEducationForm = () => (
     <DraggableSection 
@@ -1778,10 +1932,10 @@ export default function App() {
                 <Input label={t.period} value={ed.period} onChange={v=>updateItem('education', i, 'period', v)} onExpandRequest={handleOpenExpand}/>
                 <Input label={t.location} value={ed.location} onChange={v=>updateItem('education', i, 'location', v)} onExpandRequest={handleOpenExpand}/>
             </div>
-            <Input label={t.details} value={ed.details} onChange={v=>updateItem('education', i, 'details', v)} enableRich={true} onExpandRequest={handleOpenExpand}/>
-        </>
-      )}
-    />
+            <Input label={t.details} value={ed.details} onChange={v=>updateItem('education', i, 'details', v)} enableRich={true} onExpandRequest={handleOpenExpand} multiline={true} />
+    </>
+  )}
+/>
   );
   
   const renderOthersForm = () => (
@@ -1952,7 +2106,8 @@ export default function App() {
                 if (isActive) {
                     btnClasses += 'bg-blue-100 text-blue-900 shadow-md font-bold transform scale-[1.02] ';
                 } else if (isSettings) {
-                    btnClasses += 'bg-slate-800/50 border border-slate-700 text-blue-200 hover:bg-slate-800 hover:text-white ';
+                    /* Destaca a aba de configurações com borda esquerda e fundo mais forte */
+                    btnClasses += 'bg-slate-800 border-l-4 border-blue-500 text-blue-200 hover:bg-slate-700 hover:text-white shadow-sm ';
                 } else {
                     btnClasses += 'hover:bg-slate-800 ';
                 }
