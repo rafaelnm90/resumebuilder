@@ -3,7 +3,7 @@ export const EXIBIR_LOGS = true;
 
 if (EXIBIR_LOGS) {
     console.log("🚀 [constants.js] Carregando configurações...");
-    console.log("🌐 Dados ajustados: Perfil Corporativo/Dev (Ex-Acadêmico) e CNH B.");
+    console.log("🌐 Dados ajustados: Modo Template / Placeholders ativado.");
 }
 
 export const FONTS = {
@@ -357,7 +357,7 @@ export const INITIAL_DATA = {
   // ESTRUTURA PARA RODAPÉ (DATA/LOCAL)
   dateLocation: {
     visible: false,
-    location: "Uberlândia, MG", 
+    location: "Sua Cidade, UF", 
     date: "",
     autoDate: true,
     useBold: false,
@@ -366,14 +366,14 @@ export const INITIAL_DATA = {
   },
 
   personal: {
-    name: "RAFAEL NOVAIS DE MIRANDA",
-    email: "rafaelnovaismiranda@gmail.com",
-    phone: "(34) 99777-9966",
-    location: "Lavras, MG",
-    linkedin: "https://www.linkedin.com/in/rafaelnovaism/",
-    github: "https://github.com/rafaelnm90",
+    name: "SEU NOME COMPLETO",
+    email: "seu.email@exemplo.com",
+    phone: "(00) 00000-0000",
+    location: "Sua Cidade, UF",
+    linkedin: "linkedin.com/in/seuperfil",
+    github: "github.com/seuperfil",
     youtube: "", 
-    lattes: "http://lattes.cnpq.br/6450189926093594", 
+    lattes: "", 
     website: "",
     photo: "", 
     showPhoto: false,
@@ -392,157 +392,79 @@ export const INITIAL_DATA = {
     photoBorder: 0,       
     photoShadow: false,
     
-    // CNH (Ajustado para B conforme solicitado)
-    driverLicenses: ['B'] 
+    driverLicenses: [] 
   },
   
-  objective: "Desenvolvedor de Software e Analista de Dados, busco aplicar sólida experiência em resolução de problemas complexos, lógica algorítmica e gestão técnica para criar soluções de software escaláveis e orientadas a dados.",
+  objective: "Insira aqui o seu objetivo profissional. Seja claro e direto sobre a posição ou a área em que você deseja atuar.",
   
-  summary: "Desenvolvedor Full Stack e Cientista de Dados com background analítico robusto. Experiência prática na construção de aplicações SaaS (como o Editor de Currículo e o AgroStatPro), utilizando React, Python e SQL. Histórico comprovado em liderança técnica e gestão de projetos (Coordenação de TI - GEN), com foco em otimização de processos, automação e entrega de valor. Transfere competências de análise estatística avançada e rigor metodológico para o desenvolvimento de software corporativo.",
+  summary: "Insira aqui o seu resumo profissional. Destaque em poucas linhas suas principais experiências, habilidades mais fortes e o valor que você pode agregar à empresa.",
   
   skills: [
-    { category: "Desenvolvimento de Software", items: "Python, JavaScript (React), HTML5/CSS3, SQL, Streamlit, Google Apps Script, Lógica de Programação." },
-    { category: "Dados & Analytics", items: "Análise de Dados, Power BI, Estatística Avançada, Modelagem Preditiva, Excel Avançado, Visualização de Dados." },
-    { category: "Ferramentas & DevOps", items: "Git/GitHub, Linux (Gerenciamento de Servidores/Bioinformática), Docker (Conceitos), VS Code." },
-    { category: "Gestão & Liderança", items: "Gestão de Projetos Ágeis, Liderança de Equipes Multidisciplinares, Organização de Eventos, Planejamento Estratégico." },
-    { category: "Outras Competências", items: "Resolução de Problemas, Comunicação Técnica, Inglês Avançado, Adaptabilidade." }
+    { category: "Categoria (ex: Idiomas)", items: "Insira os itens separados por vírgula (ex: Inglês Avançado, Espanhol Intermediário)." },
+    { category: "Categoria (ex: Softwares)", items: "Insira os itens (ex: Pacote Office, Photoshop, AutoCAD)." },
+    { category: "Categoria (ex: Soft Skills)", items: "Liderança, Comunicação assertiva, Resolução de problemas." }
   ],
   
   projects: [
     {
-      title: "Editor de Currículo Online (Resume Builder)",
-      link: "editorcurriculumvitae.vercel.app", 
-      tech: "React, Tailwind CSS, jsPDF",
+      title: "Nome do seu Projeto ou Iniciativa",
+      link: "linkdoseuprojeto.com.br", 
+      tech: "Ferramenta 1, Ferramenta 2",
       description: [
-        "Desenvolvimento Full Stack de aplicação web para criação de currículos com preview em tempo real.",
-        "Implementação de funcionalidades complexas de UX/UI, incluindo Drag & Drop e customização avançada de layout.",
-        "Engenharia de software focada em performance e geração de documentos PDF no front-end."
-      ]
-    },
-    {
-      title: "AgroStatPro - SaaS de Análise de Dados",
-      link: "agrostat.streamlit.app", 
-      tech: "Python, Streamlit, Pandas, Cloud",
-      description: [
-        "Criação e implantação de um produto SaaS (Software as a Service) para automação de análises estatísticas.",
-        "Transformação de scripts complexos em uma interface amigável, reduzindo o tempo de processamento de dados dos usuários."
+        "Descreva brevemente qual foi o foco principal deste projeto.",
+        "Destaque o seu papel específico na execução e desenvolvimento.",
+        "Mencione os resultados alcançados ou o impacto gerado por ele."
       ]
     }
   ],
   
   experience: [
     {
-      company: "Empresa de Pesquisa Agropecuária de Minas Gerais (EPAMIG)",
-      role: "Analista de Dados e Inovação (Projeto BDCTI)",
-      period: "2024 - 2025",
-      location: "Minas Gerais",
+      company: "Nome da Empresa Atual ou Mais Recente",
+      role: "Seu Cargo",
+      period: "Mês/Ano - Atual",
+      location: "Cidade, UF",
       description: [
-        { prefix: 'Atividades', text: "Gerenciamento de grandes volumes de dados experimentais em rede multiambiente." },
-        { prefix: 'Resultados', text: "Aplicação de modelos estatísticos e algorítmicos para suporte à tomada de decisão estratégica." },
-        { prefix: 'Projetos Realizados', text: "Implementação de processos de inovação tecnológica para otimização da cadeia produtiva." }
+        { prefix: 'Atividades', text: "Insira a descrição da sua atividade principal." },
+        { prefix: 'Responsabilidades', text: "Descreva uma responsabilidade importante que você assumiu." },
+        { prefix: 'Resultados', text: "Mencione um resultado ou meta alcançada durante o período." }
       ]
     },
     {
-      company: "Núcleo de Estudos em Genética (GEN/UFLA)",
-      role: "Gerente de Projetos e Coordenador de TI",
-      period: "2019 - 2023",
-      location: "Lavras, MG",
+      company: "Nome da Empresa Anterior",
+      role: "Seu Cargo Anterior",
+      period: "Mês/Ano - Mês/Ano",
+      location: "Cidade, UF",
       description: [
-        { prefix: 'Responsabilidades', text: "Liderança na modernização da infraestrutura digital e gestão de ativos web (CMS)." },
-        { prefix: 'Atividades', text: "Gestão financeira e logística de grandes eventos (4 Simpósios Internacionais), coordenando equipes e fornecedores." },
-        { prefix: 'Soluções Desenvolvidas', text: "Implementação de sistemas digitais para otimização de inscrições e processos administrativos." }
-      ]
-    },
-    {
-      company: "Universidade Federal de Lavras (UFLA)",
-      role: "Cientista de Dados (Pesquisador Associado)",
-      period: "2017 - 2023",
-      location: "Lavras, MG",
-      description: [
-        "Desenvolvimento de pipelines de análise para Big Data Genômico (GWAS/DArTseq).",
-        "Uso avançado de R e Linux para processamento de dados complexos e modelagem estatística.",
-        "Resolução de problemas biológicos complexos através de abordagens computacionais."
-      ]
-    },
-    {
-      company: "Flora Novaes Paisagismo LTDA",
-      role: "Gestão Comercial e Projetos",
-      period: "2016 - 2017",
-      location: "Uberlândia, MG",
-      description: [
-        "Gerenciamento administrativo e financeiro, incluindo controle de fluxo de caixa e negociação B2B.",
-        "Elaboração de projetos técnicos utilizando ferramentas de CAD e modelagem 3D.",
-        "Atendimento consultivo e prospecção ativa de clientes para expansão de negócios."
+        { prefix: 'Atividades', text: "Descreva a principal função exercida." },
+        { prefix: 'Resultados', text: "Destaque um projeto entregue ou melhoria implementada." }
       ]
     }
   ],
   
   education: [
     {
-      institution: "Gran Faculdade",
-      degree: "Graduação em Ciência da Computação",
-      period: "2024 - Atual",
-      location: "EAD",
-      details: "Foco em Engenharia de Software, Algoritmos e Estrutura de Dados."
-    },
-    {
-      institution: "Universidade Federal de Lavras (UFLA)",
-      degree: "Doutorado (Foco em Genética Quantitativa e Estatística)",
-      period: "2019 - 2023",
-      location: "Lavras, MG",
-      details: "Ênfase em análise de dados massivos e modelagem computacional."
-    },
-    {
-      institution: "Universidade Federal de Viçosa (UFV)",
-      degree: "Especialização em Inteligência Artificial e Computacional",
-      period: "2022",
-      location: "Viçosa, MG",
-      details: "Pós-graduação Lato Sensu focada em Machine Learning."
-    },
-    {
-      institution: "Universidade Federal de Lavras (UFLA)",
-      degree: "Mestrado (Foco em Biologia Molecular)",
-      period: "2017 - 2019",
-      location: "Lavras, MG",
-      details: "Pesquisa envolvendo marcadores moleculares e expressão gênica."
-    },
-    {
-      institution: "Universidade Federal de Uberlândia (UFU)",
-      degree: "Graduação em Agronomia",
-      period: "2009 - 2015",
-      location: "Uberlândia, MG",
-      details: "Base sólida em ciências exatas e biológicas."
+      institution: "Nome da Instituição de Ensino",
+      degree: "Nome do Curso / Formação",
+      period: "Ano Início - Ano Conclusão",
+      location: "Cidade, UF",
+      details: "Insira detalhes como: tema do TCC, prêmios acadêmicos ou foco do curso (opcional)."
     }
   ],
   
   others: [
     {
-      title: "Idiomas",
+      title: "Certificações ou Cursos Extracurriculares",
       description: [
-        { text: "Português (Nativo)", hours: "", details: "" },
-        { text: "Inglês (Avançado - Fluente em leitura técnica e comunicação)", hours: "", details: "" }
-      ]
-    },
-    {
-      title: "Certificações Técnicas",
-      description: [
-        { text: "Google Data Analytics Professional Certificate (Google, 2023)", hours: "180h", details: "Foco prático em Python, R, SQL e Tableau." },
-        { text: "Linux para Bioinformática (Infraestrutura/Shell Script) (2022)", hours: "", details: "" },
-        { text: "SQL e Bancos de Dados (Conquer, 2022)", hours: "", details: "" },
-        { text: "Business Intelligence com Power BI (Conquer, 2022)", hours: "", details: "" }
-      ]
-    },
-    {
-      title: "Competências Transversais",
-      description: [
-        { text: "Comunicação de Alto Impacto e Oratória (Conquer)", hours: "", details: "" },
-        { text: "Gestão de Tempo e Produtividade", hours: "", details: "" },
-        { text: "Trabalho em Equipe e Liderança Ágil", hours: "", details: "" }
+        { text: "Nome do Curso ou Certificação (Instituição, Ano)", hours: "40h", details: "Insira uma breve descrição sobre o que aprendeu (opcional)." },
+        { text: "Nome de outro Curso Relevante", hours: "15h", details: "" }
       ]
     }
   ],
   
-  references: [],
+  references: [
+    { name: 'Nome da Referência', company: 'Empresa', role: 'Cargo da Pessoa', email: 'email@exemplo.com', phone: '(00) 00000-0000' }
+  ],
   
-  keywords: "Python React JavaScript SQL Data Science Machine Learning Artificial Intelligence Web Development Full Stack Product Management Business Intelligence Analytics Linux Git Agile Scrum Leadership SaaS Cloud Computing Innovation Problem Solving"
+  keywords: "PalavraChave1 PalavraChave2 SoftSkill Ferramenta Tecnologia Competencia (Estas palavras ficam ocultas no PDF para otimizar a leitura por robôs de RH)"
 };
