@@ -172,16 +172,26 @@ export default function ResumePreview({ data, settings }) {
   };
 
   const renderListItems = (items, sectionId) => {
+    if (typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS) {
+        console.log(`🚀 [ResumePreview.js] Renderizando itens da lista para a seção: ${sectionId}`);
+    }
+
     const activeStyle = LIST_STYLES[settings.listStyle] || LIST_STYLES['disc'];
     const isWideMarker = ['arrow', 'check', 'dash'].includes(settings.listStyle);
 
     return (items || []).map((item, i) => {
-        if (!item || !item.trim()) return null;
+        if (!item) return null;
         
-        const isHeader = item.startsWith('## ');
-        const isSub = item.startsWith('>> ');
+        const isObject = typeof item === 'object';
+        const rawText = isObject ? (item.text || '') : item;
+        const prefix = isObject ? (item.prefix || '') : '';
+
+        if (!rawText.trim() && !prefix.trim()) return null;
         
-        let text = item;
+        const isHeader = rawText.startsWith('## ');
+        const isSub = rawText.startsWith('>> ');
+        
+        let text = rawText;
         let bulletClass = activeStyle.cssMain;
         let extraClasses = '';
         
@@ -192,14 +202,17 @@ export default function ResumePreview({ data, settings }) {
             paddingLeft: isWideMarker ? '0.5em' : '0' 
         };
 
+        const prefixColorStyle = settings.prefixUseThemeColor !== false ? settings.themeColor : (settings.bodyColor || '#374151');
+        const prefixWeightStyle = settings.prefixBold !== false ? 'bold' : 'normal';
+
         if (isHeader) {
-            text = item.slice(3);
+            text = rawText.slice(3);
             bulletClass = 'list-none'; 
             extraClasses = 'font-bold mt-0 mb-0 pt-0'; 
             liStyle.color = settings.bodyColor;
             liStyle.paddingLeft = '0';
         } else if (isSub) {
-            text = item.slice(3);
+            text = rawText.slice(3);
             bulletClass = activeStyle.cssSub;
             extraClasses = 'ml-6'; 
         }
@@ -211,6 +224,7 @@ export default function ResumePreview({ data, settings }) {
                 style={liStyle}
             >
                 <span style={{ color: settings.bodyColor || '#374151', position: 'relative', left: isWideMarker ? '0.3em' : '0' }}>
+                    {prefix && <span style={{ color: prefixColorStyle, fontWeight: prefixWeightStyle, marginRight: '4px' }}>{prefix}:</span>}
                     {formatText(text)}
                 </span>
             </li>
