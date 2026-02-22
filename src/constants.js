@@ -313,7 +313,9 @@ export const INITIAL_SETTINGS = {
   listMarkerUseThemeColor: false, 
   
   roleUseThemeColor: false,      
-  rightTextUseThemeColor: false, 
+  rightTextUseThemeColor: false,
+  prefixUseThemeColor: true, 
+  prefixBold: true, 
   
   rightTextBold: false, 
   
@@ -435,9 +437,9 @@ export const INITIAL_DATA = {
       period: "2024 - 2025",
       location: "Minas Gerais",
       description: [
-        "Gerenciamento de grandes volumes de dados experimentais em rede multiambiente.",
-        "Aplicação de modelos estatísticos e algorítmicos para suporte à tomada de decisão estratégica.",
-        "Implementação de processos de inovação tecnológica para otimização da cadeia produtiva."
+        { prefix: 'Atividades', text: "Gerenciamento de grandes volumes de dados experimentais em rede multiambiente." },
+        { prefix: 'Resultados', text: "Aplicação de modelos estatísticos e algorítmicos para suporte à tomada de decisão estratégica." },
+        { prefix: 'Projetos Realizados', text: "Implementação de processos de inovação tecnológica para otimização da cadeia produtiva." }
       ]
     },
     {
@@ -446,9 +448,9 @@ export const INITIAL_DATA = {
       period: "2019 - 2023",
       location: "Lavras, MG",
       description: [
-        "Liderança na modernização da infraestrutura digital e gestão de ativos web (CMS).",
-        "Gestão financeira e logística de grandes eventos (4 Simpósios Internacionais), coordenando equipes e fornecedores.",
-        "Implementação de sistemas digitais para otimização de inscrições e processos administrativos."
+        { prefix: 'Responsabilidades', text: "Liderança na modernização da infraestrutura digital e gestão de ativos web (CMS)." },
+        { prefix: 'Atividades', text: "Gestão financeira e logística de grandes eventos (4 Simpósios Internacionais), coordenando equipes e fornecedores." },
+        { prefix: 'Soluções Desenvolvidas', text: "Implementação de sistemas digitais para otimização de inscrições e processos administrativos." }
       ]
     },
     {
