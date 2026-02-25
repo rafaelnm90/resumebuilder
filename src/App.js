@@ -8,7 +8,8 @@ import {
   Image as ImageIcon, Upload, AlignLeft, AlignCenter, AlignRight,
   Circle, Square, Move, Crop, Info, 
   RotateCw, RotateCcw, Sun, FlipHorizontal, Droplet, Frame, Sliders, Link as LinkIcon,
-  UserPlus, AlertTriangle, List as ListIcon, Mail, Phone, Save, MapPin, Calendar, Sparkles
+  UserPlus, AlertTriangle, List as ListIcon, Mail, Phone, Save, MapPin, Calendar, Sparkles,
+  Archive, Clock, ArrowLeft, ExternalLink
 } from 'lucide-react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import ResumePreview from './ResumePreview';
@@ -473,20 +474,27 @@ export default function App() {
   const [data, setData] = useState(INITIAL_DATA);
   const [settings, setSettings] = useState(INITIAL_SETTINGS);
   const [activeTab, setActiveTab] = useState('personal');
-  const [zoom, setZoom] = useState(0.8); 
+  const [zoom, setZoom] = useState(0.7); 
+  if (typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS) {
+      console.log("🔍 [App.js] Nível de zoom inicial ajustado para 60% (0.6).");
+  }
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   
   const [language, setLanguage] = useState('pt');
   const t = TRANSLATIONS[language].ui;
 
-  const [sidebarWidth, setSidebarWidth] = useState(680);
+  const [sidebarWidth, setSidebarWidth] = useState(600);
   if (typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS) {
-      console.log("⚙️ [App.js] Definindo largura inicial da barra lateral para 680px.");
+      console.log("⚙️ [App.js] Definindo largura inicial da barra lateral para 600px.");
   }
 
   const [isResizing, setIsResizing] = useState(false);
   const [expandedField, setExpandedField] = useState(null);
   const [isSpacingAdvancedOpen, setIsSpacingAdvancedOpen] = useState(false);
+
+  const [viewingHistoryId, setViewingHistoryId] = useState(null);
+  const [editingHistoryId, setEditingHistoryId] = useState(null);
+  const [historyForm, setHistoryForm] = useState({ company: '', role: '', url: '', description: '', applyDate: new Date().toISOString().slice(0, 10) });
 
   const sidebarRef = useRef(null);
   useEffect(() => {
@@ -739,6 +747,15 @@ export default function App() {
       const [movedId] = newOrder.splice(source.index, 1);
       newOrder.splice(destination.index, 0, movedId);
       setData(prev => ({ ...prev, sectionOrder: newOrder }));
+      return;
+    }
+
+     if (type === 'HISTORY_ITEM') {
+      const currentList = Array.from(data.history || []);
+      const [reorderedItem] = currentList.splice(source.index, 1);
+      currentList.splice(destination.index, 0, reorderedItem);
+      setData(prev => ({ ...prev, history: currentList }));
+      if (typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS) console.log("🔄 [App.js] Ordem das vagas do histórico atualizada manualmente.");
       return;
     }
 
@@ -1712,25 +1729,28 @@ export default function App() {
 
         <div className="col-span-2 bg-gray-50 p-3 rounded border border-gray-200 mt-2">
             <label className="text-xs font-semibold text-gray-500 uppercase mb-2 block">{t.driverLicenses}</label>
-            <div className="flex flex-row justify-between items-center">
-                {['ACC', 'A', 'B', 'C', 'D', 'E'].map(cat => (
-                    <label key={cat} className="flex items-center gap-1 cursor-pointer hover:bg-white px-1.5 py-1 rounded transition-colors border border-transparent hover:border-gray-200">
-                        <input 
-                            type="checkbox" 
-                            className="w-3.5 h-3.5 text-blue-600 rounded focus:ring-blue-500"
-                            checked={(data.personal.driverLicenses || []).includes(cat)}
-                            onChange={(e) => {
-                                const current = data.personal.driverLicenses || [];
-                                if (e.target.checked) {
-                                    updateField('personal', 'driverLicenses', [...current, cat]);
-                                } else {
-                                    updateField('personal', 'driverLicenses', current.filter(c => c !== cat));
-                                }
-                            }}
-                        />
-                        <span className="font-bold text-gray-700 text-[10px]">{cat}</span>
-                    </label>
-                ))}
+            <div className="flex gap-2 items-center w-full">
+                {['ACC', 'A', 'B', 'C', 'D', 'E'].map(cat => {
+                    const isChecked = (data.personal.driverLicenses || []).includes(cat);
+                    return (
+                        <label key={cat} className={`flex-1 flex justify-center items-center gap-2 cursor-pointer py-1.5 rounded-lg border transition-all select-none ${isChecked ? 'bg-blue-50 border-blue-400 shadow-sm' : 'bg-white border-gray-300 hover:bg-gray-50'}`}>
+                            <input 
+                                type="checkbox" 
+                                className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500 cursor-pointer"
+                                checked={isChecked}
+                                onChange={(e) => {
+                                    const current = data.personal.driverLicenses || [];
+                                    if (e.target.checked) {
+                                        updateField('personal', 'driverLicenses', [...current, cat]);
+                                    } else {
+                                        updateField('personal', 'driverLicenses', current.filter(c => c !== cat));
+                                    }
+                                }}
+                            />
+                            <span className={`font-bold text-sm ${isChecked ? 'text-blue-900' : 'text-gray-700'}`}>{cat}</span>
+                        </label>
+                    );
+                })}
             </div>
         </div>
       </div>
@@ -1743,8 +1763,8 @@ export default function App() {
       case 'settings': return renderSettingsForm();
       case 'sections': return renderSectionManagementForm();
       case 'personal': return renderPersonalForm();
-      case 'objective': return renderObjectiveForm(); 
-      case 'summary': return renderSummaryForm();
+      case 'history': return renderHistoryForm();
+      case 'objective': return renderObjectiveForm();
       case 'skills': return renderSkillsForm();
       case 'projects': return renderProjectsForm();
       case 'experience': return renderExperienceForm();
@@ -2047,11 +2067,276 @@ export default function App() {
     );
   };
 
-  const tabs = [
-    { id: 'settings', label: t.layoutTab, icon: Settings },
-    { id: 'sections', label: t.sectionsTab, icon: Layers },
-    { id: 'personal', label: t.personalTab, icon: User },
-  ];
+  const handleSaveHistory = () => {
+      if (!historyForm.company || !historyForm.role) return alert("Preencha Empresa e Cargo.");
+      
+      const dataPartes = historyForm.applyDate.split('-');
+      const dataFormatada = `${dataPartes[2]}/${dataPartes[1]}/${dataPartes[0]}`;
+
+      if (editingHistoryId) {
+          if (typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS) console.log(`✏️ [App.js] Atualizando metadados da vaga arquivada: ${editingHistoryId}...`);
+          setData(prev => ({
+              ...prev,
+              history: prev.history.map(h => h.id === editingHistoryId ? {
+                  ...h,
+                  applyDate: dataFormatada,
+                  isoDate: historyForm.applyDate,
+                  company: historyForm.company,
+                  role: historyForm.role,
+                  url: historyForm.url,
+                  jobDescription: historyForm.description
+              } : h)
+          }));
+          setEditingHistoryId(null);
+      } else {
+          if (typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS) console.log("🚀 [App.js] Arquivando versão atual no histórico JSON...");
+          const newEntry = {
+              id: Date.now().toString(),
+              applyDate: dataFormatada,
+              isoDate: historyForm.applyDate,
+              company: historyForm.company,
+              role: historyForm.role,
+              url: historyForm.url,
+              jobDescription: historyForm.description,
+              snapshotData: JSON.parse(JSON.stringify(data)),
+              snapshotSettings: JSON.parse(JSON.stringify(settings))
+          };
+          setData(prev => ({ ...prev, history: [newEntry, ...(prev.history || [])] }));
+      }
+      
+      setHistoryForm({ company: '', role: '', url: '', description: '', applyDate: new Date().toISOString().slice(0, 10) });
+  };
+
+  const renderHistoryForm = () => (
+    <div className="space-y-6">
+      <h2 className="text-xl font-bold border-b pb-2 flex items-center"><Archive className="mr-2" size={20}/> {t.historyTab || "Histórico"}</h2>
+      
+      <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm space-y-4">
+         <h3 className="text-sm font-bold text-gray-700 uppercase">Salvar Nova Candidatura</h3>
+         <div className="grid grid-cols-2 gap-3">
+             <Input label="Empresa" value={historyForm.company} onChange={v => setHistoryForm({...historyForm, company: v})} />
+             <Input label="Cargo Desejado" value={historyForm.role} onChange={v => setHistoryForm({...historyForm, role: v})} />
+         </div>
+         <div className="grid grid-cols-2 gap-3">
+             <Input label="Link da Vaga (URL)" value={historyForm.url} onChange={v => setHistoryForm({...historyForm, url: v})} />
+             <div className="flex flex-col group relative mb-2">
+                 <label className="text-xs font-semibold text-gray-500 uppercase mb-1">Data de Envio</label>
+                 <input
+                     type="date"
+                     className="p-2 border rounded-md outline-none text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 w-full"
+                     value={historyForm.applyDate}
+                     onChange={e => setHistoryForm({...historyForm, applyDate: e.target.value})}
+                 />
+             </div>
+         </div>
+         <div className="space-y-1">
+             <label className="text-xs font-semibold text-gray-500 uppercase">Descrição da Vaga (Cole o texto)</label>
+             <textarea 
+                className="w-full h-24 p-2 border rounded text-sm outline-none focus:ring-1 focus:ring-blue-500 resize-y"
+                value={historyForm.description}
+                onChange={e => setHistoryForm({...historyForm, description: e.target.value})}
+                placeholder="Cole aqui os requisitos e responsabilidades da vaga..."
+             />
+         </div>
+         <div className="flex gap-3">
+             <button onClick={handleSaveHistory} className={`flex-1 py-3 text-white font-bold rounded-lg shadow-md transition-colors flex items-center justify-center active:scale-[0.98] ${editingHistoryId ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-blue-600 hover:bg-blue-700'}`}>
+                 {editingHistoryId ? <><PenTool size={18} className="mr-2"/> Salvar Alterações</> : <><Save size={18} className="mr-2"/> Arquivar Versão Atual</>}
+             </button>
+             {editingHistoryId && (
+                 <button 
+                    onClick={() => {
+                        setEditingHistoryId(null);
+                        setHistoryForm({ company: '', role: '', url: '', description: '', applyDate: new Date().toISOString().slice(0, 10) });
+                        if (typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS) console.log("❌ [App.js] Edição de histórico cancelada.");
+                    }} 
+                    className="px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold rounded-lg shadow-sm transition-colors active:scale-[0.98]"
+                 >
+                     Cancelar
+                 </button>
+             )}
+         </div>
+      </div>
+
+      <div className="space-y-3">
+         <h3 className="text-sm font-bold text-gray-700 uppercase border-b pb-1">Vagas Arquivadas</h3>
+         {(!data.history || data.history.length === 0) && <p className="text-sm text-gray-500 italic">Nenhum currículo arquivado ainda.</p>}
+         
+         <Droppable droppableId="history-list" type="HISTORY_ITEM">
+             {(provided) => (
+                 <div {...provided.droppableProps} ref={provided.innerRef} className="space-y-4 mt-2">
+                     {(data.history || []).map((item, index) => {
+                         const isViewing = viewingHistoryId === item.id;
+                         
+                         // Centralizando o cálculo matemático de dias
+                         const itemDateObj = item.isoDate ? new Date(item.isoDate + 'T00:00:00') : new Date(parseInt(item.id));
+                         const today = new Date();
+                         today.setHours(0, 0, 0, 0);
+                         itemDateObj.setHours(0, 0, 0, 0);
+                         const diffTime = today.getTime() - itemDateObj.getTime();
+                         const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+
+                         // Lógica de Semáforo (Cores e Alertas baseados na idade da vaga)
+                         let cardClass = "border p-5 rounded-xl shadow-md transition-all relative flex gap-3 ";
+                         let badgeConfig = null;
+
+                         if (diffDays > 180) { // Mais de 6 meses (Vermelho)
+                             cardClass += "bg-red-50 border-red-300 hover:border-red-400 ";
+                             badgeConfig = { color: 'bg-red-600 text-white border-red-700', text: 'Prazo Excedido (> 6 meses)', icon: AlertTriangle };
+                         } else if (diffDays > 90) { // Entre 3 e 6 meses (Amarelo)
+                             cardClass += "bg-amber-50 border-amber-300 hover:border-amber-400 ";
+                             badgeConfig = { color: 'bg-amber-500 text-white border-amber-600', text: 'Atenção: Verifique retorno', icon: AlertTriangle };
+                         } else { // Menos de 3 meses (Verde)
+                             cardClass += "bg-emerald-50 border-emerald-200 hover:border-emerald-300 ";
+                             badgeConfig = { color: 'bg-emerald-500 text-white border-emerald-600', text: 'Vaga Recente (< 3 meses)', icon: Clock };
+                         }
+
+                         // Destaque visual forte se estiver no Modo Máquina do Tempo
+                         if (isViewing) {
+                             cardClass += "ring-4 ring-blue-400 shadow-xl scale-[1.01] z-10 ";
+                         }
+
+                         return (
+                             <Draggable key={item.id} draggableId={item.id} index={index}>
+                                 {(provided, snapshot) => (
+                                     <div 
+                                         ref={provided.innerRef} 
+                                         {...provided.draggableProps} 
+                                         className={`${cardClass} ${snapshot.isDragging ? 'shadow-2xl ring-4 ring-blue-500 z-50 opacity-95 scale-[1.02]' : ''}`}
+                                     >
+                                         <div {...provided.dragHandleProps} className="text-gray-400 hover:text-gray-600 cursor-grab pt-2">
+                                             <GripVertical size={24} />
+                                         </div>
+                                         <div className="flex-1 min-w-0">
+                                             
+                                             {/* Badge Dinâmico de Alerta */}
+                                             {badgeConfig && !isViewing && (
+                                                 <div className={`absolute -top-3 -right-2 text-xs font-bold px-3 py-1 rounded shadow-md flex items-center gap-1.5 border animate-in fade-in ${badgeConfig.color}`}>
+                                                     <badgeConfig.icon size={14} /> {badgeConfig.text}
+                                                 </div>
+                                             )}
+                                             
+                                             <div className="flex justify-between items-start mb-3 gap-3">
+                                                 <div className="flex-1 pr-2">
+                                                     <h4 className="font-extrabold text-lg text-blue-900 leading-tight mb-1 break-words">{item.role}</h4>
+                                                     <p className="text-sm font-semibold text-gray-700 break-words">{item.company}</p>
+                                                 </div>
+                                                 <div className="flex flex-col gap-2 shrink-0 w-32">
+                                                     <button 
+                                                        onClick={() => {
+                                                            if (isViewing) setViewingHistoryId(null);
+                                                            else setViewingHistoryId(item.id);
+                                                        }}
+                                                        className={`w-full px-3 py-1.5 font-bold text-xs rounded-lg border transition-colors flex items-center justify-center ${isViewing ? 'bg-blue-600 text-white border-blue-700 shadow-inner' : 'bg-blue-100 text-blue-800 hover:bg-blue-200 border-blue-300'}`}
+                                                     >
+                                                         <Clock size={14} className="mr-1.5"/> {isViewing ? 'Visualizando' : 'Ver / PDF'}
+                                                     </button>
+
+                                                     <button 
+                                                        onClick={() => {
+                                                            setEditingHistoryId(item.id);
+                                                            setHistoryForm({
+                                                                company: item.company,
+                                                                role: item.role,
+                                                                url: item.url || '',
+                                                                description: item.jobDescription || '',
+                                                                applyDate: item.isoDate || new Date(parseInt(item.id)).toISOString().slice(0, 10)
+                                                            });
+                                                            sidebarRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+                                                        }}
+                                                        className="w-full px-3 py-1.5 font-bold text-xs rounded-lg border transition-colors flex items-center justify-center bg-yellow-100 text-yellow-800 hover:bg-yellow-200 border-yellow-300 shadow-sm active:scale-95"
+                                                        title="Editar metadados da vaga"
+                                                     >
+                                                         <PenTool size={14} className="mr-1.5"/> Editar
+                                                     </button>
+
+                                                     <button 
+                                                        onClick={() => {
+                                                            if(window.confirm("⚠️ ATENÇÃO: Deseja RESTAURAR este currículo?\n\nIsso apagará todas as suas edições, seções e formatações atuais, substituindo tudo pelos dados exatos arquivados nesta vaga.\n\nTem certeza que deseja continuar?")) {
+                                                                setViewingHistoryId(null);
+                                                                setData(prev => ({ ...item.snapshotData, history: prev.history }));
+                                                                setSettings(item.snapshotSettings);
+                                                            }
+                                                        }}
+                                                        className="w-full px-3 py-1.5 font-bold text-xs rounded-lg border transition-colors flex items-center justify-center bg-green-100 text-green-800 hover:bg-green-200 border-green-300 shadow-sm active:scale-95"
+                                                        title="Sobrescrever o currículo atual com estes dados"
+                                                     >
+                                                         <RotateCcw size={14} className="mr-1.5"/> Restaurar
+                                                     </button>
+
+                                                     <button 
+                                                        onClick={() => {
+                                                            if(window.confirm("Excluir este registro permanentemente?")) {
+                                                                setData(prev => ({ ...prev, history: prev.history.filter(h => h.id !== item.id) }));
+                                                                if (isViewing) setViewingHistoryId(null);
+                                                                if (editingHistoryId === item.id) {
+                                                                    setEditingHistoryId(null);
+                                                                    setHistoryForm({ company: '', role: '', url: '', description: '', applyDate: new Date().toISOString().slice(0, 10) });
+                                                                }
+                                                            }
+                                                        }} 
+                                                        className="w-full px-3 py-1.5 font-bold text-xs rounded-lg border transition-colors flex items-center justify-center bg-white text-red-600 hover:bg-red-50 border-red-300 shadow-sm active:scale-95"
+                                                     >
+                                                         <Trash2 size={14} className="mr-1.5"/> Excluir
+                                                     </button>
+                                                 </div>
+                                             </div>
+                                             
+                                             <div className="mb-3 flex flex-col gap-3">
+                                                 <div className="flex items-center gap-3">
+                                                     <span className="flex items-center text-xs font-bold text-gray-800 bg-white px-2.5 py-1 rounded-md border border-gray-300 shadow-sm">
+                                                         <Calendar size={14} className="mr-1.5 text-blue-600"/> Enviado em: {item.applyDate}
+                                                     </span>
+                                                     
+                                                     {(() => {
+                                                         let daysText = "";
+                                                         let badgeColor = "bg-gray-200 text-gray-700";
+                                                         
+                                                         if (diffDays === 0) {
+                                                             daysText = "Hoje";
+                                                             badgeColor = "bg-emerald-100 text-emerald-800 border border-emerald-300";
+                                                         } else if (diffDays === 1) {
+                                                             daysText = "Há 1 dia";
+                                                         } else if (diffDays > 1) {
+                                                             daysText = `Há ${diffDays} dias`;
+                                                             if (diffDays > 30) badgeColor = "bg-amber-100 text-amber-800 border border-amber-300";
+                                                             if (diffDays > 180) badgeColor = "bg-red-100 text-red-800 border border-red-300";
+                                                         } else {
+                                                             daysText = `No futuro`; 
+                                                         }
+
+                                                         return (
+                                                             <span className={`text-[11px] font-extrabold px-2 py-1 rounded-full ${badgeColor} shadow-sm`}>
+                                                                 {daysText}
+                                                             </span>
+                                                         );
+                                                     })()}
+                                                 </div>
+                                             </div>
+                                             
+                                             {item.jobDescription && (
+                                                 <div className={`bg-white p-3 border border-gray-200 rounded-lg max-h-48 overflow-y-auto text-xs text-gray-700 whitespace-pre-wrap shadow-inner leading-relaxed ${item.url ? 'mb-3' : ''}`}>
+                                                     {item.jobDescription}
+                                                 </div>
+                                             )}
+
+                                             {item.url && (
+                                                 <a href={item.url.startsWith('http') ? item.url : `https://${item.url}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center self-start bg-blue-600 text-white hover:bg-blue-700 px-3 py-1.5 rounded-md border border-blue-700 font-bold text-xs transition-all hover:shadow-md">
+                                                     <ExternalLink size={14} className="mr-1.5"/> Acessar Link da Vaga
+                                                 </a>
+                                             )}
+                                         </div>
+                                     </div>
+                                 )}
+                             </Draggable>
+                         );
+                     })}
+                     {provided.placeholder}
+                 </div>
+             )}
+         </Droppable>
+      </div>
+    </div>
+  );
 
   return (
     <DragDropContext onDragEnd={handleDragEnd}>
@@ -2097,55 +2382,58 @@ export default function App() {
               </div>
           </div>
           <div className="p-4 space-y-1">
-            {tabs.map(tab => {
-                const isSettings = tab.id === 'settings';
-                const isActive = activeTab === tab.id;
-                
-                let btnClasses = `w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all whitespace-nowrap `;
-                
-                if (isActive) {
-                    btnClasses += 'bg-blue-100 text-blue-900 shadow-md font-bold transform scale-[1.02] ';
-                } else if (isSettings) {
-                    /* Destaca a aba de configurações com borda esquerda e fundo mais forte */
-                    btnClasses += 'bg-slate-800 border-l-4 border-blue-500 text-blue-200 hover:bg-slate-700 hover:text-white shadow-sm ';
-                } else {
-                    btnClasses += 'hover:bg-slate-800 ';
-                }
-                
-                if (isSettings) btnClasses += 'mb-4 ';
+            {/* MACRO-CATEGORIA 1: SISTEMA */}
+            <p className="px-4 text-[10px] font-bold text-slate-500 uppercase mb-2 mt-2 tracking-widest">Sistema</p>
+            
+            <button onClick={() => setActiveTab('settings')} className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all whitespace-nowrap mb-1 ${activeTab === 'settings' ? 'bg-blue-100 text-blue-900 shadow-md font-bold transform scale-[1.02]' : 'bg-slate-800 border-l-4 border-blue-500 text-blue-200 hover:bg-slate-700 hover:text-white shadow-sm'}`}>
+                <Settings size={18} className={`flex-shrink-0 ${activeTab === 'settings' ? 'text-blue-700' : 'text-blue-400'}`} />
+                <span className="font-medium">{t.layoutTab}</span>
+                {activeTab === 'settings' && <ChevronRight size={16} className="ml-auto text-blue-700" />}
+            </button>
+            
+            <button onClick={() => setActiveTab('history')} className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all whitespace-nowrap mb-1 ${activeTab === 'history' ? 'bg-yellow-100 text-yellow-900 shadow-md font-bold transform scale-[1.02]' : 'bg-slate-800 border-l-4 border-yellow-500 text-yellow-200 hover:bg-slate-700 hover:text-white shadow-sm'}`}>
+                <Archive size={18} className={`flex-shrink-0 ${activeTab === 'history' ? 'text-yellow-700' : 'text-yellow-400'}`} />
+                <span className="font-medium">{t.historyTab || "Histórico de Vagas"}</span>
+                {activeTab === 'history' && <ChevronRight size={16} className="ml-auto text-yellow-700" />}
+            </button>
+
+            <button onClick={() => setActiveTab('sections')} className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all whitespace-nowrap mb-4 ${activeTab === 'sections' ? 'bg-green-100 text-green-900 shadow-md font-bold transform scale-[1.02]' : 'bg-slate-800 border-l-4 border-green-500 text-green-200 hover:bg-slate-700 hover:text-white shadow-sm'}`}>
+                <Layers size={18} className={`flex-shrink-0 ${activeTab === 'sections' ? 'text-green-700' : 'text-green-400'}`} />
+                <span className="font-medium">{t.sectionsTab}</span>
+                {activeTab === 'sections' && <ChevronRight size={16} className="ml-auto text-green-700" />}
+            </button>
+
+            {/* MACRO-CATEGORIA 2: SEÇÕES */}
+            <div className="pt-4 border-t border-slate-700 mt-4 mb-2">
+                <p className="px-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Seções</p>
+            </div>
+
+            <button onClick={() => setActiveTab('personal')} className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all whitespace-nowrap mb-1 ${activeTab === 'personal' ? 'bg-blue-100 text-blue-900 shadow-md font-bold transform scale-[1.02]' : 'hover:bg-slate-800'}`}>
+                <User size={18} className={`flex-shrink-0 ${activeTab === 'personal' ? 'text-blue-700' : ''}`} />
+                <span className="font-medium">{t.personalTab}</span>
+                {activeTab === 'personal' && <ChevronRight size={16} className="ml-auto text-blue-700" />}
+            </button>
+
+            {data.sectionOrder.map(sectionId => {
+                const isCustom = sectionId.startsWith('custom-');
+                const sectionConfig = isCustom 
+                    ? data.customSections.find(s => s.id === sectionId) 
+                    : data.structure[sectionId];
+                if (!sectionConfig) return null;
+                const IconComponent = isCustom ? PenTool : (SECTION_ICONS[sectionId] || FileText);
 
                 return (
-                    <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={btnClasses}>
-                        <tab.icon size={18} className={`flex-shrink-0 ${isActive ? 'text-blue-700' : (isSettings ? 'text-blue-400' : '')}`} />
-                        <span className="font-medium">{tab.label}</span>
-                        {isActive && <ChevronRight size={16} className="ml-auto text-blue-700" />}
+                    <button 
+                        key={sectionId} 
+                        onClick={() => setActiveTab(sectionId)} 
+                        className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all whitespace-nowrap ${activeTab === sectionId ? 'bg-blue-100 text-blue-900 shadow-md font-bold transform scale-[1.02]' : 'hover:bg-slate-800'}`}
+                    >
+                        <IconComponent size={18} className={`flex-shrink-0 ${activeTab === sectionId ? 'text-blue-700' : ''}`} />
+                        <span className="font-medium truncate">{sectionConfig.title}</span>
+                        {activeTab === sectionId && <ChevronRight size={16} className="ml-auto text-blue-700" />}
                     </button>
                 );
             })}
-
-            <div className="pt-2 border-t border-slate-700 mt-2">
-                <p className="px-4 text-xs font-semibold text-slate-500 uppercase mb-2 tracking-wider">SEÇÕES</p>
-                {data.sectionOrder.map(sectionId => {
-                    const isCustom = sectionId.startsWith('custom-');
-                    const sectionConfig = isCustom 
-                        ? data.customSections.find(s => s.id === sectionId) 
-                        : data.structure[sectionId];
-                    if (!sectionConfig) return null;
-                    const IconComponent = isCustom ? PenTool : (SECTION_ICONS[sectionId] || FileText);
-
-                    return (
-                        <button 
-                            key={sectionId} 
-                            onClick={() => setActiveTab(sectionId)} 
-                            className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all whitespace-nowrap ${activeTab === sectionId ? 'bg-blue-100 text-blue-900 shadow-md font-bold transform scale-[1.02]' : 'hover:bg-slate-800'}`}
-                        >
-                            <IconComponent size={18} className={`flex-shrink-0 ${activeTab === sectionId ? 'text-blue-700' : ''}`} />
-                            <span className="font-medium truncate">{sectionConfig.title}</span>
-                            {activeTab === sectionId && <ChevronRight size={16} className="ml-auto text-blue-700" />}
-                        </button>
-                    );
-                })}
-            </div>
           </div>
           
           <div className="p-6 mt-auto border-t border-slate-700 space-y-3">
@@ -2246,9 +2534,28 @@ export default function App() {
                 <input type="range" min="0.3" max="1.5" step="0.1" value={zoom} onChange={e => setZoom(parseFloat(e.target.value))} className="w-24 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer" />
             </div>
             
-            <div className="w-full flex justify-center items-start overflow-visible min-h-screen pb-32">
+            {viewingHistoryId && (
+                <div className="absolute top-0 left-0 right-0 bg-yellow-400 text-yellow-900 p-3 text-center font-bold text-sm shadow-md z-[60] flex justify-center items-center gap-4 border-b-4 border-yellow-500 animate-in slide-in-from-top-2">
+                    <Clock size={18} />
+                    <span>MÁQUINA DO TEMPO: Visualizando versão arquivada. O PDF será gerado com estes dados.</span>
+                    <button 
+                        onClick={() => {
+                            setViewingHistoryId(null);
+                            if (typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS) console.log("⏳ [App.js] Saindo da Máquina do Tempo.");
+                        }}
+                        className="bg-yellow-900 text-white px-4 py-1.5 rounded-md text-xs hover:bg-yellow-800 transition-colors flex items-center shadow-sm active:scale-95"
+                    >
+                        <ArrowLeft size={14} className="mr-1.5"/> Voltar ao Editor Principal
+                    </button>
+                </div>
+            )}
+            
+            <div className={`w-full flex justify-center items-start overflow-visible min-h-screen pb-32 ${viewingHistoryId ? 'mt-12' : ''}`}>
                 <div style={{ transform: `scale(${zoom})`, transformOrigin: 'top center' }}>
-                    <ResumePreview data={data} settings={settings} />
+                    <ResumePreview 
+                        data={viewingHistoryId ? data.history.find(h => h.id === viewingHistoryId)?.snapshotData : data} 
+                        settings={viewingHistoryId ? data.history.find(h => h.id === viewingHistoryId)?.snapshotSettings : settings} 
+                    />
                 </div>
             </div>
         </div>
