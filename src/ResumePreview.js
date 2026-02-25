@@ -679,7 +679,8 @@ export default function ResumePreview({ data, settings }) {
                             </div>
                             {edu.details && (
                             <div className="mt-0.5" style={{ paddingRight: eduColWidthCSS }}>
-                                <p className="text-[0.9em] opacity-75 italic break-words" style={{ textAlign: settings.textAlign, textJustify: 'inter-word' }}>{formatText(edu.details)}</p>
+                                {EXIBIR_LOGS && edu.details.includes('\n') && console.log(`✅ [ResumePreview.js] Renderizando quebra de linha nos detalhes da formação (Índice: ${i})`)}
+                                <p className="text-[0.9em] opacity-75 italic break-words" style={{ textAlign: settings.textAlign, textJustify: 'inter-word', whiteSpace: 'pre-line' }}>{formatText(edu.details)}</p>
                             </div>
                             )}
                         </div>
