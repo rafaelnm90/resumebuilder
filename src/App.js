@@ -473,15 +473,15 @@ export default function App() {
   const [data, setData] = useState(INITIAL_DATA);
   const [settings, setSettings] = useState(INITIAL_SETTINGS);
   const [activeTab, setActiveTab] = useState('personal');
-  const [zoom, setZoom] = useState(0.7); 
+  const [zoom, setZoom] = useState(0.8); 
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   
   const [language, setLanguage] = useState('pt');
   const t = TRANSLATIONS[language].ui;
 
-  const [sidebarWidth, setSidebarWidth] = useState(480);
+  const [sidebarWidth, setSidebarWidth] = useState(680);
   if (typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS) {
-      console.log("⚙️ [App.js] Definindo largura inicial da barra lateral para 480px.");
+      console.log("⚙️ [App.js] Definindo largura inicial da barra lateral para 680px.");
   }
 
   const [isResizing, setIsResizing] = useState(false);
