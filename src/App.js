@@ -470,6 +470,53 @@ const ExpandedModal = ({ isOpen, onClose, title, value, onSave, disableFormattin
   );
 };
 
+const PeriodInput = ({ value, onChange }) => {
+  const parts = (value || '').split(' - ');
+  const start = parts[0] || '';
+  const end = parts.length > 1 ? parts.slice(1).join(' - ') : '';
+  const isCurrent = end.trim().toLowerCase() === 'atual';
+
+  const handleStartChange = (e) => onChange(`${e.target.value} - ${end}`);
+  const handleEndChange = (e) => onChange(`${start} - ${e.target.value}`);
+  
+  const handleCurrentToggle = (e) => {
+    if (e.target.checked) onChange(`${start} - Atual`);
+    else onChange(`${start} - `); 
+  };
+
+  return (
+    <div className="flex gap-2 mb-2 items-end">
+      <div className="flex-1">
+        <label className="text-xs font-semibold text-gray-500 uppercase mb-1 block">Início</label>
+        <input
+          type="text"
+          className="p-2 border rounded-md outline-none text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 w-full"
+          value={start}
+          onChange={handleStartChange}
+          placeholder="Ex: Jan/2020"
+        />
+      </div>
+      <div className="flex-1">
+        <div className="flex justify-between items-center mb-1">
+          <label className="text-xs font-semibold text-gray-500 uppercase">Fim</label>
+          <label className="flex items-center gap-1 cursor-pointer bg-gray-100 hover:bg-gray-200 px-1.5 py-0.5 rounded border border-gray-200 transition-colors">
+            <input type="checkbox" checked={isCurrent} onChange={handleCurrentToggle} className="w-3 h-3 text-blue-600 rounded cursor-pointer" />
+            <span className="text-[9px] font-bold text-gray-600 uppercase">Atual</span>
+          </label>
+        </div>
+        <input
+          type="text"
+          className={`p-2 border rounded-md outline-none text-sm w-full transition-colors ${isCurrent ? 'bg-gray-100 text-gray-400 cursor-not-allowed font-bold' : 'focus:border-blue-500 focus:ring-1'}`}
+          value={isCurrent ? 'Atual' : (end === 'Atual' ? '' : end)}
+          onChange={handleEndChange}
+          disabled={isCurrent}
+          placeholder="Ex: Dez/2023"
+        />
+      </div>
+    </div>
+  );
+};
+
 export default function App() {
   const [data, setData] = useState(INITIAL_DATA);
   const [settings, setSettings] = useState(INITIAL_SETTINGS);
@@ -1920,7 +1967,7 @@ export default function App() {
                     <div className="grid grid-cols-2 gap-x-4 gap-y-3 mb-2">
                         <Input label={t.company} value={ex.company} onChange={v=>updateItem('experience', i, 'company', v)} onExpandRequest={handleOpenExpand}/>
                         <Input label={t.role} value={ex.role} onChange={v=>updateItem('experience', i, 'role', v)} onExpandRequest={handleOpenExpand}/>
-                        <Input label={t.period} value={ex.period} onChange={v=>updateItem('experience', i, 'period', v)} onExpandRequest={handleOpenExpand}/>
+                        <PeriodInput value={ex.period} onChange={v=>updateItem('experience', i, 'period', v)} />
                         <Input label={t.location} value={ex.location} onChange={v=>updateItem('experience', i, 'location', v)} onExpandRequest={handleOpenExpand}/>
                     </div>
                     <div className="pt-2 border-t border-gray-200">
@@ -1949,7 +1996,7 @@ export default function App() {
             <Input label={t.institution} value={ed.institution} onChange={v=>updateItem('education', i, 'institution', v)} onExpandRequest={handleOpenExpand}/>
             <Input label={t.degree} value={ed.degree} onChange={v=>updateItem('education', i, 'degree', v)} onExpandRequest={handleOpenExpand}/>
             <div className="grid grid-cols-2 gap-2">
-                <Input label={t.period} value={ed.period} onChange={v=>updateItem('education', i, 'period', v)} onExpandRequest={handleOpenExpand}/>
+                <PeriodInput value={ed.period} onChange={v=>updateItem('education', i, 'period', v)} />
                 <Input label={t.location} value={ed.location} onChange={v=>updateItem('education', i, 'location', v)} onExpandRequest={handleOpenExpand}/>
             </div>
             <Input label={t.details} value={ed.details} onChange={v=>updateItem('education', i, 'details', v)} enableRich={true} onExpandRequest={handleOpenExpand} multiline={true} />
