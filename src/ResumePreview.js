@@ -63,6 +63,14 @@ export default function ResumePreview({ data, settings }) {
               // 297mm é a altura exata da folha A4. Arredonda sempre para cima.
               const pages = Math.ceil(heightMm / 297); 
               setMinPages(pages > 0 ? pages : 1);
+      const newPages = pages > 0 ? pages : 1;
+              setMinPages(prev => {
+                  if (prev !== newPages) {
+                      if (typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS) console.log(`⚡ [ResumePreview.js] Re-renderização disparada via ResizeObserver: Páginas atualizadas para ${newPages}.`);
+                      return newPages;
+                  }
+                  return prev; // Cancela silenciosamente a re-renderização se o valor for o mesmo
+              });
           }
       });
       
@@ -636,7 +644,10 @@ export default function ResumePreview({ data, settings }) {
                 <Wrapper title={displayTitle}>
                     <div style={containerStyle}>
                     {data.experience.map((exp, i) => {
-                        const hasContent = exp.company?.trim() || exp.role?.trim() || (exp.description || []).some(d => d.trim());
+                        const hasContent = exp.company?.trim() || exp.role?.trim() || (exp.description || []).some(d => {
+                            if (typeof d === 'string') return d.trim();
+                            return d.text?.trim() || d.prefix?.trim();
+                        });
                         if (!hasContent) return null;
 
                         return (
@@ -1014,6 +1025,32 @@ export default function ResumePreview({ data, settings }) {
                     {getFormattedDate(data.dateLocation)}
                 </span>
             </div>
+        )}
+
+        {/* Renderização de Numeração de Páginas */}
+        {settings.showPageNumbers && (
+            <>
+                {EXIBIR_LOGS && console.log(`📄 [ResumePreview.js] Renderizando numeração para ${minPages} página(s) com ajustes de estilo e alinhamento.`)}
+                {Array.from({ length: minPages }).map((_, idx) => (
+                    <div
+                        key={`page-number-${idx}`}
+                        className="print-page-number break-inside-avoid"
+                        style={{
+                            position: 'absolute',
+                            top: `calc(${(idx + 1) * 297}mm - 18mm)`,
+                            right: '15mm',
+                            textAlign: 'right',
+                            fontSize: settings.pageNumberFontSize ? `${settings.pageNumberFontSize}em` : '0.85em',
+                            fontWeight: settings.pageNumberBold ? 'bold' : 'normal',
+                            color: settings.bodyColor,
+                            zIndex: 1000,
+                            lineHeight: 1
+                        }}
+                    >
+                        {idx + 1} / {minPages}
+                    </div>
+                ))}
+            </>
         )}
     </div>
   );
