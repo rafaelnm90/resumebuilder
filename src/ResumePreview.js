@@ -966,7 +966,8 @@ export default function ResumePreview({ data, settings }) {
         )}
 
         {/* Tabela Mestre encapsulada na div rastreada pelo ResizeObserver */}
-        <div ref={contentRef} style={{ width: '100%' }}>
+        {/* Adicionado alignSelf: 'flex-start' para evitar que a div estique e cause loop no ResizeObserver */}
+        <div ref={contentRef} style={{ width: '100%', alignSelf: 'flex-start' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', borderSpacing: 0 }}>
                 <thead style={{ display: 'table-header-group' }}>
                     <tr>
