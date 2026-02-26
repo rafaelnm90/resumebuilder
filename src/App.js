@@ -103,7 +103,7 @@ const Input = ({ label, value, onChange, onExpandRequest, enableRich = false, ex
   return (
     <div className="flex flex-col group relative mb-2">
       <div className="flex justify-between items-end">
-        <label className="text-xs font-semibold text-gray-500 uppercase mb-1">{label}</label>
+        <label className="text-[10px] font-semibold text-gray-500 uppercase mb-0.5 tracking-wider">{label}</label>
         {(enableRich || onExpandRequest) && (
           <RichTextToolbar 
             onFormat={enableRich ? handleFormat : null} 
@@ -113,7 +113,7 @@ const Input = ({ label, value, onChange, onExpandRequest, enableRich = false, ex
       </div>
       <textarea
           ref={inputRef}
-          className={`p-2 border rounded-md outline-none text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 w-full resize-none overflow-hidden ${enableRich || onExpandRequest ? 'rounded-tr-none' : ''}`}
+          className={`px-2 py-1.5 border rounded-md outline-none text-xs focus:border-blue-500 focus:ring-1 focus:ring-blue-500 w-full resize-none overflow-hidden ${enableRich || onExpandRequest ? 'rounded-tr-none' : ''}`}
           value={value || ''}
           onChange={e => {
               onChange(e.target.value);
@@ -384,13 +384,13 @@ const DraggableSection = ({ sectionId, title, items, onAdd, onRemove, renderItem
             {items.map((item, index) => (
                 <Draggable key={`${sectionId}-${index}`} draggableId={`${sectionId}-${index}`} index={index}>
                 {(provided, snapshot) => (
-                    <div ref={provided.innerRef} {...provided.draggableProps} className={`bg-white p-4 rounded-xl relative border-2 ${snapshot.isDragging ? 'border-blue-500 shadow-2xl z-50' : 'border-gray-100 hover:border-blue-100 shadow-sm'} transition-all mb-4`}>
+                    <div ref={provided.innerRef} {...provided.draggableProps} className={`bg-white p-3 rounded-lg relative border ${snapshot.isDragging ? 'border-blue-500 shadow-2xl z-50' : 'border-gray-200 hover:border-blue-100 shadow-sm'} transition-all mb-3`}>
                     <button 
                         onClick={() => {
-                            if (typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS) console.log("🗑️ [App.js] Removendo item da seção...");
+                            if (typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS) console.log(`🗑️ [App.js] Otimização: Removendo item do índice ${index}...`);
                             onRemove(index);
                         }} 
-                        className="absolute -top-2 -right-2 bg-white text-red-400 p-1.5 rounded-full shadow-md border border-red-100 z-20 hover:text-red-600 hover:scale-110 transition-transform"
+                        className="absolute -top-2 -right-2 bg-white text-red-400 p-1 rounded-full shadow-md border border-red-100 z-20 hover:text-red-600 hover:scale-110 transition-transform"
                     >
                         <Trash2 size={14}/>
                     </button>
@@ -521,9 +521,9 @@ export default function App() {
   const [data, setData] = useState(INITIAL_DATA);
   const [settings, setSettings] = useState(INITIAL_SETTINGS);
   const [activeTab, setActiveTab] = useState('personal');
-  const [zoom, setZoom] = useState(0.7); 
+  const [zoom, setZoom] = useState(0.8); 
   if (typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS) {
-      console.log("🔍 [App.js] Nível de zoom inicial ajustado para 70% (0.7).");
+      console.log("🔍 [App.js] Nível de zoom inicial ajustado para 80% (0.8).");
   }
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   
@@ -780,6 +780,26 @@ export default function App() {
     e.target.value = ''; 
   };
 
+   const handleReset = () => {
+    const resetText = window.confirm("⚠️ ATENÇÃO: Deseja ZERAR OS TEXTOS e seções do currículo atual?\n\nIsso apagará o conteúdo atual para você começar um novo (seu Histórico de Vagas continuará salvo).");
+    const resetLayout = window.confirm("🎨 Deseja RESETAR A FORMATAÇÃO (Layout, cores, fontes e espaçamentos) para o padrão original?");
+
+    if (!resetText && !resetLayout) {
+        if (typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS) console.log("❌ [App.js] Ação de limpeza cancelada pelo usuário.");
+        return;
+    }
+
+    if (resetText) {
+        if (typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS) console.log("🗑️ [App.js] Zerando textos do currículo (mantendo histórico de vagas)...");
+        setData(prev => ({ ...INITIAL_DATA, history: prev.history })); 
+    }
+
+    if (resetLayout) {
+        if (typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS) console.log("🎨 [App.js] Restaurando formatação padrão...");
+        setSettings(INITIAL_SETTINGS);
+    }
+  };
+
   const handleOpenExpand = (title, currentValue, saveCallback, disableFormatting = false) => {
     setExpandedField({ title, value: currentValue, onSave: saveCallback, disableFormatting });
   };
@@ -1001,24 +1021,24 @@ export default function App() {
 
     const isAtsSection = sectionId === 'keywords';
     const containerClasses = isAtsSection 
-        ? "bg-red-50 p-4 rounded-xl border-2 border-red-400 mb-6 shadow-md transition-all hover:shadow-lg"
-        : "bg-blue-50 p-4 rounded-xl border border-blue-200 mb-6 shadow-sm transition-all hover:shadow-md";
+        ? "bg-red-50 p-3 rounded-lg border-2 border-red-400 mb-4 shadow-sm transition-all hover:shadow-md"
+        : "bg-blue-50 p-3 rounded-lg border border-blue-200 mb-4 shadow-sm transition-all hover:shadow-md";
 
     const iconBgClasses = isAtsSection
-        ? "flex-shrink-0 p-2.5 bg-white rounded-lg border border-red-200 text-red-600 shadow-sm"
-        : "flex-shrink-0 p-2.5 bg-white rounded-lg border border-blue-100 text-blue-600 shadow-sm";
+        ? "flex-shrink-0 p-2 bg-white rounded-md border border-red-200 text-red-600 shadow-sm"
+        : "flex-shrink-0 p-2 bg-white rounded-md border border-blue-100 text-blue-600 shadow-sm";
 
     return (
         <div className={containerClasses}>
-            <div className="flex items-center gap-3 mb-3">
+            <div className="flex items-center gap-3 mb-2">
                 <div className={iconBgClasses}>
-                    <Icon size={22}/> 
+                    <Icon size={20}/> 
                 </div>
                 <input 
                     type="text" 
                     value={config.title} 
                     onChange={handleTitleChange}
-                    className={`flex-1 text-xl font-bold bg-transparent border-b-2 px-2 py-1 transition-all outline-none min-w-0 ${isAtsSection ? 'text-red-900 border-red-200 focus:border-red-500 placeholder-red-300' : 'text-gray-800 border-blue-200 focus:border-blue-500 placeholder-blue-300'}`}
+                    className={`flex-1 text-lg font-bold bg-transparent border-b-2 px-2 py-1 transition-all outline-none min-w-0 ${isAtsSection ? 'text-red-900 border-red-200 focus:border-red-500 placeholder-red-300' : 'text-gray-800 border-blue-200 focus:border-blue-500 placeholder-blue-300'}`}
                     placeholder="Título da Seção"
                 />
             </div>
@@ -2502,6 +2522,13 @@ export default function App() {
                 </label>
             </div>
 
+            <button 
+                onClick={handleReset} 
+                className="w-full flex justify-center items-center bg-red-100 hover:bg-red-200 text-red-800 py-2.5 rounded-lg text-xs font-bold transition-all shadow-sm active:scale-95 border border-red-300 mb-3"
+            >
+                <Trash2 size={16} className="mr-2" /> Novo / Limpar Currículo
+            </button>
+
             <button onClick={handlePrint} className="w-full flex justify-center items-center bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-bold transition-all shadow-md active:scale-95 whitespace-nowrap">
                 <Download size={20} className="mr-2" /> {t.downloadPdf}
             </button>
@@ -2557,7 +2584,7 @@ export default function App() {
                 </div>
              </a>
 
-             <div className="p-8 pb-20 flex-1">
+             <div className="p-4 md:p-5 pb-20 flex-1">
                 {renderActiveSection()}
              </div>
         </aside>
