@@ -18,7 +18,7 @@ const formatText = (text) => {
       return <strong key={index}>{part.slice(2, -2)}</strong>;
     }
     if (part.startsWith('*') && part.endsWith('*')) {
-      return <em key={index}>{part.slice(1, -1)}</em>;
+      return <em key={index} className="italic">{part.slice(1, -1)}</em>;
     }
     return part;
   });
@@ -680,7 +680,7 @@ export default function ResumePreview({ data, settings }) {
                             {edu.details && (
                             <div className="mt-0.5" style={{ paddingRight: eduColWidthCSS }}>
                                 {EXIBIR_LOGS && edu.details.includes('\n') && console.log(`✅ [ResumePreview.js] Renderizando quebra de linha nos detalhes da formação (Índice: ${i})`)}
-                                <p className="text-[0.9em] opacity-75 italic break-words" style={{ textAlign: settings.textAlign, textJustify: 'inter-word', whiteSpace: 'pre-line' }}>{formatText(edu.details)}</p>
+                                <p className="text-[0.9em] opacity-75 break-words" style={{ textAlign: settings.textAlign, textJustify: 'inter-word', whiteSpace: 'pre-line' }}>{formatText(edu.details)}</p>
                             </div>
                             )}
                         </div>
