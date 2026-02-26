@@ -694,6 +694,24 @@ export default function App() {
         sidebarRef.current.scrollTop = 0;
     }
   }, [activeTab]);
+
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      e.preventDefault();
+      // O Chrome e navegadores baseados em Chromium exigem que o returnValue seja definido
+      e.returnValue = ''; 
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    if (typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS) {
+        console.log("🛡️ [App.js] Alerta de fechamento de página/backup ativado.");
+    }
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, []);
   
   const listTextRef = useRef(null); 
   const textSectionRef = useRef(null); 
