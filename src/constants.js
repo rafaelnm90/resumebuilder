@@ -37,6 +37,7 @@ export const TRANSLATIONS = {
       layoutTab: "Layout & Otimização",
       sectionsTab: "Gerenciar Seções",
       personalTab: "Pessoal",
+      historyTab: "Histórico de Vagas",
       zoom: "ZOOM",
       addSection: "Nova Seção",
       text: "Texto",
@@ -171,6 +172,7 @@ export const TRANSLATIONS = {
       layoutTab: "Layout & Optimization",
       sectionsTab: "Manage Sections",
       personalTab: "Personal Info",
+      historyTab: "Application History",
       zoom: "ZOOM",
       addSection: "New Section",
       text: "Text",
@@ -352,7 +354,8 @@ export const INITIAL_DATA = {
     keywords: { title: "Camuflagem ATS (SEO)", visible: false, id: 'keywords' }
   },
   
-  customSections: [], 
+  customSections: [],
+   history: [],
   
   // ESTRUTURA PARA RODAPÉ (DATA/LOCAL)
   dateLocation: {
