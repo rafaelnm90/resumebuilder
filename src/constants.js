@@ -306,7 +306,10 @@ export const INITIAL_SETTINGS = {
   sectionTitleBold: true,
   showGuides: true,
   showPageLines: false, 
-  
+  showPageNumbers: false,
+  pageNumberBold: false,
+  pageNumberFontSize: 0.85,
+   
   fontSizeBase: 10,      
   textAlign: 'justify',
   listStyle: 'disc',
