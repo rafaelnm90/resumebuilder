@@ -54,7 +54,6 @@ const insertFormatting = (ref, type) => {
   let replaceEnd = end;
   let replacement = null;
 
-  // CASO 1: O usuário selecionou o texto INCLUINDO os marcadores (ex: selecionou "**palavra**")
   if (selectedText.length >= mLen * 2) {
       const startsWithMarker = selectedText.startsWith(marker);
       const endsWithMarker = selectedText.endsWith(marker);
@@ -68,7 +67,6 @@ const insertFormatting = (ref, type) => {
       }
   }
 
-  // CASO 2: Os marcadores estão EXATAMENTE EM VOLTA da seleção do usuário (ex: **[palavra]**)
   if (replacement === null) {
       const textBefore = text.substring(Math.max(0, start - mLen), start);
       const textAfter = text.substring(end, end + mLen);
@@ -85,56 +83,116 @@ const insertFormatting = (ref, type) => {
       }
   }
 
-  // CASO 3: Não possui a formatação, então vamos adicionar (Toggle ON)
   if (replacement === null) {
       if (typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS) console.log(`✨ [App.js] Toggle ON: Aplicando ${type}.`);
       replacement = marker + selectedText + marker;
   }
 
-  // MÁGICA DO NATIVE UNDO (Ctrl+Z / Ctrl+Y)
-  // 1. Foca no input e seleciona a área exata que vamos substituir
-  input.focus();
-  input.setSelectionRange(replaceStart, replaceEnd);
+  const newText = text.substring(0, replaceStart) + replacement + text.substring(replaceEnd);
   
-  // 2. Engana o navegador imitando uma digitação humana
-  const success = document.execCommand('insertText', false, replacement);
-  
-  // Fallback: Se o navegador for extremamente restritivo e bloquear a API, caímos para o método antigo
-  if (!success) {
-      if (typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS) console.log(`⚠️ [App.js] Fallback manual disparado. O Ctrl+Z falhará nesta ação.`);
-      return text.substring(0, replaceStart) + replacement + text.substring(replaceEnd);
-  }
+  setTimeout(() => {
+      if(ref.current) {
+          ref.current.focus();
+          if (selectedText.length === 0) {
+              ref.current.setSelectionRange(replaceStart + mLen, replaceStart + mLen);
+          } else {
+              ref.current.setSelectionRange(replaceStart, replaceStart + replacement.length);
+          }
+      }
+  }, 10);
 
-  // Retorna undefined pois a mudança de DOM já disparou o 'onChange' do React automaticamente
-  return undefined;
+  return newText;
+};
+
+const trackTextHistory = (ref, newValue) => {
+    const input = ref.current;
+    if (!input) return;
+    if (!input._hist) input._hist = { stack: [input.value || ''], index: 0, timer: null };
+
+    clearTimeout(input._hist.timer);
+    input._hist.timer = setTimeout(() => {
+        if (newValue !== input._hist.stack[input._hist.index]) {
+            input._hist.stack = input._hist.stack.slice(0, input._hist.index + 1);
+            input._hist.stack.push(newValue);
+            input._hist.index++;
+            if (input._hist.stack.length > 50) {
+                input._hist.stack.shift();
+                input._hist.index--;
+            }
+        }
+    }, 400); 
+};
+
+const applyFormattingWithHistory = (ref, type, updateCallback) => {
+    const input = ref.current;
+    if (!input) return;
+    if (!input._hist) input._hist = { stack: [input.value || ''], index: 0, timer: null };
+
+    if (input.value !== input._hist.stack[input._hist.index]) {
+        input._hist.stack = input._hist.stack.slice(0, input._hist.index + 1);
+        input._hist.stack.push(input.value);
+        input._hist.index++;
+    }
+
+    const newVal = insertFormatting(ref, type);
+    if (newVal !== undefined) {
+        input._hist.stack = input._hist.stack.slice(0, input._hist.index + 1);
+        input._hist.stack.push(newVal);
+        input._hist.index++;
+        updateCallback(newVal);
+    }
 };
 
 const handleFormatText = (ref, type, currentVal, setVal) => {
-    const newVal = insertFormatting(ref, type);
-    if (newVal !== undefined) setVal(newVal);
+    applyFormattingWithHistory(ref, type, setVal);
 };
 
 const handleFormatList = (ref, type, currentVal, setVal) => {
-    const newVal = insertFormatting(ref, type);
-    if (newVal !== undefined) setVal(newVal);
+    applyFormattingWithHistory(ref, type, setVal);
 };
 
 const handleKeyDownFormatting = (e, ref, updateCallback) => {
-    if ((e.ctrlKey || e.metaKey) && (e.key === 'b' || e.key === 'B')) {
-        e.preventDefault(); // Bloqueia a ação nativa do navegador
-        const newVal = insertFormatting(ref, 'bold');
-        if (newVal !== undefined) {
-            if (typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS) console.log("⌨️ [App.js] Atalho detectado: Ctrl+B (Negrito)");
-            updateCallback(newVal);
+    const input = ref.current;
+    if (!input) return;
+    if (!input._hist) input._hist = { stack: [input.value || ''], index: 0, timer: null };
+
+    const isUndo = (e.ctrlKey || e.metaKey) && (e.key === 'z' || e.key === 'Z') && !e.shiftKey;
+    const isRedo = (e.ctrlKey || e.metaKey) && ((e.key === 'z' || e.key === 'Z') && e.shiftKey || (e.key === 'y' || e.key === 'Y'));
+
+    if (isUndo) {
+        e.preventDefault();
+        if (input.value !== input._hist.stack[input._hist.index] && input._hist.index === input._hist.stack.length - 1) {
+            input._hist.stack.push(input.value);
+            input._hist.index++;
         }
+
+        if (input._hist.index > 0) {
+            input._hist.index--;
+            updateCallback(input._hist.stack[input._hist.index]);
+            if (typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS) console.log("⏪ [App.js] Undo Customizado acionado.");
+        }
+        return;
+    }
+
+    if (isRedo) {
+        e.preventDefault();
+        if (input._hist.index < input._hist.stack.length - 1) {
+            input._hist.index++;
+            updateCallback(input._hist.stack[input._hist.index]);
+            if (typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS) console.log("⏩ [App.js] Redo Customizado acionado.");
+        }
+        return;
+    }
+
+    if ((e.ctrlKey || e.metaKey) && (e.key === 'b' || e.key === 'B')) {
+        e.preventDefault(); 
+        if (typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS) console.log("⌨️ [App.js] Atalho detectado: Ctrl+B (Negrito)");
+        applyFormattingWithHistory(ref, 'bold', updateCallback);
     }
     if ((e.ctrlKey || e.metaKey) && (e.key === 'i' || e.key === 'I')) {
         e.preventDefault();
-        const newVal = insertFormatting(ref, 'italic');
-        if (newVal !== undefined) {
-            if (typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS) console.log("⌨️ [App.js] Atalho detectado: Ctrl+I (Itálico)");
-            updateCallback(newVal);
-        }
+        if (typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS) console.log("⌨️ [App.js] Atalho detectado: Ctrl+I (Itálico)");
+        applyFormattingWithHistory(ref, 'italic', updateCallback);
     }
 };
 
@@ -167,8 +225,7 @@ const Input = ({ label, value, onChange, onExpandRequest, enableRich = false, ex
   const inputRef = useRef(null);
 
   const handleFormat = (type) => {
-    const newVal = insertFormatting(inputRef, type);
-    if (newVal !== undefined) onChange(newVal);
+    applyFormattingWithHistory(inputRef, type, onChange);
   };
 
   return (
@@ -190,7 +247,13 @@ const Input = ({ label, value, onChange, onExpandRequest, enableRich = false, ex
               if (enableRich) handleKeyDownFormatting(e, inputRef, onChange);
           }}
           onChange={e => {
-              onChange(e.target.value);
+              const val = e.target.value;
+              trackTextHistory(inputRef, val);
+              onChange(val);
+              e.target.style.height = 'auto';
+              e.target.style.height = e.target.scrollHeight + 'px';
+          }}
+          onFocus={(e) => {
               e.target.style.height = 'auto';
               e.target.style.height = e.target.scrollHeight + 'px';
           }}
@@ -209,8 +272,7 @@ const DraggableListItemInput = ({ value, onChange, onRemove, dragHandleProps, on
   const [isFocused, setIsFocused] = useState(false);
 
   const handleFormat = (type) => {
-    const newVal = insertFormatting(inputRef, type);
-    if (newVal !== undefined) onChange(newVal);
+    applyFormattingWithHistory(inputRef, type, onChange);
   };
 
   const handleIndent = () => {
@@ -259,7 +321,9 @@ const DraggableListItemInput = ({ value, onChange, onRemove, dragHandleProps, on
                     value={value || ''} 
                     onKeyDown={(e) => handleKeyDownFormatting(e, inputRef, onChange)}
                     onChange={e => {
-                        onChange(e.target.value);
+                        const val = e.target.value;
+                        trackTextHistory(inputRef, val);
+                        onChange(val);
                         e.target.style.height = 'auto';
                         e.target.style.height = e.target.scrollHeight + 'px';
                     }} 
@@ -498,8 +562,7 @@ const ExpandedModal = ({ isOpen, onClose, title, value, onSave, disableFormattin
   if (!isOpen) return null;
 
   const handleFormat = (type) => {
-    const newValue = insertFormatting(textRef, type);
-    if (newValue !== undefined) setLocalValue(newValue);
+    applyFormattingWithHistory(textRef, type, setLocalValue);
   };
 
   const isListMode = localValue && localValue.includes('\n');
@@ -536,7 +599,11 @@ const ExpandedModal = ({ isOpen, onClose, title, value, onSave, disableFormattin
             onKeyDown={(e) => {
                 if (!disableFormatting) handleKeyDownFormatting(e, textRef, setLocalValue);
             }}
-            onChange={(e) => setLocalValue(e.target.value)}
+            onChange={(e) => {
+                const val = e.target.value;
+                trackTextHistory(textRef, val);
+                setLocalValue(val);
+            }}
           />
         </div>
         <div className="p-4 border-t flex justify-end gap-3">
@@ -1604,7 +1671,15 @@ export default function App() {
                         ref={textSectionRef}
                         className="w-full h-48 p-3 border rounded text-sm outline-none focus:ring-2 focus:ring-blue-500" 
                         value={section.content} 
-                        onChange={(e) => {setData(prev => ({...prev, customSections: prev.customSections.map(s => s.id === section.id ? { ...s, content: e.target.value } : s)}))}} 
+                        onKeyDown={(e) => {
+                            if (typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS) console.log("⌨️ [App.js] Pressionou tecla na Seção Customizada (Texto).");
+                            handleKeyDownFormatting(e, textSectionRef, (val) => setData(prev => ({...prev, customSections: prev.customSections.map(s => s.id === section.id ? { ...s, content: val } : s)})));
+                        }}
+                        onChange={(e) => {
+                            const val = e.target.value;
+                            trackTextHistory(textSectionRef, val);
+                            setData(prev => ({...prev, customSections: prev.customSections.map(s => s.id === section.id ? { ...s, content: val } : s)}));
+                        }} 
                         placeholder="Digite o texto da seção aqui..."
                         disabled={!section.visible} 
                     />
@@ -1626,7 +1701,15 @@ export default function App() {
                         ref={listTextRef}
                         className="w-full h-48 p-3 border rounded text-sm outline-none focus:ring-2 focus:ring-blue-500" 
                         value={Array.isArray(section.content) ? section.content.join('\n') : section.content} 
-                        onChange={(e) => {setData(prev => ({...prev, customSections: prev.customSections.map(s => s.id === section.id ? { ...s, content: e.target.value.split('\n') } : s)}))}}
+                        onKeyDown={(e) => {
+                            if (typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS) console.log("⌨️ [App.js] Pressionou tecla na Seção Customizada (Lista).");
+                            handleKeyDownFormatting(e, listTextRef, (val) => setData(prev => ({...prev, customSections: prev.customSections.map(s => s.id === section.id ? { ...s, content: val.split('\n') } : s)})));
+                        }}
+                        onChange={(e) => {
+                            const val = e.target.value;
+                            trackTextHistory(listTextRef, val);
+                            setData(prev => ({...prev, customSections: prev.customSections.map(s => s.id === section.id ? { ...s, content: val.split('\n') } : s)}));
+                        }}
                         disabled={!section.visible} 
                     />
                     <RichTextToolbar 
@@ -1925,8 +2008,7 @@ export default function App() {
   const renderObjectiveForm = () => {
     const isVisible = data.structure.objective.visible; 
     const handleFormatObjective = (type) => {
-      const newVal = insertFormatting(objectiveRef, type);
-      if(newVal !== undefined) updateSimpleField('objective', newVal);
+      applyFormattingWithHistory(objectiveRef, type, (val) => updateSimpleField('objective', val));
     };
 
     return (
@@ -1939,7 +2021,15 @@ export default function App() {
                 ref={objectiveRef}
                 className="w-full h-32 p-3 border rounded text-sm focus:ring-2 focus:ring-blue-500 outline-none" 
                 value={data.objective} 
-                onChange={e => updateSimpleField('objective', e.target.value)} 
+                onKeyDown={(e) => {
+                    if (typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS) console.log("⌨️ [App.js] Pressionou tecla no Objetivo.");
+                    handleKeyDownFormatting(e, objectiveRef, (val) => updateSimpleField('objective', val));
+                }}
+                onChange={e => {
+                    const val = e.target.value;
+                    trackTextHistory(objectiveRef, val);
+                    updateSimpleField('objective', val);
+                }} 
                 disabled={!isVisible} 
               />
               <RichTextToolbar 
@@ -1955,8 +2045,7 @@ export default function App() {
   const renderSummaryForm = () => {
     const isVisible = data.structure.summary.visible; 
     const handleFormatSummary = (type) => {
-      const newVal = insertFormatting(summaryRef, type);
-      if(newVal !== undefined) updateSimpleField('summary', newVal);
+      applyFormattingWithHistory(summaryRef, type, (val) => updateSimpleField('summary', val));
     };
 
     return (
@@ -1969,7 +2058,15 @@ export default function App() {
                 ref={summaryRef}
                 className="w-full h-48 p-3 border rounded text-sm focus:ring-2 focus:ring-blue-500 outline-none" 
                 value={data.summary} 
-                onChange={e => updateSimpleField('summary', e.target.value)} 
+                onKeyDown={(e) => {
+                    if (typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS) console.log("⌨️ [App.js] Pressionou tecla no Resumo.");
+                    handleKeyDownFormatting(e, summaryRef, (val) => updateSimpleField('summary', val));
+                }}
+                onChange={e => {
+                    const val = e.target.value;
+                    trackTextHistory(summaryRef, val);
+                    updateSimpleField('summary', val);
+                }} 
                 disabled={!isVisible} 
               />
               <RichTextToolbar 
