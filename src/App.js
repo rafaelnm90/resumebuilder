@@ -1812,6 +1812,7 @@ export default function App() {
       case 'personal': return renderPersonalForm();
       case 'history': return renderHistoryForm();
       case 'objective': return renderObjectiveForm();
+      case 'summary': return renderSummaryForm();
       case 'skills': return renderSkillsForm();
       case 'projects': return renderProjectsForm();
       case 'experience': return renderExperienceForm();
