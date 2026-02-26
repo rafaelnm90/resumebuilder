@@ -46,9 +46,67 @@ const insertFormatting = (ref, type) => {
   const text = input.value;
   
   const marker = type === 'bold' ? '**' : '*';
+  const mLen = marker.length;
+
+  const selectedText = text.substring(start, end);
+
+  let replaceStart = start;
+  let replaceEnd = end;
+  let replacement = null;
+
+  // CASO 1: O usuário selecionou o texto INCLUINDO os marcadores (ex: selecionou "**palavra**")
+  if (selectedText.length >= mLen * 2) {
+      const startsWithMarker = selectedText.startsWith(marker);
+      const endsWithMarker = selectedText.endsWith(marker);
+      const isActuallyBold = type === 'italic' && selectedText.startsWith('**') && selectedText.endsWith('**');
+
+      if (startsWithMarker && endsWithMarker && !isActuallyBold) {
+          if (typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS) console.log(`🧹 [App.js] Toggle OFF: Removendo ${type} por dentro da seleção.`);
+          replaceStart = start;
+          replaceEnd = end;
+          replacement = selectedText.slice(mLen, -mLen);
+      }
+  }
+
+  // CASO 2: Os marcadores estão EXATAMENTE EM VOLTA da seleção do usuário (ex: **[palavra]**)
+  if (replacement === null) {
+      const textBefore = text.substring(Math.max(0, start - mLen), start);
+      const textAfter = text.substring(end, end + mLen);
+
+      if (textBefore === marker && textAfter === marker) {
+          const isActuallyBoldOut = type === 'italic' && text.substring(Math.max(0, start - 2), start) === '**';
+          
+          if (!isActuallyBoldOut) {
+              if (typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS) console.log(`🧹 [App.js] Toggle OFF: Removendo ${type} por fora da seleção.`);
+              replaceStart = start - mLen;
+              replaceEnd = end + mLen;
+              replacement = selectedText;
+          }
+      }
+  }
+
+  // CASO 3: Não possui a formatação, então vamos adicionar (Toggle ON)
+  if (replacement === null) {
+      if (typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS) console.log(`✨ [App.js] Toggle ON: Aplicando ${type}.`);
+      replacement = marker + selectedText + marker;
+  }
+
+  // MÁGICA DO NATIVE UNDO (Ctrl+Z / Ctrl+Y)
+  // 1. Foca no input e seleciona a área exata que vamos substituir
+  input.focus();
+  input.setSelectionRange(replaceStart, replaceEnd);
   
-  const newText = text.substring(0, start) + marker + text.substring(start, end) + marker + text.substring(end);
-  return newText;
+  // 2. Engana o navegador imitando uma digitação humana
+  const success = document.execCommand('insertText', false, replacement);
+  
+  // Fallback: Se o navegador for extremamente restritivo e bloquear a API, caímos para o método antigo
+  if (!success) {
+      if (typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS) console.log(`⚠️ [App.js] Fallback manual disparado. O Ctrl+Z falhará nesta ação.`);
+      return text.substring(0, replaceStart) + replacement + text.substring(replaceEnd);
+  }
+
+  // Retorna undefined pois a mudança de DOM já disparou o 'onChange' do React automaticamente
+  return undefined;
 };
 
 const handleFormatText = (ref, type, currentVal, setVal) => {
@@ -57,14 +115,27 @@ const handleFormatText = (ref, type, currentVal, setVal) => {
 };
 
 const handleFormatList = (ref, type, currentVal, setVal) => {
-    const input = ref.current;
-    if (!input) return;
-    const start = input.selectionStart;
-    const end = input.selectionEnd;
-    const text = input.value;
-    const marker = type === 'bold' ? '**' : '*';
-    const newText = text.substring(0, start) + marker + text.substring(start, end) + marker + text.substring(end);
-    setVal(newText);
+    const newVal = insertFormatting(ref, type);
+    if (newVal !== undefined) setVal(newVal);
+};
+
+const handleKeyDownFormatting = (e, ref, updateCallback) => {
+    if ((e.ctrlKey || e.metaKey) && (e.key === 'b' || e.key === 'B')) {
+        e.preventDefault(); // Bloqueia a ação nativa do navegador
+        const newVal = insertFormatting(ref, 'bold');
+        if (newVal !== undefined) {
+            if (typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS) console.log("⌨️ [App.js] Atalho detectado: Ctrl+B (Negrito)");
+            updateCallback(newVal);
+        }
+    }
+    if ((e.ctrlKey || e.metaKey) && (e.key === 'i' || e.key === 'I')) {
+        e.preventDefault();
+        const newVal = insertFormatting(ref, 'italic');
+        if (newVal !== undefined) {
+            if (typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS) console.log("⌨️ [App.js] Atalho detectado: Ctrl+I (Itálico)");
+            updateCallback(newVal);
+        }
+    }
 };
 
 const AddItemButton = ({ onClick, label }) => (
@@ -115,6 +186,9 @@ const Input = ({ label, value, onChange, onExpandRequest, enableRich = false, ex
           ref={inputRef}
           className={`px-2 py-1.5 border rounded-md outline-none text-xs focus:border-blue-500 focus:ring-1 focus:ring-blue-500 w-full resize-none overflow-hidden ${enableRich || onExpandRequest ? 'rounded-tr-none' : ''}`}
           value={value || ''}
+          onKeyDown={(e) => {
+              if (enableRich) handleKeyDownFormatting(e, inputRef, onChange);
+          }}
           onChange={e => {
               onChange(e.target.value);
               e.target.style.height = 'auto';
@@ -183,6 +257,7 @@ const DraggableListItemInput = ({ value, onChange, onRemove, dragHandleProps, on
                     className={`w-full p-2 border rounded text-xs focus:border-blue-500 outline-none resize-none overflow-hidden ${isHeader ? 'font-bold text-gray-800 bg-gray-50' : ''}`}
                     style={{ minHeight: '52px' }}
                     value={value || ''} 
+                    onKeyDown={(e) => handleKeyDownFormatting(e, inputRef, onChange)}
                     onChange={e => {
                         onChange(e.target.value);
                         e.target.style.height = 'auto';
@@ -458,6 +533,9 @@ const ExpandedModal = ({ isOpen, onClose, title, value, onSave, disableFormattin
             ref={textRef}
             className="w-full h-full p-4 border rounded resize-none outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
             value={localValue || ''}
+            onKeyDown={(e) => {
+                if (!disableFormatting) handleKeyDownFormatting(e, textRef, setLocalValue);
+            }}
             onChange={(e) => setLocalValue(e.target.value)}
           />
         </div>
