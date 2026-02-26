@@ -2431,17 +2431,17 @@ export default function App() {
           <div className="p-4 space-y-1">
             {/* MACRO-CATEGORIA 1: SISTEMA */}
             <p className="px-4 text-[10px] font-bold text-slate-500 uppercase mb-2 mt-2 tracking-widest">Sistema</p>
-            
-            <button onClick={() => setActiveTab('settings')} className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all whitespace-nowrap mb-1 ${activeTab === 'settings' ? 'bg-blue-100 text-blue-900 shadow-md font-bold transform scale-[1.02]' : 'bg-slate-800 border-l-4 border-blue-500 text-blue-200 hover:bg-slate-700 hover:text-white shadow-sm'}`}>
-                <Settings size={18} className={`flex-shrink-0 ${activeTab === 'settings' ? 'text-blue-700' : 'text-blue-400'}`} />
-                <span className="font-medium">{t.layoutTab}</span>
-                {activeTab === 'settings' && <ChevronRight size={16} className="ml-auto text-blue-700" />}
-            </button>
-            
+
             <button onClick={() => setActiveTab('history')} className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all whitespace-nowrap mb-1 ${activeTab === 'history' ? 'bg-yellow-100 text-yellow-900 shadow-md font-bold transform scale-[1.02]' : 'bg-slate-800 border-l-4 border-yellow-500 text-yellow-200 hover:bg-slate-700 hover:text-white shadow-sm'}`}>
                 <Archive size={18} className={`flex-shrink-0 ${activeTab === 'history' ? 'text-yellow-700' : 'text-yellow-400'}`} />
                 <span className="font-medium">{t.historyTab || "Histórico de Vagas"}</span>
                 {activeTab === 'history' && <ChevronRight size={16} className="ml-auto text-yellow-700" />}
+            </button>
+                                 
+            <button onClick={() => setActiveTab('settings')} className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all whitespace-nowrap mb-1 ${activeTab === 'settings' ? 'bg-blue-100 text-blue-900 shadow-md font-bold transform scale-[1.02]' : 'bg-slate-800 border-l-4 border-blue-500 text-blue-200 hover:bg-slate-700 hover:text-white shadow-sm'}`}>
+                <Settings size={18} className={`flex-shrink-0 ${activeTab === 'settings' ? 'text-blue-700' : 'text-blue-400'}`} />
+                <span className="font-medium">{t.layoutTab}</span>
+                {activeTab === 'settings' && <ChevronRight size={16} className="ml-auto text-blue-700" />}
             </button>
 
             <button onClick={() => setActiveTab('sections')} className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all whitespace-nowrap mb-4 ${activeTab === 'sections' ? 'bg-green-100 text-green-900 shadow-md font-bold transform scale-[1.02]' : 'bg-slate-800 border-l-4 border-green-500 text-green-200 hover:bg-slate-700 hover:text-white shadow-sm'}`}>
