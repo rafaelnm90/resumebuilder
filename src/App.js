@@ -7,8 +7,8 @@ import {
   Menu, X, Layers, List, Grid, PenTool, GripVertical, Bold, Italic, Maximize,
   Image as ImageIcon, Upload, AlignLeft, AlignCenter, AlignRight,
   Circle, Square, Move, Crop, Info, 
-  RotateCw, RotateCcw, Sun, FlipHorizontal, Droplet, Frame, Sliders, Link as LinkIcon,
-  UserPlus, AlertTriangle, List as ListIcon, Mail, Phone, Save, MapPin, Calendar, Sparkles,
+  RotateCw, RotateCcw, Sun, FlipHorizontal, Droplet, Frame, Sliders,
+  UserPlus, AlertTriangle, List as ListIcon, Mail, Save, MapPin, Calendar, Sparkles,
   Archive, Clock, ArrowLeft, ExternalLink
 } from 'lucide-react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
@@ -1967,12 +1967,8 @@ export default function App() {
                     <div className="grid grid-cols-2 gap-x-4 gap-y-3 mb-2">
                         <Input label={t.company} value={ex.company} onChange={v=>updateItem('experience', i, 'company', v)} onExpandRequest={handleOpenExpand}/>
                         <Input label={t.role} value={ex.role} onChange={v=>updateItem('experience', i, 'role', v)} onExpandRequest={handleOpenExpand}/>
-                        <PeriodInput value={ex.period} onChange={v=>updateItem('experience', i, 'period', v)} />
+                        <Input label={t.period} value={ex.period} onChange={v=>updateItem('experience', i, 'period', v)} onExpandRequest={handleOpenExpand}/>
                         <Input label={t.location} value={ex.location} onChange={v=>updateItem('experience', i, 'location', v)} onExpandRequest={handleOpenExpand}/>
-                    </div>
-                    <div className="pt-2 border-t border-gray-200">
-                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-2">Detalhamento de Atividades</label>
-                        <DraggableExperienceList items={ex.description} sectionId="experience" itemIndex={i} onUpdate={updateArrayItem} onRemove={removeArrayItemFromItem} onAdd={addArrayItemToItem} onExpandRequest={handleOpenExpand} t={t} />
                     </div>
                 </div>
             )}
@@ -1996,7 +1992,7 @@ export default function App() {
             <Input label={t.institution} value={ed.institution} onChange={v=>updateItem('education', i, 'institution', v)} onExpandRequest={handleOpenExpand}/>
             <Input label={t.degree} value={ed.degree} onChange={v=>updateItem('education', i, 'degree', v)} onExpandRequest={handleOpenExpand}/>
             <div className="grid grid-cols-2 gap-2">
-                <PeriodInput value={ed.period} onChange={v=>updateItem('education', i, 'period', v)} />
+                <Input label={t.period} value={ed.period} onChange={v=>updateItem('education', i, 'period', v)} onExpandRequest={handleOpenExpand}/>
                 <Input label={t.location} value={ed.location} onChange={v=>updateItem('education', i, 'location', v)} onExpandRequest={handleOpenExpand}/>
             </div>
             <Input label={t.details} value={ed.details} onChange={v=>updateItem('education', i, 'details', v)} enableRich={true} onExpandRequest={handleOpenExpand} multiline={true} />
