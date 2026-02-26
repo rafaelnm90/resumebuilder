@@ -330,7 +330,7 @@ export const INITIAL_SETTINGS = {
   pageBreakAuto: true,
   
   sectionItemSpacings: {
-      education: 0        
+      education: 1        
   }, 
   
   experienceColumnWidth: 40, 
