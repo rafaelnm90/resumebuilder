@@ -329,9 +329,7 @@ export const INITIAL_SETTINGS = {
   sectionSpacing: 3,     
   pageBreakAuto: true,
   
-  sectionItemSpacings: {
-      education: 1        
-  }, 
+  sectionItemSpacings: {}, 
   
   experienceColumnWidth: 40, 
   educationColumnWidth: 40,  
