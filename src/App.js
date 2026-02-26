@@ -953,8 +953,12 @@ export default function App() {
     }
 
     if (resetText) {
-        if (typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS) console.log("🗑️ [App.js] Zerando textos do currículo (mantendo histórico de vagas)...");
-        setData(prev => ({ ...INITIAL_DATA, history: prev.history })); 
+        if (typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS) console.log("🗑️ [App.js] Zerando textos do currículo (mantendo histórico e dados pessoais)...");
+        setData(prev => ({ 
+            ...INITIAL_DATA, 
+            history: prev.history,
+            personal: prev.personal 
+        })); 
     }
 
     if (resetLayout) {
@@ -962,6 +966,19 @@ export default function App() {
         setSettings(INITIAL_SETTINGS);
     }
   };
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+        if ((e.ctrlKey || e.metaKey) && (e.key === 's' || e.key === 'S')) {
+            e.preventDefault();
+            if (typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS) console.log("⌨️ [App.js] Ctrl+S detectado. Gerando backup...");
+            handleExportJson();
+        }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [data, settings]);
 
   const handleOpenExpand = (title, currentValue, saveCallback, disableFormatting = false) => {
     setExpandedField({ title, value: currentValue, onSave: saveCallback, disableFormatting });
@@ -1164,6 +1181,39 @@ export default function App() {
       }));
   };
 
+  const handleClearSection = (sectionId) => {
+      if (!window.confirm("⚠️ Tem certeza que deseja limpar todos os dados desta seção?\n\nEla retornará ao estado padrão inicial.")) return;
+
+      if (sectionId === 'personal') {
+          setData(prev => ({ ...prev, personal: INITIAL_DATA.personal }));
+          if (typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS) console.log(`🗑️ [App.js] Seção Pessoal limpa pelo usuário.`);
+          return;
+      }
+
+      if (sectionId.startsWith('custom-')) {
+          setData(prev => ({
+              ...prev,
+              customSections: prev.customSections.map(s => {
+                  if (s.id === sectionId) {
+                      let emptyContent;
+                      if (s.type === 'text') emptyContent = '';
+                      else if (s.type === 'list' || s.type === 'detailed') emptyContent = [];
+                      else if (s.type === 'category-detailed') emptyContent = [{ title: 'Nova Categoria', description: [{ text: '', hours: '', details: '' }] }];
+                      else if (s.type === 'category-simple') emptyContent = [{ title: 'Nova Categoria', description: [''] }];
+                      return { ...s, content: emptyContent };
+                  }
+                  return s;
+              })
+          }));
+      } else {
+          setData(prev => ({
+              ...prev,
+              [sectionId]: INITIAL_DATA[sectionId]
+          }));
+      }
+      if (typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS) console.log(`🗑️ [App.js] Seção ${sectionId} restaurada para o padrão inicial.`);
+  };
+
   const renderSectionHeader = (sectionId, title) => {
     const isCustom = sectionId.startsWith('custom-');
     const config = isCustom ? data.customSections.find(s => s.id === sectionId) : data.structure[sectionId];
@@ -1191,42 +1241,55 @@ export default function App() {
         ? "flex-shrink-0 p-2 bg-white rounded-md border border-red-200 text-red-600 shadow-sm"
         : "flex-shrink-0 p-2 bg-white rounded-md border border-blue-100 text-blue-600 shadow-sm";
 
-    return (
-        <div className={containerClasses}>
-            <div className="flex items-center gap-3 mb-2">
-                <div className={iconBgClasses}>
-                    <Icon size={20}/> 
-                </div>
-                <input 
-                    type="text" 
-                    value={config.title} 
-                    onChange={handleTitleChange}
-                    className={`flex-1 text-lg font-bold bg-transparent border-b-2 px-2 py-1 transition-all outline-none min-w-0 ${isAtsSection ? 'text-red-900 border-red-200 focus:border-red-500 placeholder-red-300' : 'text-gray-800 border-blue-200 focus:border-blue-500 placeholder-blue-300'}`}
-                    placeholder="Título da Seção"
-                />
-            </div>
+    if (typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS) {
+            console.log(`🚀 [App.js] Renderizando cabeçalho da seção: ${sectionId}`);
+            console.log(`✅ [App.js] Revertendo botões de ação para a linha inferior.`);
+        }
 
-            <div className="flex justify-end items-center">
-                <div className={`flex items-center gap-3 bg-white px-3 py-1.5 rounded-lg border shadow-sm ${isAtsSection ? 'border-red-100' : 'border-blue-100'}`}>
-                     <span className={`text-[10px] font-bold uppercase mr-1 ${isAtsSection ? 'text-red-800/60' : 'text-blue-800/60'}`}>Exibir no Currículo:</span>
-                     <span className={`text-[10px] font-bold px-2 py-0.5 rounded border transition-colors ${isVisible ? 'bg-green-100 text-green-700 border-green-200' : 'bg-red-100 text-red-700 border-red-200'}`}>
-                        {isVisible ? t.atsStatusOn : t.atsStatusOff}
-                     </span>
-                     <ToggleSwitch 
-                        checked={isVisible} 
-                        onChange={() => {
-                            if (isCustom) {
-                                 setData(prev => ({ ...prev, customSections: prev.customSections.map(s => s.id === sectionId ? { ...s, visible: !s.visible } : s) }));
-                            } else {
-                                 updateStructure(sectionId, 'visible', !isVisible);
-                            }
-                        }} 
-                        title={isVisible ? t.deactivate : t.activate}
-                     />
+        return (
+            <div className={containerClasses}>
+                <div className="flex items-center gap-3 mb-2">
+                    <div className={iconBgClasses}>
+                        <Icon size={20}/> 
+                    </div>
+                    <input 
+                        type="text" 
+                        value={config.title} 
+                        onChange={handleTitleChange}
+                        className={`flex-1 text-lg font-bold bg-transparent border-b-2 px-2 py-1 transition-all outline-none min-w-0 ${isAtsSection ? 'text-red-900 border-red-200 focus:border-red-500 placeholder-red-300' : 'text-gray-800 border-blue-200 focus:border-blue-500 placeholder-blue-300'}`}
+                        placeholder="Título da Seção"
+                    />
+                </div>
+
+                <div className="flex justify-end items-center gap-3">
+                    <button 
+                        onClick={() => handleClearSection(sectionId)}
+                        className="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-bold text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 rounded-lg transition-colors shadow-sm active:scale-95"
+                        title="Limpar todo o conteúdo desta seção"
+                    >
+                        <Trash2 size={14} /> <span className="hidden sm:inline">Limpar Seção</span>
+                    </button>
+
+                    <div className={`flex items-center gap-3 bg-white px-3 py-1.5 rounded-lg border shadow-sm ${isAtsSection ? 'border-red-100' : 'border-blue-100'}`}>
+                         <span className={`text-[10px] font-bold uppercase mr-1 ${isAtsSection ? 'text-red-800/60' : 'text-blue-800/60'}`}>Exibir no Currículo:</span>
+                         <span className={`text-[10px] font-bold px-2 py-0.5 rounded border transition-colors ${isVisible ? 'bg-green-100 text-green-700 border-green-200' : 'bg-red-100 text-red-700 border-red-200'}`}>
+                            {isVisible ? t.atsStatusOn : t.atsStatusOff}
+                         </span>
+                         <ToggleSwitch 
+                            checked={isVisible} 
+                            onChange={() => {
+                                if (isCustom) {
+                                     setData(prev => ({ ...prev, customSections: prev.customSections.map(s => s.id === sectionId ? { ...s, visible: !s.visible } : s) }));
+                                } else {
+                                     updateStructure(sectionId, 'visible', !isVisible);
+                                }
+                            }} 
+                            title={isVisible ? t.deactivate : t.activate}
+                         />
+                    </div>
                 </div>
             </div>
-        </div>
-    );
+        );
   };
 
   const renderSettingsForm = () => (
@@ -1600,7 +1663,7 @@ export default function App() {
                      <span className="text-xs font-bold text-blue-800">Fixar no fim da página (em cima da linha)</span>
                 </div>
 
-                <div className="pt-2 border-t border-slate-200">
+                   <div className="pt-2 border-t border-slate-200">
                     <div className="flex justify-between items-center mb-1">
                         <span className="text-xs font-bold text-slate-600">Tamanho da Fonte</span>
                         <span className="text-xs font-mono text-slate-500">{data.dateLocation.fontSize || 1.05}em</span>
@@ -1610,6 +1673,39 @@ export default function App() {
                             type="range" min="0.7" max="1.5" step="0.05" 
                             value={data.dateLocation.fontSize || 1.05} 
                             onChange={e => setData(prev => ({ ...prev, dateLocation: { ...prev.dateLocation, fontSize: parseFloat(e.target.value) } }))} 
+                            className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600" 
+                        />
+                    </div>
+                </div>
+            </div>
+         )}
+      </div>
+
+      <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 space-y-4 shadow-sm">
+         <label className="flex items-center justify-between text-sm font-bold text-slate-700 uppercase border-b border-slate-200 pb-1 mb-2">
+            <span className="flex items-center"><FileText size={16} className="mr-2"/> Rodapé: Numeração de Página</span>
+            <ToggleSwitch checked={settings.showPageNumbers || false} onChange={() => setSettings({...settings, showPageNumbers: !settings.showPageNumbers})} />
+         </label>
+
+         {settings.showPageNumbers && (
+            <div className="space-y-3 animate-in fade-in slide-in-from-top-2">
+                <div className="flex items-center gap-4 pt-2">
+                    <div className="flex items-center gap-2">
+                         <ToggleSwitch checked={settings.pageNumberBold || false} onChange={() => setSettings({...settings, pageNumberBold: !settings.pageNumberBold})} />
+                         <span className="text-xs font-bold text-slate-600">Negrito</span>
+                    </div>
+                </div>
+
+                <div className="pt-2 border-t border-slate-200">
+                    <div className="flex justify-between items-center mb-1">
+                        <span className="text-xs font-bold text-slate-600">Tamanho da Fonte</span>
+                        <span className="text-xs font-mono text-slate-500">{settings.pageNumberFontSize || 0.85}em</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <input 
+                            type="range" min="0.5" max="1.5" step="0.05" 
+                            value={settings.pageNumberFontSize || 0.85} 
+                            onChange={e => setSettings({...settings, pageNumberFontSize: parseFloat(e.target.value)})} 
                             className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600" 
                         />
                     </div>
@@ -1819,7 +1915,16 @@ export default function App() {
 
   const renderPersonalForm = () => (
     <div className="space-y-4">
-      <h2 className="text-xl font-bold border-b pb-2">{t.personalTab}</h2>
+      <div className="flex justify-between items-center border-b pb-2">
+          <h2 className="text-xl font-bold">{t.personalTab}</h2>
+          <button 
+              onClick={() => handleClearSection('personal')}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-bold text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 rounded-lg transition-colors shadow-sm active:scale-95"
+              title="Limpar dados pessoais"
+          >
+              <Trash2 size={14} /> <span className="hidden sm:inline">Limpar Seção</span>
+          </button>
+      </div>
       
       <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 mb-4">
         <label className="flex items-center text-sm font-bold text-gray-800 mb-2">
@@ -2368,12 +2473,52 @@ export default function App() {
       setHistoryForm({ company: '', role: '', url: '', description: '', applyDate: new Date().toISOString().slice(0, 10) });
   };
 
+  const handleSaveMasterResume = () => {
+      if (typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS) console.log("🌟 [App.js] Salvando novo Currículo Principal...");
+      const dataPartes = historyForm.applyDate.split('-');
+      const dataFormatada = `${dataPartes[2]}/${dataPartes[1]}/${dataPartes[0]}`;
+
+      const masterEntry = {
+          id: Date.now().toString(),
+          applyDate: dataFormatada,
+          isoDate: historyForm.applyDate,
+          company: 'BASE DE DADOS',
+          role: 'Meu Currículo Principal',
+          url: '',
+          jobDescription: 'Esta é a versão mais completa do seu currículo. Use este registro como ponto de partida (clicando em Restaurar) sempre que for criar um currículo focado em uma nova vaga.',
+          snapshotData: JSON.parse(JSON.stringify(data)),
+          snapshotSettings: JSON.parse(JSON.stringify(settings)),
+          isMaster: true
+      };
+      
+      setData(prev => ({ ...prev, history: [masterEntry, ...(prev.history || [])] }));
+      if (typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS) console.log("✅ [App.js] Currículo Principal salvo com sucesso.");
+  };
+
   const renderHistoryForm = () => (
     <div className="space-y-6">
-      <h2 className="text-xl font-bold border-b pb-2 flex items-center"><Archive className="mr-2" size={20}/> {t.historyTab || "Histórico"}</h2>
+      <h2 className="text-xl font-bold border-b pb-2 flex items-center"><Archive className="mr-2" size={20}/> Gerenciar Versões</h2>
       
-      <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm space-y-4">
-         <h3 className="text-sm font-bold text-gray-700 uppercase">Salvar Nova Candidatura</h3>
+      {/* ÁREA A: CURRÍCULO PRINCIPAL */}
+      <div className="bg-gradient-to-r from-indigo-50 to-purple-50 p-6 rounded-xl border border-purple-200 shadow-sm space-y-3 relative overflow-hidden">
+         <Sparkles className="absolute -top-4 -right-4 text-purple-200 opacity-40" size={120}/>
+         <h3 className="text-lg font-extrabold text-purple-900 flex items-center relative z-10">Meu Currículo Principal (Base de Dados)</h3>
+         <p className="text-sm text-purple-800 relative z-10 leading-relaxed pr-10">
+            Salve aqui a versão mais completa do seu currículo com todas as suas experiências. Use esta versão como ponto de partida para criar currículos focados.
+         </p>
+         <button onClick={handleSaveMasterResume} className="relative z-10 w-full py-3 mt-2 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-lg shadow-md transition-all flex items-center justify-center active:scale-[0.98]">
+             <Save size={18} className="mr-2"/> Salvar Versão Atual como Principal
+         </button>
+      </div>
+
+      {/* ÁREA B: VAGA ESPECÍFICA */}
+      <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm space-y-4">
+         <div className="border-b border-gray-100 pb-3 mb-2">
+             <h3 className="text-md font-extrabold text-gray-800">Salvar Versão para Vaga Específica</h3>
+             <p className="text-xs text-gray-500 leading-relaxed mt-1">
+                Editou o currículo para uma vaga? Salve uma cópia exata aqui para lembrar o que você enviou quando for chamado para a entrevista.
+             </p>
+         </div>
          <div className="grid grid-cols-2 gap-3">
              <Input label="Empresa" value={historyForm.company} onChange={v => setHistoryForm({...historyForm, company: v})} />
              <Input label="Cargo Desejado" value={historyForm.role} onChange={v => setHistoryForm({...historyForm, role: v})} />
@@ -2399,9 +2544,9 @@ export default function App() {
                 placeholder="Cole aqui os requisitos e responsabilidades da vaga..."
              />
          </div>
-         <div className="flex gap-3">
+         <div className="flex gap-3 pt-2">
              <button onClick={handleSaveHistory} className={`flex-1 py-3 text-white font-bold rounded-lg shadow-md transition-colors flex items-center justify-center active:scale-[0.98] ${editingHistoryId ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-blue-600 hover:bg-blue-700'}`}>
-                 {editingHistoryId ? <><PenTool size={18} className="mr-2"/> Salvar Alterações</> : <><Save size={18} className="mr-2"/> Arquivar Versão Atual</>}
+                 {editingHistoryId ? <><PenTool size={18} className="mr-2"/> Salvar Alterações</> : <><Archive size={18} className="mr-2"/> Arquivar Versão da Vaga</>}
              </button>
              {editingHistoryId && (
                  <button 
@@ -2418,8 +2563,8 @@ export default function App() {
          </div>
       </div>
 
-      <div className="space-y-3">
-         <h3 className="text-sm font-bold text-gray-700 uppercase border-b pb-1">Vagas Arquivadas</h3>
+      <div className="space-y-3 pt-2">
+         <h3 className="text-sm font-bold text-gray-700 uppercase border-b pb-1">Versões Salvas</h3>
          {(!data.history || data.history.length === 0) && <p className="text-sm text-gray-500 italic">Nenhum currículo arquivado ainda.</p>}
          
          <Droppable droppableId="history-list" type="HISTORY_ITEM">
@@ -2440,7 +2585,11 @@ export default function App() {
                          let cardClass = "border p-5 rounded-xl shadow-md transition-all relative flex gap-3 ";
                          let badgeConfig = null;
 
-                         if (diffDays > 180) { // Mais de 6 meses (Vermelho)
+                         if (item.isMaster) {
+                             cardClass += "bg-gradient-to-r from-indigo-50 to-purple-50 border-purple-300 hover:border-purple-400 ";
+                             badgeConfig = { color: 'bg-purple-600 text-white border-purple-700', text: 'Currículo Mestre', icon: Sparkles };
+                             if (typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS) console.log("🌟 [App.js] Renderizando um Currículo Mestre na lista.");
+                         } else if (diffDays > 180) { // Mais de 6 meses (Vermelho)
                              cardClass += "bg-red-50 border-red-300 hover:border-red-400 ";
                              badgeConfig = { color: 'bg-red-600 text-white border-red-700', text: 'Prazo Excedido (> 6 meses)', icon: AlertTriangle };
                          } else if (diffDays > 90) { // Entre 3 e 6 meses (Amarelo)
@@ -2523,6 +2672,28 @@ export default function App() {
                                                      >
                                                          <RotateCcw size={14} className="mr-1.5"/> Restaurar
                                                      </button>
+
+                                                     {item.isMaster && (
+                                                         <button 
+                                                            onClick={() => {
+                                                                if(window.confirm("⚠️ ATENÇÃO: Sobrescrever os dados desta base com o que está na tela agora?")) {
+                                                                    setData(prev => ({
+                                                                        ...prev,
+                                                                        history: prev.history.map(h => h.id === item.id ? {
+                                                                            ...h,
+                                                                            snapshotData: JSON.parse(JSON.stringify(data)),
+                                                                            snapshotSettings: JSON.parse(JSON.stringify(settings))
+                                                                        } : h)
+                                                                    }));
+                                                                    if (typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS) console.log(`🔄 [App.js] Currículo Principal atualizado com os dados da tela (ID: ${item.id}).`);
+                                                                }
+                                                            }}
+                                                            className="w-full px-3 py-1.5 font-bold text-xs rounded-lg border transition-colors flex items-center justify-center bg-purple-100 text-purple-800 hover:bg-purple-200 border-purple-300 shadow-sm active:scale-95"
+                                                            title="Atualizar esta base com os dados atuais da tela"
+                                                         >
+                                                             <Save size={14} className="mr-1.5"/> Atualizar Base
+                                                         </button>
+                                                     )}
 
                                                      <button 
                                                         onClick={() => {
