@@ -521,9 +521,9 @@ export default function App() {
   const [data, setData] = useState(INITIAL_DATA);
   const [settings, setSettings] = useState(INITIAL_SETTINGS);
   const [activeTab, setActiveTab] = useState('personal');
-  const [zoom, setZoom] = useState(0.8); 
+  const [zoom, setZoom] = useState(0.7); 
   if (typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS) {
-      console.log("🔍 [App.js] Nível de zoom inicial ajustado para 80% (0.8).");
+      console.log("🔍 [App.js] Nível de zoom inicial ajustado para 70% (0.7).");
   }
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   
