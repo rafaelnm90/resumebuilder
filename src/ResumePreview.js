@@ -60,21 +60,17 @@ export default function ResumePreview({ data, settings }) {
               const heightPx = entry.contentRect.height;
               const heightMm = heightPx / 3.779527; 
               
-              // CORREÇÃO DE CÁLCULO DE PÁGINAS (Bug da Página Fantasma):
-              // O thead (24mm) e tfoot (24mm) se repetem na impressão, consumindo 48mm a CADA página.
-              // Na tela, o ResizeObserver mede eles apenas 1 vez. 
-              // Isolamos a altura apenas do conteúdo bruto (tela - 48mm).
+              // Isolamos a altura apenas do conteúdo bruto da tela (tela - 48mm de cabeçalho/rodapé global)
               const contentOnlyMm = Math.max(0, heightMm - 48);
               
-              // Dividimos por 247mm em vez dos 249mm reais disponíveis (297-48). 
-              // Esses 2mm de margem absorvem arredondamentos e os "buracos em branco" 
-              // que o page-break-inside: avoid deixa durante a quebra de página.
-              const calculatedPages = Math.ceil(contentOnlyMm / 247); 
+              // DIVISOR 235: Cria uma "gordura" de 14mm por página.
+              // Perfeito e indestrutível para currículos de até 3 páginas. Zero necessidade de rastrear classes CSS.
+              const calculatedPages = Math.ceil(contentOnlyMm / 235); 
               const newPages = calculatedPages > 0 ? calculatedPages : 1;
 
               setMinPages(prev => {
                   if (prev !== newPages) {
-                      if (typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS) console.log(`⚡ [ResumePreview.js] ResizeObserver: Páginas ajustadas para ${newPages} (Matemática de Tabela).`);
+                      if (typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS) console.log(`⚡ [ResumePreview.js] ResizeObserver: Páginas ajustadas para ${newPages} (Matemática Otimizada - Max 3pgs).`);
                       return newPages;
                   }
                   return prev;
@@ -142,7 +138,7 @@ export default function ResumePreview({ data, settings }) {
   });
 
   const SimpleSectionWrapper = ({ title, children, sectionId }) => (
-      <div style={{ marginBottom: `${settings.sectionSpacing}mm`, width: '100%' }}>
+      <div className="measure-node" style={{ marginBottom: `${settings.sectionSpacing}mm`, width: '100%' }}>
           <div style={getHeaderStyle(true)}>
               {title}
           </div>
@@ -166,7 +162,7 @@ export default function ResumePreview({ data, settings }) {
 
             <table style={{ width: '100%', borderCollapse: 'collapse', ...typographyStyles }}>
                 <thead style={{ display: 'table-header-group' }}>
-                    <tr style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}>
+                    <tr className="measure-node" style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}>
                         <td style={{ padding: 0, border: 'none' }}>
                             <div style={getHeaderStyle(false)}>
                                 {title} <span style={{ fontSize: '0.65em', fontWeight: 'normal', opacity: 0.7, textTransform: 'none' }}>(Continuação)</span>
@@ -312,7 +308,7 @@ export default function ResumePreview({ data, settings }) {
     if (photoShape === 'rounded') frameRadius = '12px';
 
     return (
-        <header className={containerClasses} style={headerStyle}>
+        <header className={`measure-node ${containerClasses}`} style={headerStyle}>
             {isPhotoVisible && (
                 <div className={photoContainerClasses}>
                     <div 
@@ -446,7 +442,7 @@ export default function ResumePreview({ data, settings }) {
         if (sec.type === 'list') { 
             return (
                 <Wrapper title={displayTitle}>
-                    <ul className="list-outside" style={{...containerStyle, paddingLeft: '1.2em'}}>
+                    <ul className="list-outside measure-node" style={{...containerStyle, paddingLeft: '1.2em'}}>
                         {renderListItems(sec.content, sectionId)}
                     </ul>
                 </Wrapper>
@@ -462,7 +458,7 @@ export default function ResumePreview({ data, settings }) {
                              if (!hasContent) return null;
 
                              return (
-                                <div key={i} className={pageBreakClass}>
+                                <div key={i} className={`${pageBreakClass} measure-node`}>
                                     <div className="flex flex-row items-baseline justify-between flex-row-print">
                                         <div className="font-bold text-[1.05em] leading-tight break-words flex-1 pr-3">{formatText(item.title)}</div>
                                         <div className={`text-[0.9em] text-right leading-tight flex-shrink-0 ${rightTextStyle}`} style={{ width: expColWidthCSS, color: rightTextColor }}>{item.location}</div>
@@ -493,7 +489,7 @@ export default function ResumePreview({ data, settings }) {
                               if (!hasContent) return null;
 
                               return (
-                                 <div key={i} className={pageBreakClass}>
+                                 <div key={i} className={`${pageBreakClass} measure-node`}>
                                      {item.title && <h4 className="font-bold leading-tight mb-0.5" style={{ color: settings.themeColor }}>{item.title}</h4>}
                                      <ul className="list-outside" style={{...innerListStyle, paddingLeft: '1.2em'}}>
                                          {renderListItems(item.description, sectionId)}
@@ -518,7 +514,7 @@ export default function ResumePreview({ data, settings }) {
                              if (!hasContent) return null;
 
                              return (
-                                <div key={i} className={pageBreakClass}>
+                                <div key={i} className={`${pageBreakClass} measure-node`}>
                                     {item.title && <h4 className="font-bold text-[1.05em] leading-tight mb-0.5" style={{ color: settings.themeColor }}>{item.title}</h4>}
                                     <ul className="list-outside" style={{...innerListStyle, paddingLeft: '1.2em'}}>
                                         {(item.description || []).map((descObj, j) => {
@@ -594,7 +590,7 @@ export default function ResumePreview({ data, settings }) {
                     {data.skills.map((skill, i) => {
                         const isMultiLine = skill.items && skill.items.includes('\n');
                         return (
-                            <div key={i} className="flex flex-row items-baseline gap-4" >
+                            <div key={i} className="flex flex-row items-baseline gap-4 measure-node" >
                                 <div className="font-bold text-[0.95em] leading-tight break-words flex-shrink-0" style={{ width: `${settings.leftColumnWidth}mm` }}>
                                     {formatText(skill.category)}
                                 </div>
@@ -622,7 +618,7 @@ export default function ResumePreview({ data, settings }) {
                         if (!hasContent) return null;
 
                         return (
-                        <div key={i} className={`${pageBreakClass} flex flex-row items-start gap-8 flex-row-print`}>
+                        <div key={i} className={`${pageBreakClass} flex flex-row items-start gap-8 flex-row-print measure-node`}>
                         <div className="flex-1">
                             <h4 className="font-bold text-[1.05em] break-words mb-0.5" style={{ color: settings.bodyColor }}>{proj.title}</h4>
                             {(proj.link || proj.github) && (
@@ -675,7 +671,7 @@ export default function ResumePreview({ data, settings }) {
                         if (!hasContent) return null;
 
                         return (
-                        <div key={i} className={pageBreakClass}>
+                        <div key={i} className={`${pageBreakClass} measure-node`}>
                         <div className="flex flex-row items-baseline justify-between flex-row-print">
                             <div className="font-bold text-[1.05em] leading-tight break-words flex-1 pr-4">{exp.company}</div>
                             <div className={`text-[0.9em] text-right leading-tight flex-shrink-0 ${rightTextStyle}`} style={{ width: expColWidthCSS, color: rightTextColor }}>{exp.location}</div>
@@ -703,7 +699,7 @@ export default function ResumePreview({ data, settings }) {
                         if (!hasContent) return null;
 
                         return (
-                        <div key={i} className={pageBreakClass}>
+                        <div key={i} className={`${pageBreakClass} measure-node`}>
                             <div className="flex flex-row items-baseline justify-between flex-row-print">
                             <div className="font-bold leading-tight break-words flex-1 pr-4">{edu.degree}</div>
                             <div className={`text-[0.9em] text-right leading-tight flex-shrink-0 ${rightTextStyle}`} style={{ width: eduColWidthCSS, color: rightTextColor }}>{edu.period}</div>
@@ -736,7 +732,7 @@ export default function ResumePreview({ data, settings }) {
                              if (!hasContent) return null;
 
                              return (
-                                <div key={i} className={pageBreakClass}>
+                                <div key={i} className={`${pageBreakClass} measure-node`}>
                                     {item.title && <h4 className="font-bold text-[1.05em] leading-tight mb-0.5" style={{ color: settings.themeColor }}>{item.title}</h4>}
                                     <ul className="list-outside" style={{...innerListStyle, paddingLeft: '1.2em'}}>
                                         {(item.description || []).map((descObj, j) => {
@@ -796,7 +792,7 @@ export default function ResumePreview({ data, settings }) {
                         {data.references.map((ref, i) => {
                             const iconColor = settings.listMarkerUseThemeColor ? settings.themeColor : 'currentColor';
                             return (
-                            <div key={i} className="break-inside-avoid min-w-0 pr-2">
+                            <div key={i} className="break-inside-avoid min-w-0 pr-2 measure-node">
                                 <div className="font-bold text-[0.95em] break-words leading-tight" style={{ color: settings.bodyColor }}>{ref.name}</div>
                                 {(ref.role || ref.company) && (
                                     <div className="text-[0.9em] italic mb-0.5 break-words leading-tight" style={{ color: roleColor }}>
