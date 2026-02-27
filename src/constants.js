@@ -139,6 +139,7 @@ export const TRANSLATIONS = {
       itemsList: "Itens (Lista)",
       title: "Título",
       link: "Link (URL)",
+      projGithub: "GitHub (URL)",
       tech: "Tech",
       company: "Empresa",
       role: "Cargo",
@@ -274,6 +275,7 @@ export const TRANSLATIONS = {
       itemsList: "Items (List)",
       title: "Title",
       link: "Link (URL)",
+      projGithub: "GitHub (URL)",
       tech: "Tech",
       company: "Company",
       role: "Role",
@@ -322,9 +324,7 @@ export const INITIAL_SETTINGS = {
   prefixUseThemeColor: true, 
   prefixBold: true, 
   
-  rightTextBold: false, 
-  
-  showLinkIcon: true, 
+  rightTextBold: false,
   
   lineHeight: 1.1,        
   headerSpacing: 5,      
@@ -414,6 +414,7 @@ export const INITIAL_DATA = {
       title: "Nome do seu Projeto ou Iniciativa",
       link: "linkdoseuprojeto.com.br", 
       tech: "Ferramenta 1, Ferramenta 2",
+      github: "github.com/seuperfil/projeto",
       description: [
         "Descreva brevemente qual foi o foco principal deste projeto.",
         "Destaque o seu papel específico na execução e desenvolvimento.",
