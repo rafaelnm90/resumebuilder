@@ -1571,11 +1571,6 @@ export default function App() {
                 </div>
                 <ToggleSwitch checked={settings.prefixUseThemeColor !== false} onChange={() => setSettings({...settings, prefixUseThemeColor: settings.prefixUseThemeColor === false ? true : false})} />
             </div>
-
-            <div className="flex items-center justify-between border-t border-gray-100 pt-3">
-                <span className="text-xs font-medium text-gray-700">{t.linkIcon}</span>
-                <ToggleSwitch checked={settings.showLinkIcon} onChange={() => setSettings({...settings, showLinkIcon: !settings.showLinkIcon})} />
-            </div>
         </div>
 
         <div className="grid grid-cols-2 gap-4 pt-2">
@@ -2250,7 +2245,11 @@ export default function App() {
         <>
             <div className="grid gap-2 mb-2">
                 <Input label={t.title} value={p.title} onChange={v=>updateItem('projects', i, 'title', v)} onExpandRequest={handleOpenExpand}/>
-                <Input label={t.link} value={p.link || ''} onChange={v=>updateItem('projects', i, 'link', v)} onExpandRequest={handleOpenExpand}/>
+                <div className="grid grid-cols-2 gap-2">
+                    <Input label={t.link} value={p.link || ''} onChange={v=>updateItem('projects', i, 'link', v)} onExpandRequest={handleOpenExpand}/>
+                    <Input label={t.projGithub || 'GitHub (URL)'} value={p.github || ''} onChange={v=>updateItem('projects', i, 'github', v)} onExpandRequest={handleOpenExpand}/>
+                </div>
+                {typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS && console.log(`🚀 [App.js] Ajustando grid duplo para os links (URL Genérica e GitHub) no projeto ${i}`)}
                 <Input label={t.tech} value={p.tech} onChange={v=>updateItem('projects', i, 'tech', v)} onExpandRequest={handleOpenExpand}/>
             </div>
             <DraggableDescriptionList items={p.description} sectionId="projects" itemIndex={i} onUpdate={updateArrayItem} onRemove={removeArrayItemFromItem} onAdd={addArrayItemToItem} onExpandRequest={handleOpenExpand} t={t} />
