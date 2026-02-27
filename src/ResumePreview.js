@@ -617,12 +617,28 @@ export default function ResumePreview({ data, settings }) {
                         <div key={i} className={`${pageBreakClass} flex flex-row items-start gap-8 flex-row-print`}>
                         <div className="flex-1">
                             <h4 className="font-bold text-[1.05em] break-words mb-0.5" style={{ color: settings.bodyColor }}>{proj.title}</h4>
-                            {proj.link && (
-                                <a href={proj.link.startsWith('http') ? proj.link : `https://${proj.link}`} target="_blank" rel="noopener noreferrer"
-                                   className="flex items-center gap-1 italic font-medium text-[0.9em] mb-1 hover:underline" style={{ color: roleColor || 'inherit' }}>
-                                    {settings.showLinkIcon !== false && <Link size={12} />}
-                                    <span>{proj.link.replace(/^https?:\/\/(www\.)?/, '')}</span>
-                                </a>
+                            {(proj.link || proj.github) && (
+                                <div className="flex flex-wrap items-center gap-2 mb-1">
+                                    {proj.link && (
+                                        <a href={proj.link.startsWith('http') ? proj.link : `https://${proj.link}`} target="_blank" rel="noopener noreferrer"
+                                           className="flex items-center gap-1 italic font-medium text-[0.9em] hover:underline" style={{ color: roleColor || 'inherit' }}>
+                                            {typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS && console.log(`🔗 [ResumePreview.js] Renderizando URL genérica no projeto ${i}.`)}
+                                            <Link size={12} />
+                                            <span>{proj.link.replace(/^https?:\/\/(www\.)?/, '')}</span>
+                                        </a>
+                                    )}
+                                    {(proj.link && proj.github) && (
+                                        <span className="text-gray-400 font-medium text-[0.9em]">|</span>
+                                    )}
+                                    {proj.github && (
+                                        <a href={proj.github.startsWith('http') ? proj.github : `https://${proj.github}`} target="_blank" rel="noopener noreferrer"
+                                           className="flex items-center gap-1 italic font-medium text-[0.9em] hover:underline" style={{ color: roleColor || 'inherit' }}>
+                                            {typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS && console.log(`🐙 [ResumePreview.js] Renderizando URL do GitHub inline no projeto ${i}.`)}
+                                            <Github size={12} />
+                                            <span>{proj.github.replace(/^https?:\/\/(www\.)?/, '')}</span>
+                                        </a>
+                                    )}
+                                </div>
                             )}
                             <ul className="list-outside" style={{...innerListStyle, paddingLeft: '1.2em'}}>
                                 {renderListItems(proj.description, sectionId)}
