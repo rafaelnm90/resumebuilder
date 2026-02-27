@@ -58,18 +58,26 @@ export default function ResumePreview({ data, settings }) {
       const observer = new ResizeObserver((entries) => {
           for (let entry of entries) {
               const heightPx = entry.contentRect.height;
-              // Conversão técnica padrão: 1mm = ~3.779527 pixels a 96 DPI
               const heightMm = heightPx / 3.779527; 
-              // 297mm é a altura exata da folha A4. Arredonda sempre para cima.
-              const pages = Math.ceil(heightMm / 297); 
-              setMinPages(pages > 0 ? pages : 1);
-      const newPages = pages > 0 ? pages : 1;
+              
+              // CORREÇÃO DE CÁLCULO DE PÁGINAS (Bug da Página Fantasma):
+              // O thead (24mm) e tfoot (24mm) se repetem na impressão, consumindo 48mm a CADA página.
+              // Na tela, o ResizeObserver mede eles apenas 1 vez. 
+              // Isolamos a altura apenas do conteúdo bruto (tela - 48mm).
+              const contentOnlyMm = Math.max(0, heightMm - 48);
+              
+              // Dividimos por 247mm em vez dos 249mm reais disponíveis (297-48). 
+              // Esses 2mm de margem absorvem arredondamentos e os "buracos em branco" 
+              // que o page-break-inside: avoid deixa durante a quebra de página.
+              const calculatedPages = Math.ceil(contentOnlyMm / 247); 
+              const newPages = calculatedPages > 0 ? calculatedPages : 1;
+
               setMinPages(prev => {
                   if (prev !== newPages) {
-                      if (typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS) console.log(`⚡ [ResumePreview.js] Re-renderização disparada via ResizeObserver: Páginas atualizadas para ${newPages}.`);
+                      if (typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS) console.log(`⚡ [ResumePreview.js] ResizeObserver: Páginas ajustadas para ${newPages} (Matemática de Tabela).`);
                       return newPages;
                   }
-                  return prev; // Cancela silenciosamente a re-renderização se o valor for o mesmo
+                  return prev;
               });
           }
       });
