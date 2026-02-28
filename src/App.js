@@ -2557,7 +2557,7 @@ export default function App() {
             t={t}
             renderItem={(ex, i) => (
                 <div className="flex flex-col gap-2">
-                    <div className="grid grid-cols-2 gap-x-4 mb-1">
+                    <div className="flex flex-col gap-1 mb-1">
                         <Input label={t.company} value={ex.company} onChange={v=>updateItem('experience', i, 'company', v)} onExpandRequest={handleOpenExpand}/>
                         <Input label={t.role} value={ex.role} onChange={v=>updateItem('experience', i, 'role', v)} onExpandRequest={handleOpenExpand}/>
                     </div>
