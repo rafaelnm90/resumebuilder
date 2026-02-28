@@ -520,10 +520,12 @@ export default function ResumePreview({ data, settings }) {
                                         {(item.description || []).map((descObj, j) => {
                                             const isString = typeof descObj === 'string';
                                             const text = isString ? descObj : descObj.text;
+                                            const institution = isString ? '' : descObj.institution;
+                                            const year = isString ? '' : descObj.year;
                                             const hours = isString ? '' : descObj.hours;
                                             const details = isString ? '' : descObj.details;
 
-                                            if (!text?.trim() && !hours?.trim() && !details?.trim()) return null;
+                                            if (!text?.trim() && !institution?.trim() && !year?.trim() && !hours?.trim() && !details?.trim()) return null;
 
                                             const activeStyle = LIST_STYLES[settings.listStyle] || LIST_STYLES['disc'];
                                             const isWideMarker = ['arrow', 'check', 'dash'].includes(settings.listStyle);
@@ -536,15 +538,27 @@ export default function ResumePreview({ data, settings }) {
                                                 paddingLeft: isWideMarker ? '0.5em' : '0' 
                                             };
 
+                                            // Bloco Modificado
                                             return (
                                                 <li key={j} className={`break-words ${bulletClass} ${settings.listMarkerBold ? 'marker:font-bold' : ''}`} style={liStyle}>
                                                     <div style={{ color: settings.bodyColor || '#374151', position: 'relative', left: isWideMarker ? '0.3em' : '0' }}>
-                                                        {(text || hours) && (
+                                                        {(text || institution || year || hours) && (
+                                                            // Bloco Modificado
                                                             <div className={`leading-tight break-words ${!details ? 'mb-0' : 'mb-0.5'}`} style={{ color: settings.bodyColor }}>
                                                                 {text && <span className="font-bold text-[0.95em]">{formatText(text)}</span>}
+                                                                {/* 🚀 Padronização: (Instituição, Ano) em negrito e cor preta */}
+                                                                {(institution || year) && (
+                                                                    <span className="font-bold text-[0.95em]">
+                                                                        {" ("}
+                                                                        {institution && formatText(institution)}
+                                                                        {institution && year && ", "}
+                                                                        {year && year}
+                                                                        {")"}
+                                                                    </span>
+                                                                )}
                                                                 {hours && (
                                                                     <span className="font-normal text-[0.9em] opacity-80">
-                                                                        {text ? ' - ' : ''}<strong style={{ color: settings.themeColor }}>CH:</strong> {hours}{!hours.toLowerCase().includes('h') ? ' horas' : ''}
+                                                                        {(text || institution || year) ? ' | ' : ''}<strong style={{ color: settings.themeColor }}>Carga horária:</strong> {hours}{!hours.toLowerCase().includes('h') ? ' horas' : ''}
                                                                     </span>
                                                                 )}
                                                             </div>
@@ -574,7 +588,10 @@ export default function ResumePreview({ data, settings }) {
         case 'objective':
             return structure.objective.visible && data.objective && (
                 <SimpleSectionWrapper title={displayTitle} sectionId={sectionId}>
-                    <p className="break-words" style={{ textAlign: settings.textAlign, textJustify: 'inter-word' }}>{formatText(data.objective)}</p>
+                    {/* 🚀 Aplicando classe de negrito condicional ao bloco inteiro */}
+                    <p className={`break-words ${settings.objectiveFullBold ? 'font-bold' : ''}`} style={{ textAlign: settings.textAlign, textJustify: 'inter-word' }}>
+                        {formatText(data.objective)}
+                    </p>
                 </SimpleSectionWrapper>
             );
         case 'summary':
@@ -738,10 +755,12 @@ export default function ResumePreview({ data, settings }) {
                                         {(item.description || []).map((descObj, j) => {
                                             const isString = typeof descObj === 'string';
                                             const text = isString ? descObj : descObj.text;
+                                            const institution = isString ? '' : descObj.institution;
+                                            const year = isString ? '' : descObj.year;
                                             const hours = isString ? '' : descObj.hours;
                                             const details = isString ? '' : descObj.details;
 
-                                            if (!text?.trim() && !hours?.trim() && !details?.trim()) return null;
+                                            if (!text?.trim() && !institution?.trim() && !year?.trim() && !hours?.trim() && !details?.trim()) return null;
 
                                             const activeStyle = LIST_STYLES[settings.listStyle] || LIST_STYLES['disc'];
                                             const isWideMarker = ['arrow', 'check', 'dash'].includes(settings.listStyle);
@@ -754,15 +773,28 @@ export default function ResumePreview({ data, settings }) {
                                                 paddingLeft: isWideMarker ? '0.5em' : '0' 
                                             };
 
+                                            // Bloco Modificado
                                             return (
                                                 <li key={j} className={`break-words ${bulletClass} ${settings.listMarkerBold ? 'marker:font-bold' : ''}`} style={liStyle}>
                                                     <div style={{ color: settings.bodyColor || '#374151', position: 'relative', left: isWideMarker ? '0.3em' : '0' }}>
-                                                        {(text || hours) && (
+                                                        {(text || institution || year || hours) && (
+                                                            // Bloco Modificado
+                                                            // Bloco Modificado
                                                             <div className={`leading-tight break-words ${!details ? 'mb-0' : 'mb-0.5'}`} style={{ color: settings.bodyColor }}>
                                                                 {text && <span className="font-bold text-[0.95em]">{formatText(text)}</span>}
+                                                                {/* 🚀 Padronização: (Instituição, Ano) em negrito e cor preta */}
+                                                                {(institution || year) && (
+                                                                    <span className="font-bold text-[0.95em]">
+                                                                        {" ("}
+                                                                        {institution && formatText(institution)}
+                                                                        {institution && year && ", "}
+                                                                        {year && year}
+                                                                        {")"}
+                                                                    </span>
+                                                                )}
                                                                 {hours && (
                                                                     <span className="font-normal text-[0.9em] opacity-80">
-                                                                        {text ? ' | ' : ''}<strong style={{ color: settings.themeColor }}>Carga horária:</strong> {hours}{!hours.toLowerCase().includes('h') ? ' horas' : ''}
+                                                                        {(text || institution || year) ? ' | ' : ''}<strong style={{ color: settings.themeColor }}>Carga horária:</strong> {hours}{!hours.toLowerCase().includes('h') ? ' horas' : ''}
                                                                     </span>
                                                                 )}
                                                             </div>
