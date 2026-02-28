@@ -99,6 +99,7 @@ export const TRANSLATIONS = {
       lattes: "Currículo Lattes (Link/ID)",
       youtube: "YouTube (Canal/Link)",
       expandEditor: "Expand Editor em Tela Cheia",
+      fullBoldLabel: "Todo o texto em negrito",
       
       driverLicenses: "CNH (Carteiras de Motorista)",
       addNewItem: "Adicionar Novo Item",
@@ -149,7 +150,8 @@ export const TRANSLATIONS = {
       details: "Detalhes",
       catTitle: "Título da Categoria",
       activate: "ATIVAR (RISCO)",
-      deactivate: "DESATIVAR (SEGURO)"
+      deactivate: "DESATIVAR (SEGURO)",
+      fullBold: "Todo o Texto em Negrito"
     },
     sections: {
       objective: "Objetivo",
@@ -331,6 +333,7 @@ export const INITIAL_SETTINGS = {
   itemSpacing: 1.5,         
   sectionSpacing: 3,     
   pageBreakAuto: true,
+  objectiveBold: false,
   
   sectionItemSpacings: {}, 
   
@@ -461,8 +464,8 @@ export const INITIAL_DATA = {
     {
       title: "Certificações ou Cursos Extracurriculares",
       description: [
-        { text: "Nome do Curso ou Certificação (Instituição, Ano)", hours: "40h", details: "Insira uma breve descrição sobre o que aprendeu (opcional)." },
-        { text: "Nome de outro Curso Relevante", hours: "15h", details: "" }
+        { text: "Nome do Curso ou Certificação", institution: "Nome da Instituição", year: "2023", hours: "40h", details: "Insira uma breve descrição sobre o que aprendeu (opcional)." },
+        { text: "Nome de outro Curso Relevante", institution: "", year: "", hours: "15h", details: "" }
       ]
     }
   ],
