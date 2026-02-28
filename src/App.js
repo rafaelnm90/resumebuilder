@@ -9,7 +9,7 @@ import {
   Circle, Square, Move, Crop, Info, 
   RotateCw, RotateCcw, Sun, FlipHorizontal, Droplet, Frame, Sliders, Link as LinkIcon,
   UserPlus, AlertTriangle, List as ListIcon, Mail, Phone, Save, MapPin, Calendar, Sparkles,
-  Archive, Clock, ArrowLeft, ExternalLink
+  Archive, Clock, ArrowLeft, ExternalLink, ArrowDownUp
 } from 'lucide-react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import ResumePreview from './ResumePreview';
@@ -346,7 +346,7 @@ const DraggableListItemInput = ({ value, onChange, onRemove, dragHandleProps, on
   );
 };
 
-const DraggableDescriptionList = ({ items, sectionId, itemIndex, onUpdate, onRemove, onAdd, onExpandRequest, t }) => {
+const DraggableDescriptionList = ({ items, sectionId, itemIndex, onUpdate, onRemove, onAdd, onExpandRequest, onSort, t }) => {
   const droppableId = `desc-${sectionId}-${itemIndex}`;
   return (
     <Droppable droppableId={droppableId} type="DESCRIPTION_ITEM">
@@ -369,14 +369,19 @@ const DraggableDescriptionList = ({ items, sectionId, itemIndex, onUpdate, onRem
             </Draggable>
           ))}
           {provided.placeholder}
-          <button onClick={() => onAdd(sectionId, itemIndex, 'description')} className="text-xs text-blue-600 flex items-center mt-1 ml-6"><Plus size={12} className="mr-1"/> {t.addItem}</button>
+          <div className="flex items-center gap-4 mt-1 ml-6">
+              <button onClick={() => onAdd(sectionId, itemIndex, 'description')} className="text-xs text-blue-600 flex items-center font-bold hover:text-blue-800 transition-colors"><Plus size={12} className="mr-1"/> {t.addItem}</button>
+              {onSort && (
+                  <button onClick={onSort} className="text-xs text-gray-500 hover:text-gray-800 flex items-center font-bold transition-colors" title="Ordenar por Data (Alternar Crescente/Decrescente)"><ArrowDownUp size={12} className="mr-1"/> Ordenar Itens</button>
+              )}
+          </div>
         </div>
       )}
     </Droppable>
   );
 };
 
-const DraggableOthersList = ({ items, sectionId, itemIndex, onUpdate, onRemove, onAdd, onExpandRequest, t }) => {
+const DraggableOthersList = ({ items, sectionId, itemIndex, onUpdate, onRemove, onAdd, onExpandRequest, onSort, t }) => {
   const droppableId = `desc-${sectionId}-${itemIndex}`;
   return (
     <Droppable droppableId={droppableId} type="DESCRIPTION_ITEM">
@@ -385,34 +390,49 @@ const DraggableOthersList = ({ items, sectionId, itemIndex, onUpdate, onRemove, 
           {(items || []).map((itemObj, index) => {
             const isString = typeof itemObj === 'string';
             const currentText = isString ? itemObj : (itemObj.text || '');
+            const currentInstitution = isString ? '' : (itemObj.institution || '');
+            const currentYear = isString ? '' : (itemObj.year || '');
             const currentHours = isString ? '' : (itemObj.hours || '');
             const currentDetails = isString ? '' : (itemObj.details || '');
 
             return (
             <Draggable key={`${droppableId}-${index}`} draggableId={`${droppableId}-${index}`} index={index}>
               {(provided, snapshot) => (
-                <div ref={provided.innerRef} {...provided.draggableProps} className={`p-3 bg-white border rounded shadow-sm relative ${snapshot.isDragging ? 'opacity-70 border-blue-500' : 'border-gray-200'}`}>
-                    <div className="flex gap-2 mb-2 items-center">
-                        <div {...provided.dragHandleProps} className="text-gray-300 hover:text-gray-500 cursor-grab"><GripVertical size={14} /></div>
-                        <div className="flex-1 grid grid-cols-4 gap-2">
-                            <div className="col-span-3">
-                                <Input label="Item / Curso / Idioma" value={currentText} onChange={(val) => onUpdate(sectionId, itemIndex, 'description', index, { text: val, hours: currentHours, details: currentDetails })} onExpandRequest={onExpandRequest} expandDisableRich={true} multiline={true} />
-                            </div>
-                            <div className="col-span-1">
-                                <Input label="Carga / Nível" value={currentHours} onChange={(val) => onUpdate(sectionId, itemIndex, 'description', index, { text: currentText, hours: val, details: currentDetails })} onExpandRequest={onExpandRequest} expandDisableRich={true}/>
+                <div ref={provided.innerRef} {...provided.draggableProps} className={`p-3 bg-white border rounded shadow-sm relative ${snapshot.isDragging ? 'opacity-70 border-blue-500' : 'border-gray-200'} transition-all`}>
+                    <button 
+                        onClick={() => {
+                            if (typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS) console.log(`🗑️ [App.js] Removendo item de categoria/certificação no índice ${index}...`);
+                            onRemove(sectionId, itemIndex, 'description', index);
+                        }} 
+                        className="absolute -top-2 -right-2 bg-white text-red-400 p-1 rounded-full shadow-md border border-red-100 z-20 hover:text-red-600 hover:scale-110 transition-transform"
+                    >
+                        <Trash2 size={14}/>
+                    </button>
+                    <div className="flex gap-2 mb-2 items-start pt-1">
+                        <div {...provided.dragHandleProps} className="text-gray-300 hover:text-gray-500 cursor-grab mt-4"><GripVertical size={14} /></div>
+                        <div className="flex-1 flex flex-col gap-2">
+                            <Input label="Item / Curso / Idioma" value={currentText} onChange={(val) => onUpdate(sectionId, itemIndex, 'description', index, { text: val, institution: currentInstitution, year: currentYear, hours: currentHours, details: currentDetails })} onExpandRequest={onExpandRequest} expandDisableRich={true} multiline={true} />
+                            <div className="grid grid-cols-3 gap-2">
+                                <Input label="Instituição / Escola" value={currentInstitution} onChange={(val) => onUpdate(sectionId, itemIndex, 'description', index, { text: currentText, institution: val, year: currentYear, hours: currentHours, details: currentDetails })} expandDisableRich={true}/>
+                                <Input label="Ano" value={currentYear} onChange={(val) => onUpdate(sectionId, itemIndex, 'description', index, { text: currentText, institution: currentInstitution, year: val, hours: currentHours, details: currentDetails })} expandDisableRich={true}/>
+                                <Input label="Carga / Nível" value={currentHours} onChange={(val) => onUpdate(sectionId, itemIndex, 'description', index, { text: currentText, institution: currentInstitution, year: currentYear, hours: val, details: currentDetails })} expandDisableRich={true}/>
                             </div>
                         </div>
-                        <button onClick={() => onRemove(sectionId, itemIndex, 'description', index)} className="text-red-400 hover:text-red-600 p-1 mb-2"><Trash2 size={16}/></button>
                     </div>
                     <div className="pl-6">
-                        <Input label="Descrição Opcional" value={currentDetails} onChange={(val) => onUpdate(sectionId, itemIndex, 'description', index, { text: currentText, hours: currentHours, details: val })} onExpandRequest={onExpandRequest} enableRich={true} multiline={true} />
+                        <Input label="Descrição Opcional" value={currentDetails} onChange={(val) => onUpdate(sectionId, itemIndex, 'description', index, { text: currentText, institution: currentInstitution, year: currentYear, hours: currentHours, details: val })} onExpandRequest={onExpandRequest} enableRich={true} multiline={true} />
                     </div>
                 </div>
               )}
             </Draggable>
           )})}
           {provided.placeholder}
-          <button onClick={() => onAdd(sectionId, itemIndex, 'description', { text: '', hours: '', details: '' })} className="text-xs text-blue-600 flex items-center mt-2 ml-1"><Plus size={12} className="mr-1"/> {t.addItem}</button>
+          <div className="flex items-center gap-4 mt-2 ml-1">
+              <button onClick={() => onAdd(sectionId, itemIndex, 'description', { text: '', institution: '', year: '', hours: '', details: '' })} className="text-xs text-blue-600 flex items-center font-bold hover:text-blue-800 transition-colors"><Plus size={12} className="mr-1"/> {t.addItem}</button>
+              {onSort && (
+                  <button onClick={onSort} className="text-xs text-gray-500 hover:text-gray-800 flex items-center font-bold transition-colors" title="Ordenar por Data (Alternar Crescente/Decrescente)"><ArrowDownUp size={12} className="mr-1"/> Ordenar Itens</button>
+              )}
+          </div>
         </div>
       )}
     </Droppable>
@@ -455,6 +475,15 @@ const DraggableExperienceList = ({ items, sectionId, itemIndex, onUpdate, onRemo
                     {...provided.draggableProps} 
                     className={`flex flex-col gap-1.5 p-2.5 bg-gray-50 border rounded-md relative ${snapshot.isDragging ? 'opacity-70 border-blue-500 shadow-xl z-50' : 'border-gray-200 hover:border-blue-200 transition-colors'}`}
                   >
+                      <button 
+                        onClick={() => {
+                            if (typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS) console.log(`🗑️ [App.js] Removendo subtópico de experiência...`);
+                            onRemove(sectionId, itemIndex, 'description', index);
+                        }} 
+                        className="absolute -top-2 -right-2 bg-white text-red-400 p-1 rounded-full shadow-md border border-red-100 z-20 hover:text-red-600 hover:scale-110 transition-transform"
+                      >
+                        <Trash2 size={14}/>
+                      </button>
                       <div className="flex items-start gap-2 pl-6 pr-1 pt-1">
                           <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mt-2">Prefixo:</span>
                           <div className="flex-1 flex flex-col gap-2">
@@ -509,13 +538,34 @@ const DraggableExperienceList = ({ items, sectionId, itemIndex, onUpdate, onRemo
   );
 };
 
-const DraggableSection = ({ sectionId, title, items, onAdd, onRemove, renderItem, isVisible, onToggle, t, renderHeader }) => (
+const DraggableSection = ({ sectionId, title, items, onAdd, onRemove, renderItem, isVisible, onToggle, t, renderHeader, onSort }) => (
   <div className="space-y-4">
     {renderHeader(sectionId, title)}
 
     <div className={`transition-opacity duration-300 ${isVisible ? 'opacity-100' : 'opacity-60 pointer-events-none grayscale'}`}>
         
-        {onAdd && <AddItemButton onClick={onAdd} label={t.addNewItem} />}
+        {(onAdd || onSort) && (
+          <div className="flex gap-2 mb-4">
+            {onAdd && (
+                <button 
+                    onClick={onAdd}
+                    className="flex-1 py-3 border-2 border-dashed border-blue-300 rounded-lg flex items-center justify-center text-blue-600 font-bold hover:bg-blue-50 transition-all duration-200 group active:scale-[0.99]"
+                >
+                    <Plus size={20} className="mr-2 group-hover:scale-110 transition-transform"/>
+                    {t.addNewItem}
+                </button>
+            )}
+            {onSort && (
+                <button 
+                    onClick={onSort}
+                    className="px-4 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center text-gray-600 hover:text-gray-800 font-bold hover:bg-gray-50 transition-all duration-200 group active:scale-[0.99]"
+                    title="Ordenar por Data (Alternar Crescente/Decrescente)"
+                >
+                    <ArrowDownUp size={20} className="group-hover:scale-110 transition-transform"/>
+                </button>
+            )}
+          </div>
+        )}
 
         <Droppable droppableId={sectionId} type="SECTION_ITEM">
         {(provided) => (
@@ -615,48 +665,163 @@ const ExpandedModal = ({ isOpen, onClose, title, value, onSave, disableFormattin
   );
 };
 
+const MONTHS = [
+    { value: '', label: 'Mês' }, { value: 'Jan', label: 'Jan' }, { value: 'Fev', label: 'Fev' },
+    { value: 'Mar', label: 'Mar' }, { value: 'Abr', label: 'Abr' }, { value: 'Mai', label: 'Mai' },
+    { value: 'Jun', label: 'Jun' }, { value: 'Jul', label: 'Jul' }, { value: 'Ago', label: 'Ago' },
+    { value: 'Set', label: 'Set' }, { value: 'Out', label: 'Out' }, { value: 'Nov', label: 'Nov' },
+    { value: 'Dez', label: 'Dez' }
+];
+
+const parseDatePart = (str) => {
+    if (!str || str.toLowerCase() === 'atual') return { month: '', year: '' };
+    const parts = str.split('/');
+    if (parts.length === 2) return { month: parts[0].trim(), year: parts[1].trim() };
+    return { month: '', year: str.trim() }; // fallback de retrocompatibilidade
+};
+
+const calculateDateWeight = (dateStr) => {
+    if (!dateStr) return 0;
+    const str = dateStr.toString().trim().toLowerCase();
+    if (str === 'atual' || str === 'presente' || str === 'em andamento') return Infinity;
+    
+    const parts = str.split('/');
+    let year = 0, month = 0;
+    
+    if (parts.length === 2) {
+        const monthStr = parts[0].trim();
+        const monthIdx = MONTHS.findIndex(m => m.value.toLowerCase() === monthStr || m.label.toLowerCase() === monthStr);
+        month = monthIdx > 0 ? monthIdx : 0;
+        year = parseInt(parts[1].trim(), 10);
+    } else {
+        year = parseInt(parts[0].trim(), 10);
+    }
+    
+    if (isNaN(year)) return 0;
+    return year * 12 + month;
+};
+
+const sortItemsByDate = (items) => {
+    if (!items || items.length <= 1) {
+        alert("Não há itens suficientes para ordenar.");
+        return items || [];
+    }
+
+    const sortedDesc = [...items].sort((a, b) => {
+        const getPeriod = (item) => {
+            if (!item) return '';
+            if (typeof item === 'string') return item;
+            return item.period || item.date || item.year || '';
+        };
+        const periodA = getPeriod(a);
+        const periodB = getPeriod(b);
+        
+        const partsA = periodA.split(' - ');
+        const partsB = periodB.split(' - ');
+        
+        const startA = partsA[0] || '';
+        const endA = partsA.length > 1 ? partsA[1].trim() : startA; 
+        
+        const startB = partsB[0] || '';
+        const endB = partsB.length > 1 ? partsB[1].trim() : startB;
+        
+        const weightEndA = calculateDateWeight(endA);
+        const weightEndB = calculateDateWeight(endB);
+        
+        if (weightEndA !== weightEndB) {
+            return weightEndB - weightEndA; 
+        }
+        
+        const weightStartA = calculateDateWeight(startA);
+        const weightStartB = calculateDateWeight(startB);
+        
+        return weightStartB - weightStartA; 
+    });
+
+    const isAlreadyDesc = items.every((item, i) => item === sortedDesc[i]);
+    
+    if (isAlreadyDesc) {
+        if (typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS) console.log("✅ [App.js] Ordenação concluída: CRESCENTE 📈");
+        return sortedDesc.reverse();
+    }
+    
+    if (typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS) console.log("✅ [App.js] Ordenação concluída: DECRESCENTE 📉");
+    return sortedDesc;
+};
+
 const PeriodInput = ({ value, onChange }) => {
   const parts = (value || '').split(' - ');
-  const start = parts[0] || '';
-  const end = parts.length > 1 ? parts.slice(1).join(' - ') : '';
-  const isCurrent = end.trim().toLowerCase() === 'atual';
+  const startStr = parts[0] || '';
+  const endStr = parts.length > 1 ? parts.slice(1).join(' - ') : '';
+  const isCurrent = endStr.trim().toLowerCase() === 'atual';
 
-  const handleStartChange = (e) => onChange(`${e.target.value} - ${end}`);
-  const handleEndChange = (e) => onChange(`${start} - ${e.target.value}`);
-  
-  const handleCurrentToggle = (e) => {
-    if (e.target.checked) onChange(`${start} - Atual`);
-    else onChange(`${start} - `); 
+  const startObj = parseDatePart(startStr);
+  const endObj = parseDatePart(endStr);
+
+  const updateValue = (newStart, newEnd, current) => {
+      const formatPart = (obj) => {
+          if (!obj.year) return '';
+          return obj.month ? `${obj.month}/${obj.year}` : obj.year;
+      };
+      const s = formatPart(newStart);
+      let e = current ? 'Atual' : formatPart(newEnd);
+      
+      const finalStart = s || (startStr.includes('/') ? '' : startStr); 
+      const finalEnd = current ? 'Atual' : (e || (endStr !== 'Atual' && !endStr.includes('/') ? endStr : ''));
+
+      if (typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS) console.log(`📅 [App.js] Período Estruturado Atualizado: ${finalStart} - ${finalEnd}`);
+      onChange(`${finalStart} - ${finalEnd}`);
   };
 
   return (
     <div className="flex gap-2 mb-2 items-end">
       <div className="flex-1">
         <label className="text-xs font-semibold text-gray-500 uppercase mb-1 block">Início</label>
-        <input
-          type="text"
-          className="p-2 border rounded-md outline-none text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 w-full"
-          value={start}
-          onChange={handleStartChange}
-          placeholder="Ex: Jan/2020"
-        />
+        <div className="flex gap-1">
+            <select 
+                className="p-2 border rounded-md outline-none text-xs focus:border-blue-500 bg-white shadow-sm"
+                value={MONTHS.some(m => m.value === startObj.month) ? startObj.month : ''}
+                onChange={(e) => updateValue({ ...startObj, month: e.target.value }, endObj, isCurrent)}
+            >
+                {MONTHS.map(m => <option key={`s-${m.value}`} value={m.value}>{m.label}</option>)}
+            </select>
+            <input
+              type="text"
+              className="p-2 border rounded-md outline-none text-sm focus:border-blue-500 w-full shadow-sm"
+              value={startObj.year || (startStr && !startStr.includes('/') ? startStr : '')}
+              onChange={(e) => updateValue({ ...startObj, year: e.target.value }, endObj, isCurrent)}
+              placeholder="Ano"
+              maxLength="4"
+            />
+        </div>
       </div>
       <div className="flex-1">
         <div className="flex justify-between items-center mb-1">
           <label className="text-xs font-semibold text-gray-500 uppercase">Fim</label>
-          <label className="flex items-center gap-1 cursor-pointer bg-gray-100 hover:bg-gray-200 px-1.5 py-0.5 rounded border border-gray-200 transition-colors">
-            <input type="checkbox" checked={isCurrent} onChange={handleCurrentToggle} className="w-3 h-3 text-blue-600 rounded cursor-pointer" />
+          <label className="flex items-center gap-1 cursor-pointer bg-gray-100 hover:bg-gray-200 px-1.5 py-0.5 rounded border border-gray-200 transition-colors shadow-sm">
+            <input type="checkbox" checked={isCurrent} onChange={(e) => updateValue(startObj, endObj, e.target.checked)} className="w-3 h-3 text-blue-600 rounded cursor-pointer" />
             <span className="text-[9px] font-bold text-gray-600 uppercase">Atual</span>
           </label>
         </div>
-        <input
-          type="text"
-          className={`p-2 border rounded-md outline-none text-sm w-full transition-colors ${isCurrent ? 'bg-gray-100 text-gray-400 cursor-not-allowed font-bold' : 'focus:border-blue-500 focus:ring-1'}`}
-          value={isCurrent ? 'Atual' : (end === 'Atual' ? '' : end)}
-          onChange={handleEndChange}
-          disabled={isCurrent}
-          placeholder="Ex: Dez/2023"
-        />
+        <div className="flex gap-1">
+            <select 
+                className={`p-2 border rounded-md outline-none text-xs shadow-sm transition-colors ${isCurrent ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white focus:border-blue-500'}`}
+                value={MONTHS.some(m => m.value === endObj.month) ? endObj.month : ''}
+                onChange={(e) => updateValue(startObj, { ...endObj, month: e.target.value }, isCurrent)}
+                disabled={isCurrent}
+            >
+                {MONTHS.map(m => <option key={`e-${m.value}`} value={m.value}>{m.label}</option>)}
+            </select>
+            <input
+              type="text"
+              className={`p-2 border rounded-md outline-none text-sm w-full shadow-sm transition-colors ${isCurrent ? 'bg-gray-100 text-gray-400 cursor-not-allowed font-bold' : 'focus:border-blue-500'}`}
+              value={isCurrent ? 'Atual' : (endObj.year || (endStr && !endStr.includes('/') && endStr !== 'Atual' ? endStr : ''))}
+              onChange={(e) => updateValue(startObj, { ...endObj, year: e.target.value }, isCurrent)}
+              disabled={isCurrent}
+              placeholder="Ano"
+              maxLength="4"
+            />
+        </div>
       </div>
     </div>
   );
@@ -1068,6 +1233,49 @@ export default function App() {
   
   const removeItem = (s, idx) => setData(p => ({ ...p, [s]: p[s].filter((_, i) => i !== idx) }));
   const updateItem = (s, idx, f, v) => setData(p => ({ ...p, [s]: p[s].map((it, i) => i === idx ? { ...it, [f]: v } : it) }));
+
+  const handleSortSection = (sectionId) => {
+      if (typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS) console.log(`🔄 [App.js] Ordenando seção ${sectionId} por data...`);
+      setData(prev => ({ ...prev, [sectionId]: sortItemsByDate(prev[sectionId]) }));
+  };
+
+  const handleSortOthersCategory = (catIndex) => {
+      if (typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS) console.log(`🔄 [App.js] Ordenando categoria de Certificações (índice ${catIndex}) por data...`);
+      setData(prev => {
+          const newOthers = [...prev.others];
+          const cat = { ...newOthers[catIndex] };
+          cat.description = sortItemsByDate(cat.description);
+          newOthers[catIndex] = cat;
+          return { ...prev, others: newOthers };
+      });
+  };
+
+  const handleSortCustomDetailed = (sectionId) => {
+      if (typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS) console.log(`🔄 [App.js] Ordenando seção customizada detalhada ${sectionId}...`);
+      setData(prev => ({
+          ...prev,
+          customSections: prev.customSections.map(s => 
+              s.id === sectionId ? { ...s, content: sortItemsByDate(s.content) } : s
+          )
+      }));
+  };
+
+  const handleSortCustomCategoryItems = (sectionId, catIndex) => {
+      if (typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS) console.log(`🔄 [App.js] Ordenando itens de categoria customizada (Seção: ${sectionId}, Categoria: ${catIndex})...`);
+      setData(prev => ({
+          ...prev,
+          customSections: prev.customSections.map(s => {
+              if (s.id === sectionId) {
+                  const newContent = [...s.content];
+                  const cat = { ...newContent[catIndex] };
+                  cat.description = sortItemsByDate(cat.description);
+                  newContent[catIndex] = cat;
+                  return { ...s, content: newContent };
+              }
+              return s;
+          })
+      }));
+  };
   
   const updateArrayItem = (s, iIdx, arrF, arrI, v) => setData(p => ({ ...p, [s]: p[s].map((it, i) => i !== iIdx ? it : { ...it, [arrF]: [...it[arrF]].map((val, k) => k === arrI ? v : val) }) }));
   const addArrayItemToItem = (s, iIdx, arrF, defaultVal = "") => setData(p => ({ ...p, [s]: p[s].map((it, i) => i === iIdx ? { ...it, [arrF]: [...it[arrF], defaultVal] } : it) }));
@@ -1835,16 +2043,43 @@ export default function App() {
                 
                 {section.type === 'detailed' && (
                 <div className="space-y-4">
-                    <AddItemButton onClick={() => addDetailedItemTop(section.id)} label={t.addNewItem} />
+                    <div className="flex gap-2 mb-4">
+                        <button 
+                            onClick={() => addDetailedItemTop(section.id)}
+                            className="flex-1 py-3 border-2 border-dashed border-blue-300 rounded-lg flex items-center justify-center text-blue-600 font-bold hover:bg-blue-50 transition-all duration-200 group active:scale-[0.99]"
+                        >
+                            <Plus size={20} className="mr-2 group-hover:scale-110 transition-transform"/>
+                            {t.addNewItem}
+                        </button>
+                        <button 
+                            onClick={() => handleSortCustomDetailed(section.id)}
+                            className="px-4 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center text-gray-600 hover:text-gray-800 font-bold hover:bg-gray-50 transition-all duration-200 group active:scale-[0.99]"
+                            title="Ordenar por Data (Alternar Crescente/Decrescente)"
+                        >
+                            <ArrowDownUp size={20} className="group-hover:scale-110 transition-transform"/>
+                        </button>
+                    </div>
                     
                     {section.content.map((item, i) => (
-                    <div key={i} className="bg-gray-50 p-3 rounded relative border border-gray-200">
-                        <button onClick={() => removeDetailedItem(section.id, i)} className="absolute top-2 right-2 text-red-400 hover:text-red-600"><Trash2 size={16}/></button>
+                    <div key={i} className="bg-gray-50 p-3 rounded relative border border-gray-200 transition-all hover:border-blue-200">
+                        {/* 🚀 Iniciando implementação da lixeira flutuante... */}
+                        <button 
+                            onClick={() => {
+                                if (typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS) console.log(`🗑️ [App.js] Removendo item da seção detalhada customizada...`);
+                                removeDetailedItem(section.id, i);
+                            }} 
+                            className="absolute -top-2 -right-2 bg-white text-red-400 p-1 rounded-full shadow-md border border-red-100 z-30 hover:text-red-600 hover:scale-110 transition-transform"
+                        >
+                            <Trash2 size={14}/>
+                        </button>
                         <div className="grid grid-cols-2 gap-2 mb-2">
-                        <Input label={t.title + " / " + t.company} value={item.title} onChange={v => updateDetailedItem(section.id, i, 'title', v)} onExpandRequest={handleOpenExpand} expandDisableRich={true} />
-                        <Input label="Subtítulo / Cargo" value={item.subtitle} onChange={v => updateDetailedItem(section.id, i, 'subtitle', v)} onExpandRequest={handleOpenExpand} />
-                        <Input label={t.period} value={item.date} onChange={v => updateDetailedItem(section.id, i, 'date', v)} onExpandRequest={handleOpenExpand} expandDisableRich={true} />
-                        <Input label={t.location} value={item.location} onChange={v => updateDetailedItem(section.id, i, 'location', v)} onExpandRequest={handleOpenExpand} expandDisableRich={true} />
+                            <Input label={t.title + " / " + t.company} value={item.title} onChange={v => updateDetailedItem(section.id, i, 'title', v)} onExpandRequest={handleOpenExpand} expandDisableRich={true} />
+                            <Input label="Subtítulo / Cargo" value={item.subtitle} onChange={v => updateDetailedItem(section.id, i, 'subtitle', v)} onExpandRequest={handleOpenExpand} />
+                        </div>
+                        {typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS && console.log(`✅ [App.js] Bloco detalhado ${i} renderizado com sucesso.`)}
+                        <div className="flex flex-col gap-1 mb-2">
+                            <PeriodInput value={item.date} onChange={v => updateDetailedItem(section.id, i, 'date', v)} />
+                            <Input label={t.location} value={item.location} onChange={v => updateDetailedItem(section.id, i, 'location', v)} onExpandRequest={handleOpenExpand} expandDisableRich={true} />
                         </div>
                         <div className="space-y-1">
                         <label className="text-xs font-semibold text-gray-500 uppercase">Descrição (Tópicos)</label>
@@ -1867,9 +2102,18 @@ export default function App() {
                 <div className="space-y-4">
                     <AddItemButton onClick={() => addCustomCategoryTop(section.id, section.type)} label="Adicionar Categoria" />
                     
+                    // Bloco Modificado (Category)
                     {section.content.map((cat, i) => (
-                    <div key={i} className="bg-gray-50 p-3 rounded relative border border-gray-200">
-                        <button onClick={() => removeCustomCategory(section.id, i)} className="absolute top-2 right-2 text-red-400 hover:text-red-600"><Trash2 size={16}/></button>
+                    <div key={i} className="bg-gray-50 p-3 rounded relative border border-gray-200 transition-all">
+                        <button 
+                            onClick={() => {
+                                if (typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS) console.log(`🗑️ [App.js] Removendo categoria customizada no índice ${i}...`);
+                                removeCustomCategory(section.id, i);
+                            }} 
+                            className="absolute -top-2 -right-2 bg-white text-red-400 p-1 rounded-full shadow-md border border-red-100 z-20 hover:text-red-600 hover:scale-110 transition-transform"
+                        >
+                            <Trash2 size={14}/>
+                        </button>
                         <div className="mb-2 pr-6">
                             <Input label={t.catTitle} value={cat.title} onChange={v => updateCustomCategory(section.id, i, 'title', v)} onExpandRequest={handleOpenExpand}/>
                         </div>
@@ -1883,6 +2127,7 @@ export default function App() {
                                     onUpdate={updateCustomCategoryDesc} 
                                     onRemove={removeCustomCategoryDescLine} 
                                     onAdd={() => addCustomCategoryDescLine(section.id, i, 'category-detailed')} 
+                                    onSort={() => handleSortCustomCategoryItems(section.id, i)}
                                     onExpandRequest={handleOpenExpand}
                                     t={t}
                                 />
@@ -1894,6 +2139,7 @@ export default function App() {
                                     onUpdate={updateCustomCategoryDesc} 
                                     onRemove={removeCustomCategoryDescLine} 
                                     onAdd={() => addCustomCategoryDescLine(section.id, i, 'category-simple')} 
+                                    onSort={() => handleSortCustomCategoryItems(section.id, i)}
                                     onExpandRequest={handleOpenExpand}
                                     t={t}
                                 />
@@ -2123,15 +2369,43 @@ export default function App() {
     }
   };
 
+  // Bloco Modificado
+  // Bloco Modificado
   const renderObjectiveForm = () => {
     const isVisible = data.structure.objective.visible; 
+    
+    // 🚀 Lógica para alternar negrito em todo o texto
+    const isFullBold = data.objective.startsWith('**') && data.objective.endsWith('**');
+    
+    const handleToggleFullBold = () => {
+        let text = data.objective;
+        if (isFullBold) {
+            // Remove os ** do início e fim
+            updateSimpleField('objective', text.slice(2, -2));
+        } else {
+            // Adiciona ** no início e fim
+            updateSimpleField('objective', `**${text}**`);
+        }
+    };
+
     const handleFormatObjective = (type) => {
       applyFormattingWithHistory(objectiveRef, type, (val) => updateSimpleField('objective', val));
     };
 
     return (
+      // Bloco Modificado
       <div className="space-y-4 relative group">
         {renderSectionHeader('objective', t.sections?.objective || "Objetivo")}
+        
+        {/* 🚀 Botão com Rótulo para Negrito Global */}
+        <div className="bg-blue-50/50 p-3 rounded-lg border border-blue-100 flex items-center justify-between mb-2">
+            <span className="text-xs font-bold text-blue-900 uppercase tracking-tight">Todo o texto em negrito</span>
+            <ToggleSwitch 
+                checked={isFullBold} 
+                onChange={handleToggleFullBold} 
+            />
+        </div>
+
         <div className={`transition-opacity duration-300 ${isVisible ? 'opacity-100' : 'opacity-50 pointer-events-none grayscale'}`}>
             <p className="text-xs text-gray-500 mb-1">Dica: Selecione o texto e use os botões que aparecem no canto.</p>
             <div className="relative">
@@ -2276,19 +2550,22 @@ export default function App() {
                 if (EXIBIR_LOGS) console.log(`🗑️ [App.js] Removendo item de experiência no índice: ${idx}`);
                 removeItem('experience', idx);
             }} 
+            onSort={() => handleSortSection('experience')}
             renderHeader={renderSectionHeader}
             isVisible={data.structure.experience.visible}
             onToggle={() => updateStructure('experience', 'visible', !data.structure.experience.visible)}
             t={t}
             renderItem={(ex, i) => (
-                <div className="flex flex-col gap-4">
-                    <div className="grid grid-cols-2 gap-x-4 gap-y-3 mb-2">
+                <div className="flex flex-col gap-2">
+                    <div className="grid grid-cols-2 gap-x-4 mb-1">
                         <Input label={t.company} value={ex.company} onChange={v=>updateItem('experience', i, 'company', v)} onExpandRequest={handleOpenExpand}/>
                         <Input label={t.role} value={ex.role} onChange={v=>updateItem('experience', i, 'role', v)} onExpandRequest={handleOpenExpand}/>
+                    </div>
+                    <div className="flex flex-col gap-1 mb-1">
                         <PeriodInput value={ex.period} onChange={v=>updateItem('experience', i, 'period', v)} />
                         <Input label={t.location} value={ex.location} onChange={v=>updateItem('experience', i, 'location', v)} onExpandRequest={handleOpenExpand}/>
                     </div>
-                    <div className="pt-2 border-t border-gray-200">
+                    <div className="pt-2 mt-2 border-t border-gray-200">
                         <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-2">Detalhamento de Atividades</label>
                         <DraggableExperienceList items={ex.description} sectionId="experience" itemIndex={i} onUpdate={updateArrayItem} onRemove={removeArrayItemFromItem} onAdd={addArrayItemToItem} onExpandRequest={handleOpenExpand} t={t} />
                     </div>
@@ -2305,6 +2582,7 @@ export default function App() {
       items={data.education} 
       onAdd={() => addItemTop('education', {institution:'', degree:'', period:'', location:'', details:''})} 
       onRemove={(idx) => removeItem('education', idx)} 
+      onSort={() => handleSortSection('education')}
       renderHeader={renderSectionHeader}
       isVisible={data.structure.education.visible}
       onToggle={() => updateStructure('education', 'visible', !data.structure.education.visible)}
@@ -2313,7 +2591,7 @@ export default function App() {
         <>
             <Input label={t.institution} value={ed.institution} onChange={v=>updateItem('education', i, 'institution', v)} onExpandRequest={handleOpenExpand}/>
             <Input label={t.degree} value={ed.degree} onChange={v=>updateItem('education', i, 'degree', v)} onExpandRequest={handleOpenExpand}/>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="flex flex-col gap-1 mb-2">
                 <PeriodInput value={ed.period} onChange={v=>updateItem('education', i, 'period', v)} />
                 <Input label={t.location} value={ed.location} onChange={v=>updateItem('education', i, 'location', v)} onExpandRequest={handleOpenExpand}/>
             </div>
@@ -2328,7 +2606,7 @@ export default function App() {
       sectionId="others" 
       title={t.sections?.others || "Outros"}
       items={data.others} 
-      onAdd={() => addItemTop('others', {title: 'Nova Categoria', description: [{ text: '', hours: '', details: '' }]})} 
+      onAdd={() => addItemTop('others', {title: 'Nova Categoria', description: [{ text: '', institution: '', year: '', hours: '', details: '' }]})} 
       onRemove={(idx) => removeItem('others', idx)}
       renderHeader={renderSectionHeader}
       isVisible={data.structure.others.visible}
@@ -2346,6 +2624,7 @@ export default function App() {
             onUpdate={updateArrayItem}
             onRemove={removeArrayItemFromItem}
             onAdd={addArrayItemToItem}
+            onSort={() => handleSortOthersCategory(i)}
             onExpandRequest={handleOpenExpand}
             t={t}
           />
