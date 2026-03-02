@@ -1179,10 +1179,58 @@ export default function App() {
       setData(prev => ({ ...prev, [listId]: currentList }));
     }
 
+    if (type === 'CUSTOM_DETAILED') {
+        if (typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS) console.log("🚀 [App.js] Iniciando reordenação de Item Detalhado Customizado...");
+        const sectionId = source.droppableId.replace('detailed-', '');
+        const customSecs = Array.from(data.customSections);
+        const targetSectionIdx = customSecs.findIndex(s => s.id === sectionId);
+        
+        if (targetSectionIdx > -1) {
+            const targetSection = { ...customSecs[targetSectionIdx] };
+            const currentItems = Array.from(targetSection.content);
+
+            const [reorderedItem] = currentItems.splice(source.index, 1);
+            currentItems.splice(destination.index, 0, reorderedItem);
+
+            targetSection.content = currentItems;
+            customSecs[targetSectionIdx] = targetSection;
+
+            setData(prev => ({ ...prev, customSections: customSecs }));
+            if (typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS) console.log("✅ [App.js] Ordem dos itens detalhados atualizada com sucesso.");
+        }
+        return;
+    }
+
+    if (type === 'CUSTOM_CATEGORY') {
+      if (typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS) console.log("🚀 [App.js] Iniciando reordenação de Categoria Customizada...");
+      const sectionId = source.droppableId.replace('categories-', '');
+      const customSecs = Array.from(data.customSections);
+      const targetSectionIdx = customSecs.findIndex(s => s.id === sectionId);
+      if (targetSectionIdx > -1) {
+          const targetSection = { ...customSecs[targetSectionIdx] };
+          const currentCategories = Array.from(targetSection.content);
+
+          const [reorderedCat] = currentCategories.splice(source.index, 1);
+          currentCategories.splice(destination.index, 0, reorderedCat);
+
+          targetSection.content = currentCategories;
+          customSecs[targetSectionIdx] = targetSection;
+
+          setData(prev => ({ ...prev, customSections: customSecs }));
+          if (typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS) console.log("✅ [App.js] Ordem das categorias atualizada com sucesso.");
+      }
+      return;
+    }
+
     if (type === 'DESCRIPTION_ITEM') {
+      if (typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS) console.log("🚀 [App.js] Processando movimentação de item interno...");
       const parts = source.droppableId.split('-');
       const sectionId = parts[1];
       const itemIdx = parseInt(parts[2]);
+
+      const destParts = destination.droppableId.split('-');
+      const destSectionId = destParts[1];
+      const destItemIdx = parseInt(destParts[2]);
 
       if (sectionId.startsWith('custom-')) {
           const customSecs = Array.from(data.customSections);
@@ -1190,33 +1238,68 @@ export default function App() {
           if (targetSectionIdx > -1) {
               const targetSection = { ...customSecs[targetSectionIdx] };
               const sectionItems = Array.from(targetSection.content);
-              const targetItem = { ...sectionItems[itemIdx] };
-              const currentDescriptions = Array.from(targetItem.description);
 
-              const [reorderedDesc] = currentDescriptions.splice(source.index, 1);
-              currentDescriptions.splice(destination.index, 0, reorderedDesc);
+              if (source.droppableId === destination.droppableId) {
+                  const targetItem = { ...sectionItems[itemIdx] };
+                  const currentDescriptions = Array.from(targetItem.description);
+                  const [reorderedDesc] = currentDescriptions.splice(source.index, 1);
+                  currentDescriptions.splice(destination.index, 0, reorderedDesc);
+                  targetItem.description = currentDescriptions;
+                  sectionItems[itemIdx] = targetItem;
+              } else {
+                  const sourceItem = { ...sectionItems[itemIdx] };
+                  const destItem = { ...sectionItems[destItemIdx] };
+                  const sourceDescriptions = Array.from(sourceItem.description);
+                  const destDescriptions = Array.from(destItem.description);
 
-              targetItem.description = currentDescriptions;
-              sectionItems[itemIdx] = targetItem;
+                  const [movedDesc] = sourceDescriptions.splice(source.index, 1);
+                  destDescriptions.splice(destination.index, 0, movedDesc);
+
+                  sourceItem.description = sourceDescriptions;
+                  destItem.description = destDescriptions;
+
+                  sectionItems[itemIdx] = sourceItem;
+                  sectionItems[destItemIdx] = destItem;
+              }
+
               targetSection.content = sectionItems;
               customSecs[targetSectionIdx] = targetSection;
-
               setData(prev => ({ ...prev, customSections: customSecs }));
+              if (typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS) console.log("✅ [App.js] Movimentação de item concluída na seção customizada.");
           }
           return;
       }
 
-      const sectionItems = Array.from(data[sectionId]);
-      const targetItem = { ...sectionItems[itemIdx] };
-      const currentDescriptions = Array.from(targetItem.description);
+      if (source.droppableId === destination.droppableId) {
+          const sectionItems = Array.from(data[sectionId]);
+          const targetItem = { ...sectionItems[itemIdx] };
+          const currentDescriptions = Array.from(targetItem.description);
 
-      const [reorderedDesc] = currentDescriptions.splice(source.index, 1);
-      currentDescriptions.splice(destination.index, 0, reorderedDesc);
+          const [reorderedDesc] = currentDescriptions.splice(source.index, 1);
+          currentDescriptions.splice(destination.index, 0, reorderedDesc);
 
-      targetItem.description = currentDescriptions;
-      sectionItems[itemIdx] = targetItem;
+          targetItem.description = currentDescriptions;
+          sectionItems[itemIdx] = targetItem;
 
-      setData(prev => ({ ...prev, [sectionId]: sectionItems }));
+          setData(prev => ({ ...prev, [sectionId]: sectionItems }));
+      } else {
+          const sectionItems = Array.from(data[sectionId]);
+          const sourceItem = { ...sectionItems[itemIdx] };
+          const destItem = { ...sectionItems[destItemIdx] };
+          const sourceDescriptions = Array.from(sourceItem.description);
+          const destDescriptions = Array.from(destItem.description);
+
+          const [movedDesc] = sourceDescriptions.splice(source.index, 1);
+          destDescriptions.splice(destination.index, 0, movedDesc);
+
+          sourceItem.description = sourceDescriptions;
+          destItem.description = destDescriptions;
+          sectionItems[itemIdx] = sourceItem;
+          sectionItems[destItemIdx] = destItem;
+
+          setData(prev => ({ ...prev, [sectionId]: sectionItems }));
+      }
+      return;
     }
   };
 
@@ -2060,93 +2143,131 @@ export default function App() {
                         </button>
                     </div>
                     
-                    {section.content.map((item, i) => (
-                    <div key={i} className="bg-gray-50 p-3 rounded relative border border-gray-200 transition-all hover:border-blue-200">
-                        {/* 🚀 Iniciando implementação da lixeira flutuante... */}
-                        <button 
-                            onClick={() => {
-                                if (typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS) console.log(`🗑️ [App.js] Removendo item da seção detalhada customizada...`);
-                                removeDetailedItem(section.id, i);
-                            }} 
-                            className="absolute -top-2 -right-2 bg-white text-red-400 p-1 rounded-full shadow-md border border-red-100 z-30 hover:text-red-600 hover:scale-110 transition-transform"
-                        >
-                            <Trash2 size={14}/>
-                        </button>
-                        <div className="grid grid-cols-2 gap-2 mb-2">
-                            <Input label={t.title + " / " + t.company} value={item.title} onChange={v => updateDetailedItem(section.id, i, 'title', v)} onExpandRequest={handleOpenExpand} expandDisableRich={true} />
-                            <Input label="Subtítulo / Cargo" value={item.subtitle} onChange={v => updateDetailedItem(section.id, i, 'subtitle', v)} onExpandRequest={handleOpenExpand} />
-                        </div>
-                        {typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS && console.log(`✅ [App.js] Bloco detalhado ${i} renderizado com sucesso.`)}
-                        <div className="flex flex-col gap-1 mb-2">
-                            <PeriodInput value={item.date} onChange={v => updateDetailedItem(section.id, i, 'date', v)} />
-                            <Input label={t.location} value={item.location} onChange={v => updateDetailedItem(section.id, i, 'location', v)} onExpandRequest={handleOpenExpand} expandDisableRich={true} />
-                        </div>
-                        <div className="space-y-1">
-                        <label className="text-xs font-semibold text-gray-500 uppercase">Descrição (Tópicos)</label>
-                        <DraggableDescriptionList 
-                            items={item.description} 
-                            sectionId={section.id} 
-                            itemIndex={i} 
-                            onUpdate={updateDetailedItemDesc} 
-                            onRemove={removeDetailedItemDescLine} 
-                            onAdd={addDetailedItemDescLine} 
-                            onExpandRequest={handleOpenExpand}
-                            t={t}
-                        />
-                        </div>
-                    </div>
-                    ))}
+                    <Droppable droppableId={`detailed-${section.id}`} type="CUSTOM_DETAILED">
+                        {(provided) => (
+                            <div {...provided.droppableProps} ref={provided.innerRef} className="space-y-4">
+                                {section.content.map((item, i) => (
+                                    <Draggable key={`${section.id}-det-${i}`} draggableId={`${section.id}-det-${i}`} index={i}>
+                                        {(provided, snapshot) => (
+                                            <div 
+                                                ref={provided.innerRef}
+                                                {...provided.draggableProps}
+                                                className={`bg-gray-50 p-3 pl-8 rounded relative border transition-all ${snapshot.isDragging ? 'border-blue-500 shadow-xl z-50' : 'border-gray-200 hover:border-blue-200'}`}
+                                            >
+                                                {/* Drag Handle para o Item Detalhado Inteiro */}
+                                                <div {...provided.dragHandleProps} className="absolute left-2 top-4 text-gray-400 hover:text-gray-600 cursor-grab">
+                                                    <GripVertical size={20} />
+                                                </div>
+
+                                                <button 
+                                                    onClick={() => {
+                                                        if (typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS) console.log(`🗑️ [App.js] Removendo item da seção detalhada customizada...`);
+                                                        removeDetailedItem(section.id, i);
+                                                    }} 
+                                                    className="absolute -top-2 -right-2 bg-white text-red-400 p-1 rounded-full shadow-md border border-red-100 z-30 hover:text-red-600 hover:scale-110 transition-transform"
+                                                >
+                                                    <Trash2 size={14}/>
+                                                </button>
+                                                <div className="grid grid-cols-2 gap-2 mb-2">
+                                                    <Input label={t.title + " / " + t.company} value={item.title} onChange={v => updateDetailedItem(section.id, i, 'title', v)} onExpandRequest={handleOpenExpand} expandDisableRich={true} />
+                                                    <Input label="Subtítulo / Cargo" value={item.subtitle} onChange={v => updateDetailedItem(section.id, i, 'subtitle', v)} onExpandRequest={handleOpenExpand} />
+                                                </div>
+                                                {typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS && console.log(`✅ [App.js] Bloco detalhado ${i} renderizado com sucesso.`)}
+                                                <div className="flex flex-col gap-1 mb-2">
+                                                    <PeriodInput value={item.date} onChange={v => updateDetailedItem(section.id, i, 'date', v)} />
+                                                    <Input label={t.location} value={item.location} onChange={v => updateDetailedItem(section.id, i, 'location', v)} onExpandRequest={handleOpenExpand} expandDisableRich={true} />
+                                                </div>
+                                                <div className="space-y-1">
+                                                <label className="text-xs font-semibold text-gray-500 uppercase">Descrição (Tópicos)</label>
+                                                <DraggableDescriptionList 
+                                                    items={item.description} 
+                                                    sectionId={section.id} 
+                                                    itemIndex={i} 
+                                                    onUpdate={updateDetailedItemDesc} 
+                                                    onRemove={removeDetailedItemDescLine} 
+                                                    onAdd={addDetailedItemDescLine} 
+                                                    onExpandRequest={handleOpenExpand}
+                                                    t={t}
+                                                />
+                                                </div>
+                                            </div>
+                                        )}
+                                    </Draggable>
+                                ))}
+                                {provided.placeholder}
+                            </div>
+                        )}
+                    </Droppable>
                 </div>
                 )}
                    {(section.type === 'category-detailed' || section.type === 'category-simple') && (
                 <div className="space-y-4">
                     <AddItemButton onClick={() => addCustomCategoryTop(section.id, section.type)} label="Adicionar Categoria" />
-                    
-                    // Bloco Modificado (Category)
-                    {section.content.map((cat, i) => (
-                    <div key={i} className="bg-gray-50 p-3 rounded relative border border-gray-200 transition-all">
-                        <button 
-                            onClick={() => {
-                                if (typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS) console.log(`🗑️ [App.js] Removendo categoria customizada no índice ${i}...`);
-                                removeCustomCategory(section.id, i);
-                            }} 
-                            className="absolute -top-2 -right-2 bg-white text-red-400 p-1 rounded-full shadow-md border border-red-100 z-20 hover:text-red-600 hover:scale-110 transition-transform"
-                        >
-                            <Trash2 size={14}/>
-                        </button>
-                        <div className="mb-2 pr-6">
-                            <Input label={t.catTitle} value={cat.title} onChange={v => updateCustomCategory(section.id, i, 'title', v)} onExpandRequest={handleOpenExpand}/>
-                        </div>
-                        <div className="space-y-1">
-                            <label className="text-xs font-semibold text-gray-500 uppercase">Itens da Categoria</label>
-                            {section.type === 'category-detailed' ? (
-                                <DraggableOthersList 
-                                    items={cat.description} 
-                                    sectionId={section.id} 
-                                    itemIndex={i} 
-                                    onUpdate={updateCustomCategoryDesc} 
-                                    onRemove={removeCustomCategoryDescLine} 
-                                    onAdd={() => addCustomCategoryDescLine(section.id, i, 'category-detailed')} 
-                                    onSort={() => handleSortCustomCategoryItems(section.id, i)}
-                                    onExpandRequest={handleOpenExpand}
-                                    t={t}
-                                />
-                            ) : (
-                                <DraggableDescriptionList 
-                                    items={cat.description} 
-                                    sectionId={section.id} 
-                                    itemIndex={i} 
-                                    onUpdate={updateCustomCategoryDesc} 
-                                    onRemove={removeCustomCategoryDescLine} 
-                                    onAdd={() => addCustomCategoryDescLine(section.id, i, 'category-simple')} 
-                                    onSort={() => handleSortCustomCategoryItems(section.id, i)}
-                                    onExpandRequest={handleOpenExpand}
-                                    t={t}
-                                />
-                            )}
-                        </div>
-                    </div>
-                    ))}
+
+                    <Droppable droppableId={`categories-${section.id}`} type="CUSTOM_CATEGORY">
+                        {(provided) => (
+                            <div {...provided.droppableProps} ref={provided.innerRef} className="space-y-4">
+                                {section.content.map((cat, i) => (
+                                    <Draggable key={`${section.id}-cat-${i}`} draggableId={`${section.id}-cat-${i}`} index={i}>
+                                        {(provided, snapshot) => (
+                                            <div
+                                                ref={provided.innerRef}
+                                                {...provided.draggableProps}
+                                                className={`bg-gray-50 p-3 pl-8 rounded relative border transition-all ${snapshot.isDragging ? 'border-blue-500 shadow-xl z-50' : 'border-gray-200'}`}
+                                            >
+                                                {/* 🚀 Drag Handle para a Categoria Inteira */}
+                                                <div {...provided.dragHandleProps} className="absolute left-2 top-4 text-gray-400 hover:text-gray-600 cursor-grab">
+                                                    <GripVertical size={20} />
+                                                </div>
+
+                                                <button 
+                                                    onClick={() => {
+                                                        if (typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS) console.log(`🗑️ [App.js] Removendo categoria customizada no índice ${i}...`);
+                                                        removeCustomCategory(section.id, i);
+                                                    }} 
+                                                    className="absolute -top-2 -right-2 bg-white text-red-400 p-1 rounded-full shadow-md border border-red-100 z-20 hover:text-red-600 hover:scale-110 transition-transform"
+                                                >
+                                                    <Trash2 size={14}/>
+                                                </button>
+                                                <div className="mb-2 pr-6">
+                                                    <Input label={t.catTitle} value={cat.title} onChange={v => updateCustomCategory(section.id, i, 'title', v)} onExpandRequest={handleOpenExpand}/>
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <label className="text-xs font-semibold text-gray-500 uppercase">Itens da Categoria</label>
+                                                    {section.type === 'category-detailed' ? (
+                                                        <DraggableOthersList 
+                                                            items={cat.description} 
+                                                            sectionId={section.id} 
+                                                            itemIndex={i} 
+                                                            onUpdate={updateCustomCategoryDesc} 
+                                                            onRemove={removeCustomCategoryDescLine} 
+                                                            onAdd={() => addCustomCategoryDescLine(section.id, i, 'category-detailed')} 
+                                                            onSort={() => handleSortCustomCategoryItems(section.id, i)}
+                                                            onExpandRequest={handleOpenExpand}
+                                                            t={t}
+                                                        />
+                                                    ) : (
+                                                        <DraggableDescriptionList 
+                                                            items={cat.description} 
+                                                            sectionId={section.id} 
+                                                            itemIndex={i} 
+                                                            onUpdate={updateCustomCategoryDesc} 
+                                                            onRemove={removeCustomCategoryDescLine} 
+                                                            onAdd={() => addCustomCategoryDescLine(section.id, i, 'category-simple')} 
+                                                            onSort={() => handleSortCustomCategoryItems(section.id, i)}
+                                                            onExpandRequest={handleOpenExpand}
+                                                            t={t}
+                                                        />
+                                                    )}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </Draggable>
+                                ))}
+                                {provided.placeholder}
+                            </div>
+                        )}
+                    </Droppable>
                 </div>
                 )}
             </div>
