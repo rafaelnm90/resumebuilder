@@ -691,11 +691,12 @@ export default function ResumePreview({ data, settings }) {
                         <div key={i} className={`${pageBreakClass} measure-node`}>
                         <div className="flex flex-row items-baseline justify-between flex-row-print">
                             <div className="font-bold text-[1.05em] leading-tight break-words flex-1 pr-4">{exp.company}</div>
-                            <div className={`text-[0.9em] text-right leading-tight flex-shrink-0 ${rightTextStyle}`} style={{ width: expColWidthCSS, color: rightTextColor }}>{exp.location}</div>
+                            {typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS && i === 0 && console.log("🔄 [ResumePreview.js] Layout invertido: Período no topo, Local embaixo.")}
+                            <div className={`text-[0.9em] text-right leading-tight flex-shrink-0 ${rightTextStyle}`} style={{ width: expColWidthCSS, color: rightTextColor }}>{exp.period}</div>
                         </div>
                         <div className="flex flex-row items-baseline justify-between flex-row-print">
                             <div className="italic font-medium leading-tight break-words flex-1 pr-4" style={{ color: roleColor }}>{exp.role}</div>
-                            <div className={`text-[0.9em] text-right leading-tight flex-shrink-0 ${rightTextStyle}`} style={{ width: expColWidthCSS, color: rightTextColor }}>{exp.period}</div>
+                            <div className={`text-[0.9em] text-right leading-tight flex-shrink-0 ${rightTextStyle}`} style={{ width: expColWidthCSS, color: rightTextColor }}>{exp.location}</div>
                         </div>
                         <div className="mt-0" style={{ paddingRight: expColWidthCSS }}>
                             <ul className="list-outside" style={{...innerListStyle, paddingLeft: '1.2em'}}>
