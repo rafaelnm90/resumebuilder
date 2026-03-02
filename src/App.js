@@ -2854,7 +2854,11 @@ export default function App() {
           }));
           setEditingHistoryId(null);
       } else {
-          if (typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS) console.log("🚀 [App.js] Arquivando versão atual no histórico JSON...");
+          if (typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS) console.log("🚀 [App.js] Iniciando higienização e arquivamento de versão no histórico...");
+          
+          // 🧹 Isola o histórico do restante dos dados para cortar o Efeito Inception
+          const { history: _ignoredHistory, ...cleanData } = data;
+          
           const newEntry = {
               id: Date.now().toString(),
               applyDate: dataFormatada,
@@ -2863,19 +2867,23 @@ export default function App() {
               role: historyForm.role,
               url: historyForm.url,
               jobDescription: historyForm.description,
-              snapshotData: JSON.parse(JSON.stringify(data)),
+              snapshotData: JSON.parse(JSON.stringify(cleanData)),
               snapshotSettings: JSON.parse(JSON.stringify(settings))
           };
           setData(prev => ({ ...prev, history: [newEntry, ...(prev.history || [])] }));
+          if (typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS) console.log("✅ [App.js] Sucesso: Nova vaga salva de forma limpa, sem vazamento recursivo.");
       }
       
       setHistoryForm({ company: '', role: '', url: '', description: '', applyDate: new Date().toISOString().slice(0, 10) });
   };
 
   const handleSaveMasterResume = () => {
-      if (typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS) console.log("🌟 [App.js] Salvando novo Currículo Principal...");
+      if (typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS) console.log("🚀 [App.js] Iniciando salvamento do Currículo Principal...");
       const dataPartes = historyForm.applyDate.split('-');
       const dataFormatada = `${dataPartes[2]}/${dataPartes[1]}/${dataPartes[0]}`;
+
+      // 🧹 Isola o histórico para impedir crescimento exponencial
+      const { history: _ignoredHistory, ...cleanData } = data;
 
       const masterEntry = {
           id: Date.now().toString(),
@@ -2885,13 +2893,13 @@ export default function App() {
           role: 'Meu Currículo Principal',
           url: '',
           jobDescription: 'Esta é a versão mais completa do seu currículo. Use este registro como ponto de partida (clicando em Restaurar) sempre que for criar um currículo focado em uma nova vaga.',
-          snapshotData: JSON.parse(JSON.stringify(data)),
+          snapshotData: JSON.parse(JSON.stringify(cleanData)),
           snapshotSettings: JSON.parse(JSON.stringify(settings)),
           isMaster: true
       };
       
       setData(prev => ({ ...prev, history: [masterEntry, ...(prev.history || [])] }));
-      if (typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS) console.log("✅ [App.js] Currículo Principal salvo com sucesso.");
+      if (typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS) console.log("✅ [App.js] Sucesso: Currículo Principal salvo com dados rigorosamente higienizados.");
   };
 
   const renderHistoryForm = () => (
@@ -3076,15 +3084,20 @@ export default function App() {
                                                          <button 
                                                             onClick={() => {
                                                                 if(window.confirm("⚠️ ATENÇÃO: Sobrescrever os dados desta base com o que está na tela agora?")) {
+                                                                    if (typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS) console.log("🚀 [App.js] Iniciando sobrescrita na base existente (higienizando histórico aninhado)...");
+                                                                    
+                                                                    // 🧹 Prevenção do erro de Efeito Inception
+                                                                    const { history: _ignoredHistory, ...cleanData } = data;
+                                                                    
                                                                     setData(prev => ({
                                                                         ...prev,
                                                                         history: prev.history.map(h => h.id === item.id ? {
                                                                             ...h,
-                                                                            snapshotData: JSON.parse(JSON.stringify(data)),
+                                                                            snapshotData: JSON.parse(JSON.stringify(cleanData)),
                                                                             snapshotSettings: JSON.parse(JSON.stringify(settings))
                                                                         } : h)
                                                                     }));
-                                                                    if (typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS) console.log(`🔄 [App.js] Currículo Principal atualizado com os dados da tela (ID: ${item.id}).`);
+                                                                    if (typeof EXIBIR_LOGS !== 'undefined' && EXIBIR_LOGS) console.log(`✅ [App.js] Sucesso: Base Mestre (ID: ${item.id}) atualizada sem redundância recursiva.`);
                                                                 }
                                                             }}
                                                             className="w-full px-3 py-1.5 font-bold text-xs rounded-lg border transition-colors flex items-center justify-center bg-purple-100 text-purple-800 hover:bg-purple-200 border-purple-300 shadow-sm active:scale-95"
